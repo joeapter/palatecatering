@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shabbos Orders | Palate Catering</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://unpkg.com/hebcal@2.5.0/dist/hebcal.browser.min.js"></script>
+    <style>
+      .grain { background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0); background-size: 18px 18px; }
+      .bg-shape { filter: blur(60px); opacity: 0.3; }
+      .card-surface { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.04); box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+    </style>
+  </head>
+
+  <body class="bg-neutral-50 text-neutral-900 grain">
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur border-b border-neutral-200 sticky top-0 z-40">
+      <div class="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/assets/logo.png" alt="Palate Catering" class="h-10 w-auto" />
+          <span class="font-serif text-xl">Palate Catering</span>
+        </a>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex gap-6 text-sm">
+          <a href="/#about" class="hover:opacity-70">About</a>
+          <a href="/#events" class="hover:opacity-70">Events</a>
+          <a href="/Corporate-Catering.html" class="hover:opacity-70">Corporate Catering</a>
+          <a href="/bris.html" class="hover:opacity-70">Bris Packages</a>
+          <a href="/#gallery" class="hover:opacity-70">Gallery</a>
+          <a href="/#services" class="hover:opacity-70">Services</a>
+          <a href="/#contact" class="hover:opacity-70">Contact</a>
+          <a href="/shabbos.html" class="font-semibold">Shabbos</a>
+        </nav>
+
+        <!-- Mobile Menu Button -->
+        <button id="menuBtn" class="md:hidden p-2 rounded focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile Nav -->
+      <div id="mobileNav" class="hidden md:hidden bg-white border-t border-neutral-200">
+        <nav class="flex flex-col text-center p-4 space-y-3">
+          <a href="/#about" class="block">About</a>
+          <a href="/#events" class="block">Events</a>
+          <a href="/Corporate-Catering.html" class="block">Corporate Catering</a>
+          <a href="/bris.html" class="block">Bris Packages</a>
+          <a href="/#gallery" class="block">Gallery</a>
+          <a href="/#services" class="block">Services</a>
+          <a href="/#contact" class="block">Contact</a>
+          <a href="/shabbos.html" class="block font-semibold">Shabbos</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="relative overflow-hidden">
+      <div class="absolute inset-0 pointer-events-none select-none" aria-hidden="true">
+        <div class="bg-shape absolute -top-10 -left-10 w-80 h-80 rounded-full bg-amber-200"></div>
+        <div class="bg-shape absolute top-20 right-0 w-96 h-96 rounded-full bg-amber-500/40"></div>
+      </div>
+
+      <div class="max-w-6xl mx-auto px-6 py-12 relative z-10 space-y-10">
+        <section class="flex flex-col lg:flex-row gap-8 lg:items-center">
+          <div class="flex-1">
+            <p class="uppercase text-xs tracking-[0.32em] text-amber-700 mb-3">Weekly Menu</p>
+            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Order a polished Shabbos spread</h1>
+            <p class="text-neutral-600 text-lg max-w-2xl">
+              Build your full menu, confirm your details, and we’ll reply with an email confirmation.
+            </p>
+          </div>
+          <div class="card-surface rounded-3xl p-6 lg:w-[420px]">
+            <div class="flex items-start gap-3 mb-4">
+              <span class="inline-flex h-10 w-10 rounded-full bg-amber-100 text-amber-800 items-center justify-center font-semibold">⏳</span>
+              <div>
+                <p class="text-sm text-neutral-600">Cutoff</p>
+                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Wednesday 23:59 (Israel)</p>
+                <p class="text-sm text-neutral-600 mt-1" id="orderStatusText"></p>
+              </div>
+            </div>
+            <div class="text-sm text-neutral-600 leading-relaxed" id="orderShabbosLabel">
+              Taking orders for Shabbos — date loading…
+            </div>
+          </div>
+        </section>
+
+        <form name="shabbos-order" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" action="/thank-you.html" id="orderForm" class="space-y-12 card-surface rounded-3xl p-6 md:p-8">
+          <input type="hidden" name="form-name" value="shabbos-order" />
+          <input type="hidden" name="bot-field" />
+
+        <!-- Hidden order fields -->
+        <input type="hidden" id="orderSummaryField" name="Order Summary" />
+        <input type="hidden" id="orderSummaryTextField" name="Order Summary (Text)" />
+        <input type="hidden" id="orderTotalField" name="Order Total" />
+        <input type="hidden" id="orderEmailBodyField" name="Order Email Body" />
+        <input type="hidden" id="orderItemsField" />
+
+        <div id="menuContainer" class="space-y-12"></div>
+
+        <!-- Customer Info -->
+        <section>
+          <h2 class="text-2xl font-serif mb-4">Your Details</h2>
+          <h3 class="text-md mb-2">
+            <strong>Beit Shemesh Delivery:</strong> ₪20 — Free over ₪500 |
+            <strong>Yerushalayim Delivery:</strong> ₪100 — Free over ₪1000
+          </h3>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <input type="text" name="Name" placeholder="Name" required class="border rounded-md px-3 py-2" />
+            <input type="tel" name="Phone" placeholder="Phone" required class="border rounded-md px-3 py-2" />
+            <input type="email" name="Email" placeholder="Email" class="border rounded-md px-3 py-2 md:col-span-2" />
+            <div class="md:col-span-2">
+              <label class="text-sm text-neutral-700 font-medium">Which Shabbos?</label>
+              <select id="shabbosSelect" name="Shabbos Date" class="mt-1 w-full border rounded-md px-3 py-2"></select>
+              <p id="shabbosNote" class="text-xs text-amber-700 mt-1"></p>
+            </div>
+            <textarea name="Delivery Address" rows="3" placeholder="Delivery Address"
+              class="border rounded-md px-3 py-2 md:col-span-2"></textarea>
+            <textarea name="Allergies" rows="3" placeholder="Allergies or dietary needs"
+              class="border rounded-md px-3 py-2 md:col-span-2"></textarea>
+            <textarea name="Notes" rows="3" placeholder="Notes"
+              class="border rounded-md px-3 py-2 md:col-span-2"></textarea>
+          </div>
+        </section>
+
+        <!-- Total and Submit -->
+        <div class="border-t pt-6">
+          <div class="flex justify-between items-center text-lg font-semibold">
+            <span>Total:</span>
+            <span id="orderTotal">₪0</span>
+          </div>
+          <label class="flex items-center gap-2 mt-4">
+            <input type="checkbox" required class="accent-neutral-800" />
+            <span class="text-sm text-neutral-600">
+              I agree that submitting this form constitutes a confirmed order.
+            </span>
+          </label>
+          <p class="text-sm text-neutral-700 mt-3">Customer questions: <a href="tel:+972587280062" class="underline">058-728-0062</a></p>
+          <button type="submit"
+            class="mt-6 bg-neutral-900 text-white px-8 py-3 rounded-full hover:bg-neutral-800">Submit Order</button>
+        </div>
+        </form>
+
+        <section class="card-surface rounded-3xl p-6 md:p-8">
+          <h2 class="text-2xl font-serif mb-3">Delivery & Minimums</h2>
+          <p class="text-neutral-700 mb-3">Beit Shemesh/RBS: ₪20 · Free over ₪500</p>
+          <p class="text-neutral-700 mb-3">Yerushalayim: ₪100 · Free over ₪1000</p>
+          <p class="text-neutral-600 text-sm">No payment is taken online. Delivery is confirmed in your email response.</p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="py-10 text-center text-sm text-neutral-500">
+      © <span id="year"></span> Palate Catering. All rights reserved.
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay"
+         class="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-[9999] hidden pointer-events-none">
+      <div class="w-12 h-12 border-4 border-[#b8860b]/30 border-t-[#b8860b] rounded-full animate-spin mb-6"></div>
+      <p id="loadingMessage" class="text-neutral-700 font-medium">Loading, please wait...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+      const { jsPDF } = window.jspdf;
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      // Mobile menu toggle
+      document.getElementById("menuBtn").addEventListener("click", () => {
+        document.getElementById("mobileNav").classList.toggle("hidden");
+      });
+
+      const sheetURL =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRL84-s43lp3TIhS3ZvMqVuwAE0bcY4QpnliXmajQI6N7YapP9hddCXdAGD83R6UHDGs0qoUj9QuttR/pub?output=csv";
+
+      function nowInIsrael() {
+        return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jerusalem" }));
+      }
+      function shabbosDate(weeksAhead = 0) {
+        const now = nowInIsrael();
+        const day = now.getDay(); // 0=Sun .. 6=Sat
+        const daysToSat = (6 - day + 7) % 7;
+        const d = new Date(now);
+        d.setHours(12, 0, 0, 0);
+        d.setDate(d.getDate() + daysToSat + weeksAhead * 7);
+        return d;
+      }
+      function formatDate(d) {
+        return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      }
+      function labelShabbos(d, parshaName) {
+        return parshaName ? `Shabbos Parshas ${parshaName} — ${formatDate(d)}` : `Shabbos — ${formatDate(d)}`;
+      }
+      function getCutoffFor(date) {
+        const cutoff = new Date(date);
+        cutoff.setDate(cutoff.getDate() - 3); // Wednesday night before Shabbos
+        cutoff.setHours(23, 59, 59, 999);
+        return cutoff;
+      }
+
+      function parshaForDate(dateObj) {
+        try {
+          const h = new Hebcal.HDate(dateObj, 'israel');
+          const sedra = h.getSedra('israel');
+          if (sedra && sedra.length) return sedra[0];
+        } catch (err) {
+          console.warn("Parsha calc failed", err);
+        }
+        return "";
+      }
+
+      async function populateShabbosOptions() {
+        const select = document.getElementById("shabbosSelect");
+        const note = document.getElementById("shabbosNote");
+        const status = document.getElementById("orderStatusText");
+        const labelEl = document.getElementById("orderShabbosLabel");
+        if (!select) return;
+
+        const options = [];
+        const today = nowInIsrael();
+        for (let weeks = 0; weeks <= 104; weeks++) {
+          const d = shabbosDate(weeks);
+          const iso = d.toISOString().slice(0,10);
+          const parsha = parshaForDate(d);
+          const cutoff = getCutoffFor(d);
+          const closed = today > cutoff;
+          options.push({
+            value: labelShabbos(d, parsha),
+            text: labelShabbos(d, parsha) + (closed ? " (closed)" : ""),
+            closed
+          });
+        }
+
+        select.innerHTML = "";
+        options.forEach((o, idx) => {
+          const opt = document.createElement("option");
+          opt.value = o.value;
+          opt.textContent = o.text;
+          opt.disabled = o.closed;
+          if (!o.closed && select.selectedIndex === -1) opt.selected = true;
+          select.appendChild(opt);
+        });
+
+        if (status) {
+          const firstOpen = options.find(o => !o.closed);
+          const firstClosed = options.find(o => o.closed);
+          status.textContent = firstOpen
+            ? `Next open week: ${firstOpen.value}`
+            : (firstClosed ? `${firstClosed.value} is closed.` : "Ordering currently closed.");
+        }
+        const firstOpen = options.find(o => !o.closed);
+        if (labelEl && firstOpen) labelEl.textContent = firstOpen.value;
+        if (note) note.textContent = "Orders close Wednesday 23:59 Israel time for that week.";
+
+        const cutoffText = document.getElementById("orderCutoffText");
+        if (cutoffText) cutoffText.textContent = "Orders lock Wednesday 23:59 (Israel) for this Shabbos.";
+      }
+
+      function renderMenu(data) {
+        const container = document.getElementById("menuContainer");
+        const grouped = {};
+        data.forEach((row) => {
+          const { Category, Item, Description, Price, SoldBy, ImageURL, QtyLabel } = row;
+          if (!Category || !Item) return;
+          if (!grouped[Category]) grouped[Category] = [];
+          grouped[Category].push({ Item, Description, Price, SoldBy, ImageURL, QtyLabel });
+        });
+
+        for (const [cat, items] of Object.entries(grouped)) {
+          const section = document.createElement("section");
+          section.innerHTML = `
+            <h2 class="text-3xl font-serif mb-4">${cat}</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${items.map(i => `
+                <div class="bg-white/90 border border-neutral-200/80 rounded-2xl shadow-xl overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition flex flex-col justify-between">
+                  <img src="${i.ImageURL || ''}" alt="${i.Item}" class="w-full h-40 object-cover" />
+                  <div class="p-4 flex flex-col justify-between h-full">
+                    <div>
+                      <h3 class="font-semibold text-neutral-900">${i.Item}</h3>
+                      <p class="text-sm text-neutral-600 mb-3">${i.Description || ""}</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-medium text-neutral-800">₪${i.Price} / ${i.SoldBy}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm text-neutral-700 font-medium">${i.QtyLabel || "Order Qty"}</span>
+                        <input type="number" name="${i.Item} Qty" min="0"
+                          class="w-16 border rounded-md text-center"
+                          data-price="${i.Price}"
+                          data-soldby="${i.SoldBy}" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>`;
+          container.appendChild(section);
+        }
+
+        document.querySelectorAll('input[type="number"]').forEach((input) =>
+          input.addEventListener("input", updateTotals)
+        );
+      }
+
+      function updateTotals() {
+        let total = 0;
+        const items = [];
+        const textList = [];
+
+        document.querySelectorAll('input[type="number"]').forEach((input) => {
+          const qty = parseFloat(input.value) || 0;
+          if (!qty) return;
+          const price = parseFloat(input.dataset.price) || 0;
+          const soldBy = input.dataset.soldby || "";
+          const itemName = input.name.replace(/ *Qty$/, '').trim();
+          const lineTotal = qty * price;
+          total += lineTotal;
+          items.push({ item: itemName, qty, soldBy, price, lineTotal });
+          textList.push(`${itemName}: ${qty}${soldBy ? ' ' + soldBy : ''}`);
+        });
+
+        const allergyInput = document.querySelector('textarea[name="Allergies"]');
+        const allergyText = allergyInput?.value.trim();
+        if (allergyText) textList.unshift(`ALLERGIES: ${allergyText}`);
+
+        const totalLabel = "₪" + total.toFixed(2);
+        const name = document.querySelector('input[name="Name"]')?.value || "";
+        const phone = document.querySelector('input[name="Phone"]')?.value || "";
+        const email = document.querySelector('input[name="Email"]')?.value || "";
+        const address = document.querySelector('textarea[name="Delivery Address"]')?.value || "";
+        const shabbosLabel = document.querySelector('select[name="Shabbos Date"]')?.value || "";
+
+        const emailBody = buildEmailBody({
+          name,
+          phone,
+          email,
+          address,
+          shabbosLabel,
+          allergies: allergyText || "",
+          total: totalLabel,
+          items
+        });
+
+        document.getElementById("orderTotal").textContent = totalLabel;
+        document.getElementById("orderTotalField").value = totalLabel;
+        document.getElementById("orderSummaryField").value = emailBody;
+        document.getElementById("orderSummaryTextField").value = textList.join("\n");
+        document.getElementById("orderEmailBodyField").value = emailBody;
+        document.getElementById("orderItemsField").value = JSON.stringify(items);
+      }
+
+      async function generateAndUploadPDF(data) {
+        const pdf = new jsPDF();
+        const gold = [184, 134, 11];
+
+        // Simple, fast header (no background images)
+        pdf.setTextColor(30, 30, 30);
+        pdf.setFontSize(18);
+        pdf.text("Palate Catering", 15, 18);
+        pdf.setFontSize(11);
+        pdf.text("058-728-0062", 15, 26);
+        pdf.setFontSize(13);
+        pdf.text(data.shabbosLabel, 15, 38);
+        pdf.setFontSize(12);
+        pdf.text(`Order Total: ${data.total}`, 195, 26, null, null, "right");
+        if (data.allergies) {
+          pdf.setTextColor(161, 39, 22);
+          pdf.setFont(undefined, "bold");
+          pdf.text(`Allergies: ${data.allergies}`, 15, 50);
+          pdf.setTextColor(30, 30, 30);
+          pdf.setFont(undefined, "normal");
+        }
+
+        pdf.setTextColor(40, 40, 40);
+        let line = data.allergies ? 62 : 54;
+        pdf.text(`Name: ${data.name}`, 15, line); line += 7;
+        pdf.text(`Phone: ${data.phone}`, 15, line); line += 7;
+        pdf.text(`Email: ${data.email}`, 15, line); line += 7;
+        pdf.text(`Address: ${data.address}`, 15, line); line += 7;
+        pdf.text(`Total: ${data.total}`, 15, line); line += 12;
+        const tableStart = line;
+
+        pdf.autoTable({
+          head: [["Item", "Qty", "Sold By", "Price"]],
+          body: data.items.map(i => [i.item, i.qty, i.soldBy, i.price ? `₪${(i.price||0).toFixed(2)}` : ""]),
+          foot: [[{ content: "Total", colSpan: 3, styles: { halign: "right", fontStyle: "bold" } }, data.total]],
+          startY: tableStart,
+          headStyles: { fillColor: gold, textColor: 255 },
+          styles: { fontSize: 11 },
+          footStyles: { fillColor: [245, 240, 230], textColor: 30 }
+        });
+
+        pdf.text("Thank you for your order!", 15, 285);
+
+        const dataUrl = pdf.output("datauristring");
+        return { dataUrl };
+      }
+
+      const loadingOverlay = document.getElementById("loadingOverlay");
+      const loadingMessage = document.getElementById("loadingMessage");
+      function showLoading(msg="Loading..."){
+        if(!loadingOverlay || !loadingMessage) return;
+        loadingMessage.textContent = msg;
+        loadingOverlay.classList.remove("hidden");
+        loadingOverlay.classList.remove("pointer-events-none");
+      }
+      function hideLoading(){
+        if(!loadingOverlay || !loadingMessage) return;
+        loadingOverlay.classList.add("hidden");
+        loadingOverlay.classList.add("pointer-events-none");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => showLoading("Loading menu..."));
+      const originalRenderMenu = renderMenu;
+      renderMenu = function(...args){ originalRenderMenu(...args); hideLoading(); };
+
+      function buildEmailBody({ name, phone, email, address, shabbosLabel, allergies, total, items }) {
+        const lines = [];
+        lines.push("Palate Catering — Shabbos Order");
+        lines.push(shabbosLabel);
+        if (allergies) lines.push(`ALLERGIES: ${allergies}`);
+        lines.push("");
+        lines.push("Customer:");
+        lines.push(`Name: ${name}`);
+        lines.push(`Phone: ${phone}`);
+        if (email) lines.push(`Email: ${email}`);
+        if (address) lines.push(`Address: ${address}`);
+        lines.push("------------------------------");
+        lines.push("Items:");
+        lines.push("| Item | Qty | Sold By | Price |");
+        lines.push("| --- | --- | --- | --- |");
+        items.forEach(i => {
+          lines.push(`| ${i.item} | ${i.qty} | ${i.soldBy || ""} | ₪${(i.price||0).toFixed(2)} |`);
+        });
+        lines.push("");
+        lines.push(`Total: ${total}`);
+        return lines.join("\n");
+      }
+
+      function buildEmailHtml({ name, phone, email, address, shabbosLabel, allergies, total, items }) {
+        const rows = items.map(i => `
+          <tr>
+            <td style="padding:6px 10px;border:1px solid #e5e7eb;">${i.item}</td>
+            <td style="padding:6px 10px;border:1px solid #e5e7eb;text-align:center;">${i.qty}</td>
+            <td style="padding:6px 10px;border:1px solid #e5e7eb;">${i.soldBy || ""}</td>
+            <td style="padding:6px 10px;border:1px solid #e5e7eb;text-align:right;">₪${(i.price||0).toFixed(2)}</td>
+          </tr>`).join("");
+        return `
+          <div style="font-family:Arial, sans-serif; color:#1f2937; line-height:1.5;">
+            <h2 style="margin:0 0 8px 0;">Palate Catering — Shabbos Order</h2>
+            <p style="margin:0 0 12px 0;">${shabbosLabel}</p>
+            ${allergies ? `<p style="color:#b91c1c;font-weight:bold;">Allergies: ${allergies}</p>` : ""}
+            <div style="margin-bottom:12px;">
+              <div><strong>Name:</strong> ${name}</div>
+              <div><strong>Phone:</strong> ${phone}</div>
+              ${email ? `<div><strong>Email:</strong> ${email}</div>` : ""}
+              ${address ? `<div><strong>Address:</strong> ${address}</div>` : ""}
+            </div>
+            <table style="border-collapse:collapse;width:100%;max-width:640px;">
+              <thead>
+                <tr style="background:#f3f4f6;">
+                  <th style="padding:8px 10px;border:1px solid #e5e7eb;text-align:left;">Item</th>
+                  <th style="padding:8px 10px;border:1px solid #e5e7eb;text-align:center;">Qty</th>
+                  <th style="padding:8px 10px;border:1px solid #e5e7eb;text-align:left;">Sold By</th>
+                  <th style="padding:8px 10px;border:1px solid #e5e7eb;text-align:right;">Price</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="padding:8px 10px;border:1px solid #e5e7eb;text-align:right;font-weight:bold;">Total</td>
+                  <td style="padding:8px 10px;border:1px solid #e5e7eb;text-align:right;font-weight:bold;">${total}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        `;
+      }
+
+      function fireAndForgetEmail(payloadBuilder, timeoutMs = 30000) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        (async () => {
+          try {
+            const payload = await payloadBuilder();
+            await fetch("/api/send-order-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+              signal: controller.signal,
+              keepalive: true
+            });
+          } catch (err) {
+            console.error("Email function error", err);
+          } finally {
+            clearTimeout(timer);
+          }
+        })();
+      }
+
+      document.getElementById("orderForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn ? submitBtn.textContent : "";
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Submitting…";
+          submitBtn.classList.add("opacity-70", "cursor-not-allowed");
+        }
+
+        let blocked = false;
+        try {
+          updateTotals();
+
+          let items = [];
+          try {
+            const parsed = JSON.parse(document.getElementById("orderItemsField").value || "[]");
+            if (Array.isArray(parsed)) items = parsed;
+          } catch (err) {
+            console.warn("Failed to parse items from hidden field", err);
+          }
+
+          const total = document.getElementById("orderTotalField").value;
+          const name = form["Name"].value.trim();
+          const phone = form["Phone"].value.trim();
+          const email = form["Email"].value.trim();
+          const address = form["Delivery Address"].value.trim();
+          const shabbosLabel = form["Shabbos Date"]?.value || "";
+          const allergies = form["Allergies"]?.value.trim() || "";
+          const emailBodyHidden = document.getElementById("orderEmailBodyField")?.value || "";
+
+          // Prevent submitting closed weeks
+          const selectedOption = form["Shabbos Date"]?.selectedOptions?.[0];
+          if (selectedOption?.disabled) {
+            alert("That Shabbos is closed. Please choose another date.");
+            blocked = true;
+            return;
+          }
+
+          const emailBody = emailBodyHidden || buildEmailBody({
+            name, phone, email, address, shabbosLabel, allergies, total, items
+          });
+          const emailHtml = buildEmailHtml({
+            name, phone, email, address, shabbosLabel, allergies, total, items
+          });
+          document.getElementById("orderEmailBodyField").value = emailBody;
+
+          const bgPayload = { name, phone, email, address, total, items, shabbosLabel, allergies };
+
+          // Submit immediately; background work happens after.
+          form.action = "/thank-you.html";
+          setTimeout(() => {
+            fireAndForgetEmail(async () => {
+              let pdfDataUrl = "";
+              try {
+                const res = await generateAndUploadPDF(bgPayload);
+                pdfDataUrl = res.dataUrl || "";
+                try { sessionStorage.setItem("palate_pdf_dataurl", pdfDataUrl); } catch {}
+              } catch (err) {
+                console.error("PDF generation error:", err);
+              }
+              return {
+                customer: { name, phone, email, address },
+                items,
+                total,
+                shabbosLabel,
+                allergies,
+                emailBody,
+                htmlBody: emailHtml,
+                pdfDataUrl
+              };
+            });
+          }, 50);
+        } catch (err) {
+          console.error("Order submit error", err);
+        } finally {
+          if (!blocked) form.submit();
+          else if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText || "Submit Order";
+            submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
+          }
+        }
+      });
+
+      Papa.parse(sheetURL, {
+        download: true,
+        header: true,
+        complete: (r) => renderMenu(r.data.filter((d) => d.Category && d.Item))
+      });
+
+      populateShabbosOptions();
+    </script>
+  </body>
+</html>

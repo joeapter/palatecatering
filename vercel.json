@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/api/send-order-email", "dest": "/api/send-order-email.js" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+}

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bris Packages | Palate Catering</title>
+    <meta name="description" content="Beautiful, stress-free Bris catering by Palate — setup, serving, and style included.">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+      .grain { background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px); background-size: 3px 3px; }
+      .glass-card { background: rgba(255,255,255,0.88); border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(14px); }
+      .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); align-items:center; justify-content:center; z-index:50; }
+      .modal.open { display:flex; }
+      .addon-card { display:flex; flex-direction:column; background:#fff; border:1px solid #e5e7eb; border-radius:20px; box-shadow: 0 16px 40px rgba(0,0,0,.08); overflow:hidden; min-height:100%; }
+      .addon-card img { width:100% !important; height:10.5rem; object-fit:cover; }
+      .addon-body { padding:16px; display:flex; flex-direction:column; gap:10px; height:100%; }
+      .addon-qty { display:flex; align-items:center; justify-content:space-between; font-size:0.9rem; color:#444; margin-top:auto; }
+      .addon-qty input { width:4.5rem; }
+    </style>
+  </head>
+  <body class="text-neutral-900 bg-neutral-50 grain">
+    <!-- Header -->
+    <header class="py-4 bg-white/80 backdrop-blur sticky top-0 z-40 shadow-soft">
+      <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/assets/logo.png" alt="Palate Logo" class="h-10 w-auto">
+        </a>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden md:block">
+          <ul class="flex items-center gap-6 text-sm">
+            <li><a href="/#about" class="hover:opacity-70">About</a></li>
+            <li><a href="/#events" class="hover:opacity-70">Events</a></li>
+            <li><a href="/Corporate-Catering.html" class="hover:opacity-70">Corporate Catering</a></li>
+            <li><a href="/bris.html" class="font-semibold text-amber-800">Bris Packages</a></li>
+            <li><a href="/#gallery" class="hover:opacity-70">Gallery</a></li>
+            <li><a href="/#services" class="hover:opacity-70">Services</a></li>
+            <li><a href="/#contact" class="hover:opacity-70">Contact</a></li>
+            <li><a href="/shabbos.html" class="hover:opacity-70">Shabbos</a></li>
+          </ul>
+        </nav>
+
+        <!-- Mobile Menu Button -->
+        <button id="menuBtn" class="md:hidden p-2 rounded focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile Nav -->
+      <div id="mobileNav" class="hidden md:hidden bg-white/90 backdrop-blur border-t border-neutral-200">
+        <nav class="flex flex-col text-center p-4 space-y-3 text-sm">
+          <a href="/#about" class="block hover:opacity-70">About</a>
+          <a href="/#events" class="block hover:opacity-70">Events</a>
+          <a href="/Corporate-Catering.html" class="block hover:opacity-70">Corporate Catering</a>
+          <a href="/bris.html" class="block font-semibold text-amber-800">Bris Packages</a>
+          <a href="/#gallery" class="block hover:opacity-70">Gallery</a>
+          <a href="/#services" class="block hover:opacity-70">Services</a>
+          <a href="/#contact" class="block hover:opacity-70">Contact</a>
+          <a href="/shabbos.html" class="block hover:opacity-70">Shabbos</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="relative isolate overflow-hidden text-white">
+      <img src="/assets/bris/image 20.jpeg" alt="Palate bris grazing table" class="absolute inset-0 h-full w-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-br from-neutral-900/90 via-neutral-800/80 to-amber-900/70"></div>
+      <div class="relative max-w-6xl mx-auto px-6 py-28">
+        <div class="max-w-3xl">
+          <p class="uppercase text-xs tracking-[0.35em] text-amber-200 mb-4">Palate Bris Hospitality</p>
+          <h1 class="text-4xl md:text-5xl font-serif mb-4">Modern spreads for a timeless simcha</h1>
+          <p class="text-lg text-neutral-100">
+            Our team handles décor, rentals, setup, and the abundant buffet so you can focus on family. Expect thoughtful
+            service, clean design details, and flavors that feel homemade yet elevated.
+          </p>
+          <div class="flex flex-wrap gap-3 mt-6">
+            <span class="px-4 py-2 rounded-full bg-white/10 border border-white/30 text-sm">Full setup & breakdown</span>
+            <span class="px-4 py-2 rounded-full bg-white/10 border border-white/30 text-sm">Balloon & décor styling</span>
+            <span class="px-4 py-2 rounded-full bg-white/10 border border-white/30 text-sm">Kosher dairy menus</span>
+          </div>
+          <div class="mt-8 flex flex-col sm:flex-row gap-4">
+            <a href="tel:+972544005050" class="bg-white text-neutral-900 px-8 py-3 rounded-2xl font-semibold inline-flex items-center justify-center">Call to reserve</a>
+            <a href="#addons" class="border border-white/40 px-8 py-3 rounded-2xl font-semibold inline-flex items-center justify-center text-white">Build your menu</a>
+          </div>
+        </div>
+        <div class="mt-12 grid gap-4 sm:grid-cols-3">
+          <div class="bg-white/10 border border-white/20 rounded-2xl p-4">
+            <p class="text-xs uppercase tracking-[0.3em] text-amber-200 mb-2">Timeline</p>
+            <p class="text-base font-semibold">Our crew finishes setup 30 minutes before guests arrive.</p>
+          </div>
+          <div class="bg-white/10 border border-white/20 rounded-2xl p-4">
+            <p class="text-xs uppercase tracking-[0.3em] text-amber-200 mb-2">Service style</p>
+            <p class="text-base font-semibold">Buffet spreads with beverage stations and hot drink bars.</p>
+          </div>
+          <div class="bg-white/10 border border-white/20 rounded-2xl p-4">
+            <p class="text-xs uppercase tracking-[0.3em] text-amber-200 mb-2">Coverage</p>
+            <p class="text-base font-semibold">Jerusalem, Beit Shemesh, Modiin, and the greater center.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Highlights -->
+    <section class="py-16 bg-white">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center max-w-3xl mx-auto mb-12">
+          <p class="uppercase text-xs tracking-[0.35em] text-amber-700">Experience</p>
+          <h2 class="text-3xl md:text-4xl font-serif text-neutral-900">Concierge-level care for every guest</h2>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="glass-card rounded-3xl shadow-soft p-8 text-neutral-800">
+            <div class="text-amber-600 text-3xl mb-4">🤍</div>
+            <h3 class="text-xl font-semibold mb-2">Soft, welcoming styling</h3>
+            <p class="text-neutral-600">Layered linens, balloon centerpieces, and elevated serveware bring a joyful yet refined feel to your hall or home.</p>
+          </div>
+          <div class="glass-card rounded-3xl shadow-soft p-8 text-neutral-800">
+            <div class="text-amber-600 text-3xl mb-4">🥐</div>
+            <h3 class="text-xl font-semibold mb-2">Seasonal dairy menus</h3>
+            <p class="text-neutral-600">Everything is prepared fresh the morning of the bris with artisanal breads, salads, hot entrees, and house-baked sweets.</p>
+          </div>
+          <div class="glass-card rounded-3xl shadow-soft p-8 text-neutral-800">
+            <div class="text-amber-600 text-3xl mb-4">🧑‍🍳</div>
+            <h3 class="text-xl font-semibold mb-2">Dedicated team</h3>
+            <p class="text-neutral-600">From rental coordination to final cleanup, the Palate crew is onsite to manage every detail so your family can celebrate.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Base Package -->
+    <section class="py-20 bg-amber-50">
+      <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-10 items-center">
+        <div class="relative rounded-3xl overflow-hidden shadow-soft">
+          <img src="/assets/bris/salad-haloumi.jpg" alt="Halloumi and sweet potato salad" class="h-full w-full object-cover" />
+          <div class="absolute bottom-5 left-5 glass-card rounded-2xl px-4 py-3">
+            <p class="text-sm text-neutral-700">Curated buffet styling</p>
+            <p class="font-semibold text-lg text-neutral-900">Serveware + balloon focal points included</p>
+          </div>
+        </div>
+        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-soft p-8">
+          <p class="uppercase text-xs tracking-[0.35em] text-amber-700 mb-3">Base Bris Package</p>
+          <h2 class="text-3xl font-serif text-neutral-900 mb-4">Everything you need for a seamless morning</h2>
+          <p class="text-neutral-600 mb-6">From tablecloth pickup to beverage stations, this foundational package keeps stress low and presentation gorgeous.</p>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="font-semibold text-lg mb-2">What’s included</h3>
+              <ul class="list-disc ml-5 text-neutral-600 space-y-1">
+                <li>Chad paami (premium disposables)</li>
+                <li>Tablecloth rental pickup & drop-off</li>
+                <li>Full hall & buffet setup + breakdown</li>
+                <li>Themed serving dishes & décor</li>
+                <li>Balloon centerpiece installation</li>
+                <li>Hot drink + cold beverage stations</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg mb-2">Menu highlights</h3>
+              <ul class="list-disc ml-5 text-neutral-600 space-y-1">
+                <li>Assorted Holy Bagel spread</li>
+                <li>Cream cheeses + tuna & egg salads</li>
+                <li>Veggie, Greek & Caesar salads</li>
+                <li>Mini muffins & hand-crafted pastries</li>
+              </ul>
+            </div>
+          </div>
+          <div class="mt-8 bg-amber-100 rounded-2xl p-5 border border-amber-200">
+            <h3 class="text-xl font-semibold text-amber-900 mb-2">Pricing</h3>
+            <ul class="text-neutral-700 leading-relaxed">
+              <li>100+ guests — <strong>75₪ / person</strong></li>
+              <li>80–99 guests — <strong>85₪ / person</strong></li>
+              <li>60–79 guests — <strong>95₪ / person</strong></li>
+              <li class="text-neutral-500 italic">Minimum 60 guests</li>
+            </ul>
+          </div>
+          <div class="mt-6 flex flex-wrap gap-4">
+            <a href="/#contact" class="px-6 py-3 rounded-2xl bg-neutral-900 text-white font-semibold">Check availability</a>
+            <a href="#addons" class="px-6 py-3 rounded-2xl border border-neutral-900 text-neutral-900 font-semibold">Customize menus</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Signature stations -->
+    <section class="py-20 bg-white">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
+          <div>
+            <p class="uppercase text-xs tracking-[0.35em] text-amber-700 mb-2">Menu moments</p>
+            <h2 class="text-3xl font-serif text-neutral-900">Make it feel like your family</h2>
+            <p class="text-neutral-600 mt-4 max-w-2xl">Upgrade the buffet with live stations, composed salads, and wraps that reflect your crowd’s tastes.</p>
+          </div>
+          <a href="#addons" class="inline-flex items-center justify-center px-6 py-3 rounded-2xl border border-neutral-900 text-neutral-900 font-semibold">See add-ons</a>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="rounded-3xl overflow-hidden shadow-soft">
+            <img src="/assets/bris/pancake-station.jpg" alt="Live pancake station" class="h-48 w-full object-cover">
+            <div class="p-6 bg-white">
+              <h3 class="text-xl font-semibold mb-2">Live Pancake Bar</h3>
+              <p class="text-neutral-600 text-sm">Fluffy pancakes finished with syrups, fruits, and crumble toppings for kids and adults alike.</p>
+            </div>
+          </div>
+          <div class="rounded-3xl overflow-hidden shadow-soft">
+            <img src="/assets/bris/egg-station.jpeg" alt="Egg station" class="h-48 w-full object-cover">
+            <div class="p-6 bg-white">
+              <h3 class="text-xl font-semibold mb-2">Chef Omelet Station</h3>
+              <p class="text-neutral-600 text-sm">Made-to-order omelets and shakshuka, ideal for early morning brissim needing protein.</p>
+            </div>
+          </div>
+          <div class="rounded-3xl overflow-hidden shadow-soft">
+            <img src="/assets/bris/antipasto.jpeg" alt="Antipasto board" class="h-48 w-full object-cover">
+            <div class="p-6 bg-white">
+              <h3 class="text-xl font-semibold mb-2">Artisanal Boards</h3>
+              <p class="text-neutral-600 text-sm">Antipasti, smoked salmon sides, and composed salads styled for photos and hearty bites.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gallery -->
+    <section class="py-20 bg-neutral-900 text-white">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
+          <div>
+            <p class="uppercase text-xs tracking-[0.35em] text-amber-300 mb-2">Gallery</p>
+            <h2 class="text-3xl font-serif">Sweet, savory, and picture-ready</h2>
+          </div>
+          <a href="mailto:hello@palatecatering.com" class="inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-white text-neutral-900 font-semibold">Request sample menu</a>
+        </div>
+        <div class="grid md:grid-cols-4 gap-4">
+          <img src="/assets/bris/smoked-salmon.jpg" alt="Smoked salmon" class="rounded-3xl h-56 w-full object-cover">
+          <img src="/assets/bris/salad-greek.jpg" alt="Greek salad" class="rounded-3xl h-56 w-full object-cover">
+          <img src="/assets/bris/cheesecake.jpg" alt="Cheesecake dessert" class="rounded-3xl h-56 w-full object-cover">
+          <img src="/assets/bris/Fruit Platter.jpg" alt="Fruit platter" class="rounded-3xl h-56 w-full object-cover">
+        </div>
+      </div>
+    </section>
+
+    <!-- Process -->
+    <section class="py-20 bg-white">
+      <div class="max-w-5xl mx-auto px-6 text-center">
+        <p class="uppercase text-xs tracking-[0.35em] text-amber-700 mb-4">Planning made simple</p>
+        <h2 class="text-3xl font-serif text-neutral-900 mb-6">Here’s how we work</h2>
+        <div class="grid md:grid-cols-3 gap-6 text-left">
+          <div class="rounded-3xl shadow-soft p-6">
+            <p class="text-amber-700 font-semibold mb-2">1. Share the details</p>
+            <p class="text-neutral-600 text-sm">Tell us the date, venue, and any special requests or minhagim. We reserve your slot and send sample menus.</p>
+          </div>
+          <div class="rounded-3xl shadow-soft p-6">
+            <p class="text-amber-700 font-semibold mb-2">2. Customize the buffet</p>
+            <p class="text-neutral-600 text-sm">Choose the base package, add-ons, and décor accents. We coordinate rentals and delivery windows for you.</p>
+          </div>
+          <div class="rounded-3xl shadow-soft p-6">
+            <p class="text-amber-700 font-semibold mb-2">3. Relax on the day</p>
+            <p class="text-neutral-600 text-sm">Our crew sets up, styles, replenishes, and cleans up — leaving the space spotless once the mazal tovs are done.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Addons Form -->
+    <section id="addons" class="py-20 bg-white">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center max-w-3xl mx-auto mb-12">
+          <p class="uppercase text-xs tracking-[0.35em] text-amber-700 mb-3">Customize everything</p>
+          <h2 class="text-3xl md:text-4xl font-serif text-neutral-900 mb-4">Add-ons & live stations</h2>
+          <p class="text-neutral-600">Mix and match stations, salads, and sweets. Submit your wishlist and we’ll confirm availability plus final pricing.</p>
+        </div>
+        <div class="grid lg:grid-cols-[2fr,1fr] gap-10 items-start">
+          <div class="bg-neutral-50/80 backdrop-blur border border-neutral-200 rounded-3xl shadow-soft p-6 md:p-10">
+            <form name="bris-addons" method="POST" data-netlify="true" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="addonForm">
+              <input type="hidden" name="form-name" value="bris-addons" />
+
+          <!-- ========== Stations ========== -->
+          <h3 class="md:col-span-3 text-2xl font-serif text-amber-800 mt-10 mb-4 border-b border-amber-100 pb-2">Stations</h3>
+
+          <div class="addon-card">
+            <img src="/assets/bris/egg-station.jpeg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Egg Station</h3><p class="text-sm text-neutral-600">Fresh omelets made on site — 25₪ / person</p></div>
+              <label class="addon-qty">Qty <input name="egg_station" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/pancake-station.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Pancake Station</h3><p class="text-sm text-neutral-600">Fluffy pancakes with toppings — 20₪ / person</p></div>
+              <label class="addon-qty">Qty <input name="pancake_station" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/pizza-bar.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Live Pizza Bar</h3><p class="text-sm text-neutral-600">Hand-tossed pizzas with toppings — 69₪ / person</p></div>
+              <label class="addon-qty">Qty <input name="pizza_bar" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <!-- ========== Fish ========== -->
+          <h3 class="md:col-span-3 text-2xl font-serif text-amber-800 mt-10 mb-4 border-b border-amber-100 pb-2">Fish</h3>
+
+          <div class="addon-card">
+            <img src="/assets/bris/smoked-salmon.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Smoked Salmon</h3><p class="text-sm text-neutral-600">10 servings of premium smoked salmon — 240₪ / 10 servings</p></div>
+              <label class="addon-qty">Qty <input name="smoked_salmon" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/salmon-pesto.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Salmon Side – Pesto</h3><p class="text-sm text-neutral-600">Whole side, pesto glaze — 300₪ / side</p></div>
+              <label class="addon-qty">Qty <input name="salmon_pesto" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/salmon-teriyaki.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Salmon Side – Teriyaki</h3><p class="text-sm text-neutral-600">Whole side, teriyaki glaze — 300₪ / side</p></div>
+              <label class="addon-qty">Qty <input name="salmon_teriyaki" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/salmon-lemon.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Salmon Side – Lemon Dill</h3><p class="text-sm text-neutral-600">Whole side, lemon-dill glaze — 300₪ / side</p></div>
+              <label class="addon-qty">Qty <input name="salmon_lemon" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <!-- ========== Pasta ========== -->
+          <h3 class="md:col-span-3 text-2xl font-serif text-amber-800 mt-10 mb-4 border-b border-amber-100 pb-2">Pasta Trays</h3>
+
+          <div class="addon-card">
+            <img src="/assets/bris/fettuccine-alfredo.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Fettuccine Alfredo</h3><p class="text-sm text-neutral-600">Creamy parmesan pasta — 260₪ / 9x13 pan</p></div>
+              <label class="addon-qty">Qty <input name="fettuccine_alfredo" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/penne-vodka.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Penne a la Vodka</h3><p class="text-sm text-neutral-600">Classic tomato cream pasta — 260₪ / 9x13 pan</p></div>
+              <label class="addon-qty">Qty <input name="penne_vodka" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/lasagna.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Lasagna</h3><p class="text-sm text-neutral-600">Layers of cheese and sauce — 260₪ / 9x13 pan</p></div>
+              <label class="addon-qty">Qty <input name="lasagna" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <!-- ========== Quiche ========== -->
+          <h3 class="md:col-span-3 text-2xl font-serif text-amber-800 mt-10 mb-4 border-b border-amber-100 pb-2">Quiche</h3>
+
+          <div class="addon-card">
+            <img src="/assets/bris/mini-quiche.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Mini Quiches</h3><p class="text-sm text-neutral-600">12 assorted quiches — 200₪ / dozen</p></div>
+              <label class="addon-qty">Qty <input name="mini_quiches" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <!-- ========== Salads ========== -->
+          <h3 class="md:col-span-3 text-2xl font-serif text-amber-800 mt-10 mb-4 border-b border-amber-100 pb-2">Salads</h3>
+
+          <div class="addon-card">
+            <img src="/assets/bris/salad-greek.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Greek Salad</h3><p class="text-sm text-neutral-600">Feta, cucumber, olives — 210₪ / bowl</p></div>
+              <label class="addon-qty">Qty <input name="salad_greek" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/salad-caesar.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Caesar Salad</h3><p class="text-sm text-neutral-600">Classic creamy caesar — 210₪ / bowl</p></div>
+              <label class="addon-qty">Qty <input name="salad_caesar" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/salad-haloumi.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Sweet Potato & Halloumi Salad</h3><p class="text-sm text-neutral-600">Roasted sweet potatoes & halloumi — 220₪ / bowl</p></div>
+              <label class="addon-qty">Qty <input name="salad_halloumi" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <!-- ========== Wraps ========== -->
+          <h3 class="md:col-span-3 text-2xl font-serif text-amber-800 mt-10 mb-4 border-b border-amber-100 pb-2">Wraps</h3>
+
+          <div class="addon-card">
+            <img src="/assets/bris/wrap-sweetpotato.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Sweet Potato Feta Wrap</h3><p class="text-sm text-neutral-600">Roasted sweet potato & feta — 200₪ / 20 half wraps</p></div>
+              <label class="addon-qty">Qty <input name="wrap_sweetpotato" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/pesto_leaves.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Pesto Green Leaves Wrap</h3><p class="text-sm text-neutral-600">Pesto, green leaves — 200₪ / 20 half wraps</p></div>
+              <label class="addon-qty">Qty <input name="wrap_pesto" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/wrap-goatcheese.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Goat Cheese & Pepper Wrap</h3><p class="text-sm text-neutral-600">Roasted pepper & goat cheese — 200₪ / 20 half wraps</p></div>
+              <label class="addon-qty">Qty <input name="wrap_goatcheese" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/wrap-salmon.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Smoked Salmon Wrap</h3><p class="text-sm text-neutral-600">Lemon zest cream cheese, onion — 200₪ / 20 half wraps</p></div>
+              <label class="addon-qty">Qty <input name="wrap_salmon" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <!-- ========== Extras ========== -->
+          <h3 class="md:col-span-3 text-2xl font-serif text-amber-800 mt-10 mb-4 border-b border-amber-100 pb-2">Extras</h3>
+
+          <div class="addon-card">
+            <img src="/assets/bris/antipasto.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Antipasto Board</h3><p class="text-sm text-neutral-600">Marinated vegetables platter — 220₪ / 9x13 pan</p></div>
+              <label class="addon-qty">Qty <input name="antipasto_board" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <!-- ========== Desserts & Fruit ========== -->
+          <h3 class="md:col-span-3 text-2xl font-serif text-amber-800 mt-10 mb-4 border-b border-amber-100 pb-2">Desserts & Fruit</h3>
+
+          <div class="addon-card">
+            <img src="/assets/bris/cheesecake.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Cheesecakes</h3><p class="text-sm text-neutral-600">Assorted flavors — 190₪ / by order</p></div>
+              <label class="addon-qty">Qty <input name="cheesecake" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <div class="addon-card">
+            <img src="/assets/bris/Fruit Platter.jpg" class="w-1/3 object-cover">
+            <div class="addon-body">
+              <div><h3 class="font-semibold">Fruit Platters</h3><p class="text-sm text-neutral-600">Fresh seasonal fruit — 280₪ / by order</p></div>
+              <label class="addon-qty">Qty <input name="fruit_platter" type="number" min="0" class="ml-2 w-16 border rounded px-2 py-1"></label>
+            </div>
+          </div>
+
+          <!-- ✅ Your Info moved to the bottom -->
+          <div class="md:col-span-3 bg-amber-50 border border-amber-100 rounded-2xl p-6 mt-12">
+            <h3 class="text-xl font-semibold mb-4 text-amber-800">Your Info</h3>
+            <label class="block mb-3">
+              <span class="text-sm">Name</span>
+              <input name="customer_name" required class="mt-1 w-full rounded-xl border border-neutral-300 px-4 py-3" />
+            </label>
+            <label class="block mb-3">
+              <span class="text-sm">Email or WhatsApp</span>
+              <input name="customer_contact" required class="mt-1 w-full rounded-xl border border-neutral-300 px-4 py-3" />
+            </label>
+          </div>
+
+          <!-- Submit -->            
+          <div class="md:col-span-3 text-center mt-12">
+            <div id="totalBar" class="text-xl font-semibold text-amber-800 mb-4">
+              Estimated Total: ₪0
+            </div>
+            <button type="submit" id="submitBtn" class="bg-amber-800 text-white px-8 py-3 rounded-full shadow-soft hover:bg-amber-700 transition">
+              Submit Selections
+            </button>
+          </div>
+        </form>
+          </div>
+          <div class="space-y-6">
+            <div class="rounded-3xl overflow-hidden shadow-soft">
+              <img src="/assets/bris/lasagna.jpg" alt="Baked pasta add-on" class="w-full h-80 object-cover">
+            </div>
+            <div class="rounded-3xl bg-neutral-900 text-white p-6 shadow-soft">
+              <h3 class="text-xl font-semibold mb-2">Need guidance?</h3>
+              <p class="text-neutral-200 text-sm">We’ll suggest quantities based on your guest count and timing and provide a tasting if you’d like to try specialties first.</p>
+              <div class="mt-4 space-y-2 text-sm text-neutral-200">
+                <p>📞 <a href="tel:+972544005050" class="underline">+972-54-400-5050</a></p>
+                <p>💬 <a href="https://wa.me/972544005050" class="underline">WhatsApp our team</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Confirmation Modal -->
+    <div id="thankYouModal" class="modal">
+      <div class="bg-white rounded-3xl shadow-soft p-10 text-center max-w-md mx-auto">
+        <h2 class="text-2xl font-serif mb-4 text-amber-800">Thank you!</h2>
+        <p class="text-neutral-600 mb-6">Your selections have been sent. We’ll reach out shortly to confirm your booking.</p>
+        <button onclick="closeModal()" class="bg-amber-800 text-white px-6 py-2 rounded-full hover:bg-amber-700">Close</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-8 bg-white text-center text-sm text-neutral-500">
+      © <span id="year"></span> Palate Catering
+    </footer>
+
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      // ✅ Mobile menu toggle
+      document.getElementById('menuBtn').addEventListener('click', () => {
+        document.getElementById('mobileNav').classList.toggle('hidden');
+      });
+
+      const form = document.getElementById('addonForm');
+      const totalBar = document.getElementById('totalBar');
+      const btn = document.getElementById('submitBtn');
+
+      const prices = {
+        egg_station: 25, pancake_station: 20, pizza_bar: 69,
+        smoked_salmon: 240, fettuccine_alfredo: 260, penne_vodka: 260, lasagna: 260,
+        mini_quiches: 200, salmon_pesto: 300, salmon_teriyaki: 300,
+        salmon_lemon: 300, salmon_maple: 300, salad_greek: 210, salad_caesar: 210,
+        salad_halloumi: 220, wrap_sweetpotato: 200, wrap_pesto: 200,
+        wrap_goatcheese: 200, wrap_salmon: 200, antipasto_board: 220,
+        cheesecake: 190, fruit_platter: 280,
+      };
+
+      function updateTotal() {
+        let total = 0;
+        for (const [name, price] of Object.entries(prices)) {
+          const input = form.querySelector(`[name="${name}"]`);
+          if (!input) continue;
+          const qty = parseFloat(input.value || 0);
+          total += qty * price;
+        }
+        totalBar.textContent = `Estimated Total: ₪${total.toLocaleString()}`;
+      }
+
+      form.querySelectorAll('input[type="number"]').forEach(input =>
+        input.addEventListener('input', updateTotal)
+      );
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.textContent = "Submitting...";
+        const data = new FormData(form);
+        const encoded = new URLSearchParams(data).toString();
+        try {
+          await fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: encoded
+          });
+          document.getElementById('thankYouModal').classList.add('open');
+          form.reset();
+          updateTotal();
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Submit Selections";
+        }
+      });
+
+      function closeModal() {
+        document.getElementById('thankYouModal').classList.remove('open');
+      }
+    </script>
+  </body>
+</html>

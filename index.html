@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Palate Catering</title>
+    <meta name="description" content="Rustic, artisanal catering—beautifully crafted grazing tables, events and pastries." />
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html { scroll-behavior: smooth; } /* ✅ Smooth scrolling */
+
+      /* Subtle wood / linen textures */
+      .grain { background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px); background-size: 3px 3px; }
+      .linen { background-image: linear-gradient( rgba(0,0,0,0.02), rgba(0,0,0,0.02) ), url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><rect width=\"100\" height=\"100\" fill=\"#ffffff\"/></svg>'); }
+      .shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+      .burnt-edge { box-shadow: inset -30px 0 40px rgba(0,0,0,0.25); }
+      .logo-engrave { filter: drop-shadow(0 1px 0 rgba(0,0,0,0.35)); }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem; /* px-6 py-3 */
+        border-radius: 0.75rem;  /* rounded-xl */
+        font-weight: 500;        /* font-medium */
+        transition: all 0.2s ease-in-out;
+      }
+
+      .btn-primary {
+        background-color: rgb(23, 23, 23); /* neutral-900 */
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background-color: rgb(38, 38, 38); /* neutral-800 */
+      }
+
+      .btn-ghost {
+        background-color: rgba(255, 255, 255, 0.7); /* bg-white/70 */
+        backdrop-filter: blur(8px); /* backdrop-blur */
+        border: 1px solid rgba(255, 255, 255, 0.5); /* border-white/50 */
+        color: rgb(38, 38, 38); /* text-neutral-800 */
+      }
+
+      .btn-ghost:hover {
+        background-color: white; /* hover:bg-white */
+      }
+
+      /* Simple lightbox */
+      .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: none; align-items: center; justify-content: center; z-index: 50; }
+      .lightbox.open { display: flex; }
+      .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 1rem; }
+    </style>
+  </head>
+  <body class="text-neutral-900 selection:bg-amber-200 selection:text-neutral-900">
+    <!-- Header -->
+    <header class="fixed top-0 inset-x-0 z-40">
+      <div class="mx-auto max-w-7xl px-4">
+        <nav class="mt-5 flex items-center justify-between rounded-2xl bg-white/70 backdrop-blur border border-white/50 px-4 py-2 shadow-soft">
+          <a href="#home" class="flex items-center gap-3">
+            <img src="/assets/logo.png" alt="Palate Catering Logo" class="h-10 w-auto logo-engrave" />
+            <span class="sr-only">Palate Catering</span>
+          </a>
+
+          <!-- Desktop Nav -->
+          <ul class="hidden md:flex items-center gap-6 text-sm">
+            <li><a href="#about" class="hover:opacity-70">About</a></li>
+            <li><a href="#events" class="hover:opacity-70">Events</a></li>
+            <li><a href="/Corporate-Catering.html" class="hover:opacity-70">Corporate Catering</a></li>
+            <li><a href="/bris.html" class="hover:opacity-70">Bris Packages</a></li>
+            <li><a href="#gallery" class="hover:opacity-70">Gallery</a></li>
+            <li><a href="#services" class="hover:opacity-70">Services</a></li>
+            <li><a href="#contact" class="hover:opacity-70">Contact</a></li>
+            <li><a href="/shabbos.html" class="hover:opacity-70">Shabbos</a></li>
+          </ul>
+
+          <!-- Mobile Menu Button -->
+          <button id="menuBtn" class="md:hidden p-2 rounded focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </nav>
+
+        <!-- Mobile Nav -->
+        <div id="mobileNav" class="hidden md:hidden bg-white/90 backdrop-blur border border-white/50 rounded-2xl mt-2 shadow-soft">
+          <nav class="flex flex-col text-center p-4 space-y-3 text-sm">
+            <a href="#about" class="block hover:opacity-70">About</a>
+            <a href="#events" class="block hover:opacity-70">Events</a>
+            <a href="/bris.html" class="block hover:opacity-70">Bris Packages</a>
+            <a href="#gallery" class="block hover:opacity-70">Gallery</a>
+            <a href="#services" class="block hover:opacity-70">Services</a>
+            <a href="#contact" class="block hover:opacity-70">Contact</a>
+            <a href="/shabbos.html" class="block hover:opacity-70">Shabbos</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section id="home" class="relative h-[92vh] flex items-center justify-center overflow-hidden">
+      <img src="your-hero-image.jpg" alt="Hero food spread" class="absolute inset-0 h-full w-full object-cover" />
+      <div class="absolute inset-0 burnt-edge"></div>
+      <div class="relative z-10 text-center max-w-3xl px-6">
+        <img src="/assets/logo.png" class="mx-auto h-40 w-auto drop-shadow-xl" alt="Palate Catering" />
+        <h1 class="mt-6 text-4xl md:text-6xl font-serif tracking-tight text-white drop-shadow-lg">Rustic Elegance. Unforgettable Catering.</h1>
+        <p class="mt-5 text-white/90 md:text-lg">Artisanal grazing tables, weddings, events &amp; pastries crafted with love.</p>
+        <div class="mt-8 flex gap-4 justify-center">
+          <a href="#gallery" class="btn btn-ghost">View Gallery</a>
+          <a href="#contact" class="btn btn-primary">Get a Quote</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="py-24 bg-white">
+      <div class="mx-auto max-w-7xl px-6 grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-serif mb-6">A love for beautiful food</h2>
+          <p class="text-neutral-600 leading-relaxed">
+            Palate Catering is a boutique culinary studio focused on seasonal ingredients, elegant presentations,
+            and warm hospitality. From intimate gatherings to unforgettable celebrations,
+            we craft experiences that feel as good as they taste.
+          </p>
+          <p class="mt-4 text-neutral-600 leading-relaxed">
+            We believe food should be gorgeous, generous, and grounded—think rustic wood, herbs, linen, and candlelight.
+          </p>
+          <a href="#contact" class="mt-8 btn btn-primary">Contact us for more info</a>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <img class="rounded-2xl shadow-soft object-cover h-56 w-full" src="assets/gallery/gallery1.jpg" alt="Grazing board"/>
+          <img class="rounded-2xl shadow-soft object-cover h-56 w-full" src="assets/gallery/gallery2.jpg" alt="Pastries"/>
+          <img class="rounded-2xl shadow-soft object-cover h-56 w-full" src="assets/gallery/gallery3.jpg" alt="Event table"/>
+          <img class="rounded-2xl shadow-soft object-cover h-56 w-full" src="assets/gallery/gallery4.jpg" alt="Fresh herbs"/>
+        </div>
+      </div>
+    </section>
+
+    <!-- Elevate Events -->
+<section id="events" class="py-24 linen">
+  <div class="mx-auto max-w-7xl px-6">
+    <div class="text-center mb-14">
+      <img src="/assets/elevate-logo.png" alt="Elevate Events" class="mx-auto h-32 mb-8" />
+      <h2 class="text-4xl md:text-5xl font-serif mb-4">Elevate Events</h2>
+      <p class="text-neutral-600 max-w-2xl mx-auto">
+        Under our <strong>Elevate Events</strong> brand, we craft full-service celebrations with seamless planning, design,
+        and hospitality. From <strong>Palate Catering’s</strong> exquisite menus to event décor, florals, lighting, and
+        signage — we handle every detail with taste and grace.
+      </p>
+    </div>
+
+    <!-- Feature grid -->
+    <div class="grid md:grid-cols-3 gap-8 mb-16">
+      <div class="rounded-2xl overflow-hidden shadow-soft bg-white">
+        <img src="assets/gallery/image 8.png" alt="Event Catering" class="h-56 w-full object-cover">
+        <div class="p-6">
+          <h3 class="text-xl font-semibold mb-2">Full Service Planning & Catering</h3>
+          <p class="text-neutral-600 text-sm leading-relaxed">Menus by Palate Catering, complete with rentals, staff, and on-site coordination — an elegant, effortless experience.</p>
+        </div>
+      </div>
+      <div class="rounded-2xl overflow-hidden shadow-soft bg-white">
+        <img src="assets/gallery/Image7.jpeg" alt="Decor & Flowers" class="h-56 w-full object-cover">
+        <div class="p-6">
+          <h3 class="text-xl font-semibold mb-2">Event Décor, Flowers & Balloons</h3>
+          <p class="text-neutral-600 text-sm leading-relaxed">Custom florals, balloon installations, and table styling — all arranged with an eye for luxury and warmth.</p>
+        </div>
+      </div>
+      <div class="rounded-2xl overflow-hidden shadow-soft bg-white">
+        <img src="assets/gallery/image 9.jpeg" alt="Lighting & Branding" class="h-56 w-full object-cover">
+        <div class="p-6">
+          <h3 class="text-xl font-semibold mb-2">Lighting, Branding & Signage</h3>
+          <p class="text-neutral-600 text-sm leading-relaxed">Custom lighting design, branded signs, and immersive atmospheres that bring your vision to life.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event highlights -->
+    <div class="grid md:grid-cols-3 gap-6 mb-20">
+      <div class="rounded-2xl overflow-hidden shadow-soft bg-white">
+        <img src="https://images.unsplash.com/photo-1602416014653-b0f3b35c5d5f?q=80&w=1200&auto=format&fit=crop" alt="Bar Mitzvah" class="h-56 w-full object-cover">
+        <div class="p-6">
+          <h3 class="font-semibold text-lg mb-2">Bar & Bat Mitzvahs</h3>
+          <p class="text-neutral-600 text-sm">Elegant, meaningful celebrations tailored to your family’s style and tradition.</p>
+        </div>
+      </div>
+      <div class="rounded-2xl overflow-hidden shadow-soft bg-white">
+        <img src="assets/gallery/Image 10.JPG" alt="Bris Milah" class="h-56 w-full object-cover">
+        <div class="p-6">
+          <h3 class="font-semibold text-lg mb-2">Bris Milah & Baby Events</h3>
+          <p class="text-neutral-600 text-sm">Refined and welcoming — complete décor, catering, and service for this special moment.</p>
+        </div>
+      </div>
+      <div class="rounded-2xl overflow-hidden shadow-soft bg-white">
+        <img src="assets/gallery/image 12.jpeg" alt="Shabbos Family Meals" class="h-56 w-full object-cover">
+        <div class="p-6">
+          <h3 class="font-semibold text-lg mb-2">Shabbos Family Simcha Meals</h3>
+          <p class="text-neutral-600 text-sm">Turnkey Shabbos catering with full table setups and Palate’s signature hospitality.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testimonials -->
+    <div class="bg-white rounded-3xl border border-neutral-100 shadow-soft p-10 md:p-16 text-center">
+      <h3 class="text-2xl font-serif mb-6">What our clients say</h3>
+      <div class="grid md:grid-cols-3 gap-8 text-neutral-700">
+        <blockquote class="italic">
+          “Elevate made our daughter’s Bat Mitzvah truly magical — from the flowers to the food, every detail was flawless.”
+          <footer class="mt-3 text-sm text-neutral-500">— S. & R. Cohen, London</footer>
+        </blockquote>
+        <blockquote class="italic">
+          “As overseas clients, we felt completely cared for. They coordinated every aspect of our simcha with grace and ease.”
+          <footer class="mt-3 text-sm text-neutral-500">— A. Levi, New York</footer>
+        </blockquote>
+        <blockquote class="italic">
+          “The staff were polished, warm, and professional — our guests still talk about how elegant it all felt.”
+          <footer class="mt-3 text-sm text-neutral-500">— D. & R. Friedman, Jerusalem</footer>
+        </blockquote>
+      </div>
+    </div>
+
+    <div class="text-center mt-16">
+      <a href="#contact" class="btn btn-primary">Plan Your Event with Elevate</a>
+    </div>
+  </div>
+</section>
+
+
+    <!-- Gallery -->
+    <section id="gallery" class="py-24 bg-neutral-50 grain">
+      <div class="mx-auto max-w-7xl px-6">
+        <div class="flex items-end justify-between mb-8">
+          <h2 class="text-3xl md:text-4xl font-serif">Gallery</h2>
+          <p class="text-neutral-600">Tap an image to enlarge.</p>
+        </div>
+        <div class="columns-1 sm:columns-2 md:columns-3 gap-4 [column-fill:_balance]">
+          <!-- Replace src values with your photos in /assets/gallery -->
+          <img src="assets/gallery/Image 15.jpeg?q=80&w=1200&auto=format&fit=crop" alt="gallery" class="mb-4 w-full rounded-2xl shadow-soft hover:opacity-90 cursor-zoom-in" onclick="openLightbox(this.src)" loading="lazy" />
+          <img src="assets/gallery/Image 14.jpeg?q=80&w=1200&auto=format&fit=crop" alt="gallery" class="mb-4 w-full rounded-2xl shadow-soft hover:opacity-90 cursor-zoom-in" onclick="openLightbox(this.src)" loading="lazy" />
+          <img src="assets/gallery/Image 13.jpeg?q=80&w=1200&auto=format&fit=crop" alt="gallery" class="mb-4 w-full rounded-2xl shadow-soft hover:opacity-90 cursor-zoom-in" onclick="openLightbox(this.src)" loading="lazy" />
+          <img src="assets/gallery/Image 16.jpeg?q=80&w=1200&auto=format&fit=crop" alt="gallery" class="mb-4 w-full rounded-2xl shadow-soft hover:opacity-90 cursor-zoom-in" onclick="openLightbox(this.src)" loading="lazy" />
+          <img src="assets/gallery/Image 17.jpeg?q=80&w=1200&auto=format&fit=crop" alt="gallery" class="mb-4 w-full rounded-2xl shadow-soft hover:opacity-90 cursor-zoom-in" onclick="openLightbox(this.src)" loading="lazy" />
+          <img src="assets/gallery/Image 18.jpeg?q=80&w=1200&auto=format&fit=crop" alt="gallery" class="mb-4 w-full rounded-2xl shadow-soft hover:opacity-90 cursor-zoom-in" onclick="openLightbox(this.src)" loading="lazy" />
+          <img src="assets/gallery/Image 19.jpeg?q=80&w=1200&auto=format&fit=crop" alt="gallery" class="mb-4 w-full rounded-2xl shadow-soft hover:opacity-90 cursor-zoom-in" onclick="openLightbox(this.src)" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section id="services" class="py-24 bg-white">
+      <div class="mx-auto max-w-7xl px-6">
+        <h2 class="text-3xl md:text-4xl font-serif mb-10">Services</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="rounded-2xl border border-neutral-200 p-6 shadow-soft bg-white">
+            <h3 class="text-xl font-semibold">Gourmet Pizza</h3>
+            <p class="mt-2 text-neutral-600">Abundant displays of seasonal cheeses, fruits, dips and breads—styled for any occasion.</p>
+          </div>
+          <div class="rounded-2xl border border-neutral-200 p-6 shadow-soft bg-white">
+            <h3 class="text-xl font-semibold">Weddings & Events</h3>
+            <p class="mt-2 text-neutral-600">Full-service catering with custom menus, rentals coordination, and on-site team.</p>
+          </div>
+          <div class="rounded-2xl border border-neutral-200 p-6 shadow-soft bg-white">
+            <h3 class="text-xl font-semibold">Pastry & Desserts</h3>
+            <p class="mt-2 text-neutral-600">From rustic tarts to elegant cakes—seasonal, handcrafted, and photo-ready.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="py-24 linen">
+      <div class="mx-auto max-w-4xl px-6">
+        <div class="rounded-3xl bg-white/80 backdrop-blur border border-white/60 p-8 md:p-12 shadow-soft">
+          <h2 class="text-3xl md:text-4xl font-serif">Contact</h2>
+          <p class="mt-2 text-neutral-600">Tell us a little about your event and we’ll reach out shortly.</p>
+          <form name="contact" method="POST" data-netlify="true" class="mt-8 grid md:grid-cols-2 gap-4">
+            <input type="hidden" name="form-name" value="contact">
+            <label class="block">
+              <span class="text-sm">Name</span>
+              <input name="name" required class="mt-1 w-full rounded-xl border border-neutral-300 px-4 py-3" />
+            </label>
+            <label class="block">
+              <span class="text-sm">Email</span>
+              <input name="email" type="email" required class="mt-1 w-full rounded-xl border border-neutral-300 px-4 py-3" />
+            </label>
+            <label class="block md:col-span-2">
+              <span class="text-sm">Event Date</span>
+              <input name="date" type="date" class="mt-1 w-full rounded-xl border border-neutral-300 px-4 py-3" />
+            </label>
+            <label class="block md:col-span-2">
+              <span class="text-sm">Message</span>
+              <textarea name="message" rows="4" class="mt-1 w-full rounded-xl border border-neutral-300 px-4 py-3"></textarea>
+            </label>
+            <div class="md:col-span-2">
+              <button class="btn btn-primary">Send</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-10 bg-white">
+      <div class="mx-auto max-w-7xl px-6 flex items-center justify-between">
+        <p class="text-sm text-neutral-500">© <span id="year"></span> Palate Catering. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a class="hover:opacity-70" href="#" aria-label="Instagram">Instagram</a>
+          <a class="hover:opacity-70" href="mailto:info@palatecatering.example" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+      <img id="lightboxImg" alt="Gallery image" />
+    </div>
+
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      function openLightbox(src) {
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightboxImg');
+        img.src = src;
+        lb.classList.add('open');
+      }
+      function closeLightbox(e) {
+        if (e.target.id === 'lightbox' || e.target.id === 'lightboxImg') {
+          document.getElementById('lightbox').classList.remove('open');
+        }
+      }
+
+      // Mobile menu toggle
+      document.getElementById('menuBtn').addEventListener('click', () => {
+        document.getElementById('mobileNav').classList.toggle('hidden');
+      });
+
+      // ✅ Close mobile menu when a link is clicked
+      document.querySelectorAll('#mobileNav a').forEach(link =>
+        link.addEventListener('click', () => {
+          document.getElementById('mobileNav').classList.add('hidden');
+        })
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thank You | Palate Catering</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <script>
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const pdfUrl = params.get("pdf");
+      const box = document.querySelector("[data-thanks-box]") || document.body;
+  
+      // If upload gave us a URL, you can also display it here if you like.
+      // Fallback: data URL stored in sessionStorage (works even if upload failed).
+      const dataUrl = sessionStorage.getItem("palate_pdf_dataurl");
+  
+      if (pdfUrl || dataUrl) {
+        const link = document.createElement("a");
+        link.className = "inline-block mt-4 underline";
+        link.textContent = "Download your order as PDF";
+        link.rel = "noopener";
+        link.target = "_blank";
+        link.href = pdfUrl || dataUrl;
+        box.appendChild(link);
+      }
+    })();
+  </script>
+  
+  <body class="bg-neutral-50 text-neutral-900 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white/70 backdrop-blur border-b border-neutral-200 sticky top-0 z-40">
+      <div class="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/assets/logo.png" alt="Palate Catering" class="h-10 w-auto" />
+          <span class="font-serif text-xl">Palate Catering</span>
+        </a>
+        <a href="/" class="text-sm hover:opacity-70">← Back to Home</a>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
+      <img src="/assets/logo.png" alt="Palate Catering" class="h-16 mb-6 opacity-90" />
+      <h1 class="text-4xl font-serif mb-3 text-neutral-900">Thank You for Your Order!</h1>
+      <p class="text-neutral-600 max-w-xl mb-8">
+        Your Shabbos order has been received and is being prepared. You’ll receive a confirmation email shortly.
+      </p>
+
+      <!-- PDF Download Section -->
+      <div id="pdfSection" class="hidden flex flex-col items-center space-y-4">
+        <a id="pdfLink" target="_blank"
+          class="inline-block bg-green-700 text-white px-8 py-3 rounded-full hover:bg-green-800 transition">
+          📄 Download Your Order PDF
+        </a>
+        <p class="text-sm text-neutral-500">A copy has also been sent to our kitchen team.</p>
+      </div>
+
+      <!-- Back Button -->
+      <a href="/shabbos.html"
+         class="mt-10 inline-block text-neutral-700 hover:text-neutral-900 underline underline-offset-4">
+         Place Another Order
+      </a>
+    </main>
+
+    <footer class="py-10 text-center text-sm text-neutral-500 border-t border-neutral-200">
+      © <
