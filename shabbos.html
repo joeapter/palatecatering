@@ -264,25 +264,46 @@
         return { close, drop };
       }
 
-      const parshaCache = {};
-      async function loadParshaMap() {
-        const today = nowInIsrael();
-        const years = [today.getFullYear(), today.getFullYear() + 1, today.getFullYear() + 2];
-        for (const yr of years) {
-          const url = `https://www.hebcal.com/hebcal?cfg=json&v=1&year=${yr}&i=on&ss=on&c=on&geo=geoname&geonameid=293397`;
-          try {
-            const res = await fetch(url);
-            const data = await res.json();
-            (data?.items || []).forEach(item => {
-              if (item.category === "parashat" && item.date) {
-                parshaCache[item.date] = (item.title || "").replace(/^Parashat /, "");
-              }
-            });
-          } catch (err) {
-            console.warn("Parsha map fetch failed", err);
-          }
-        }
-      }
+      const parshaCache = {
+        "2025-01-04": "Vayigash", "2025-01-11": "Vayechi", "2025-01-18": "Shemot", "2025-01-25": "Vaera",
+        "2025-02-01": "Bo", "2025-02-08": "Beshalach", "2025-02-15": "Yitro", "2025-02-22": "Mishpatim",
+        "2025-03-01": "Terumah", "2025-03-08": "Tetzaveh", "2025-03-15": "Ki Tisa", "2025-03-22": "Vayakhel",
+        "2025-03-29": "Pekudei", "2025-04-05": "Vayikra", "2025-04-12": "Tzav", "2025-04-26": "Shmini",
+        "2025-05-03": "Tazria-Metzora", "2025-05-10": "Achrei Mot-Kedoshim", "2025-05-17": "Emor", "2025-05-24": "Behar-Bechukotai",
+        "2025-05-31": "Bamidbar", "2025-06-07": "Nasso", "2025-06-14": "Beha’alotcha", "2025-06-21": "Sh’lach",
+        "2025-06-28": "Korach", "2025-07-05": "Chukat", "2025-07-12": "Balak", "2025-07-19": "Pinchas",
+        "2025-07-26": "Matot-Masei", "2025-08-02": "Devarim", "2025-08-09": "Vaetchanan", "2025-08-16": "Eikev",
+        "2025-08-23": "Re’eh", "2025-08-30": "Shoftim", "2025-09-06": "Ki Teitzei", "2025-09-13": "Ki Tavo",
+        "2025-09-20": "Nitzavim", "2025-09-27": "Vayeilech", "2025-10-04": "Ha’azinu", "2025-10-18": "Bereshit",
+        "2025-10-25": "Noach", "2025-11-01": "Lech-Lecha", "2025-11-08": "Vayera", "2025-11-15": "Chayei Sara",
+        "2025-11-22": "Toldot", "2025-11-29": "Vayetzei", "2025-12-06": "Vayishlach", "2025-12-13": "Vayeshev",
+        "2025-12-20": "Miketz", "2025-12-27": "Vayigash",
+        "2026-01-03": "Vayechi", "2026-01-10": "Shemot", "2026-01-17": "Vaera", "2026-01-24": "Bo",
+        "2026-01-31": "Beshalach", "2026-02-07": "Yitro", "2026-02-14": "Mishpatim", "2026-02-21": "Terumah",
+        "2026-02-28": "Tetzaveh", "2026-03-07": "Ki Tisa", "2026-03-14": "Vayakhel-Pekudei", "2026-03-21": "Vayikra",
+        "2026-03-28": "Tzav", "2026-04-11": "Shmini", "2026-04-18": "Tazria-Metzora", "2026-04-25": "Achrei Mot-Kedoshim",
+        "2026-05-02": "Emor", "2026-05-09": "Behar-Bechukotai", "2026-05-16": "Bamidbar", "2026-05-23": "Nasso",
+        "2026-05-30": "Beha’alotcha", "2026-06-06": "Sh’lach", "2026-06-13": "Korach", "2026-06-20": "Chukat",
+        "2026-06-27": "Balak", "2026-07-04": "Pinchas", "2026-07-11": "Matot-Masei", "2026-07-18": "Devarim",
+        "2026-07-25": "Vaetchanan", "2026-08-01": "Eikev", "2026-08-08": "Re’eh", "2026-08-15": "Shoftim",
+        "2026-08-22": "Ki Teitzei", "2026-08-29": "Ki Tavo", "2026-09-05": "Nitzavim-Vayeilech", "2026-09-19": "Ha’azinu",
+        "2026-10-10": "Bereshit", "2026-10-17": "Noach", "2026-10-24": "Lech-Lecha", "2026-10-31": "Vayera",
+        "2026-11-07": "Chayei Sara", "2026-11-14": "Toldot", "2026-11-21": "Vayetzei", "2026-11-28": "Vayishlach",
+        "2026-12-05": "Vayeshev", "2026-12-12": "Miketz", "2026-12-19": "Vayigash", "2026-12-26": "Vayechi",
+        "2027-01-02": "Shemot", "2027-01-09": "Vaera", "2027-01-16": "Bo", "2027-01-23": "Beshalach",
+        "2027-01-30": "Yitro", "2027-02-06": "Mishpatim", "2027-02-13": "Terumah", "2027-02-20": "Tetzaveh",
+        "2027-02-27": "Ki Tisa", "2027-03-06": "Vayakhel", "2027-03-13": "Pekudei", "2027-03-20": "Vayikra",
+        "2027-03-27": "Tzav", "2027-04-03": "Shmini", "2027-04-10": "Tazria", "2027-04-17": "Metzora",
+        "2027-05-01": "Achrei Mot", "2027-05-08": "Kedoshim", "2027-05-15": "Emor", "2027-05-22": "Behar",
+        "2027-05-29": "Bechukotai", "2027-06-05": "Bamidbar", "2027-06-12": "Nasso", "2027-06-19": "Beha’alotcha",
+        "2027-06-26": "Sh’lach", "2027-07-03": "Korach", "2027-07-10": "Chukat", "2027-07-17": "Balak",
+        "2027-07-24": "Pinchas", "2027-07-31": "Matot-Masei", "2027-08-07": "Devarim", "2027-08-14": "Vaetchanan",
+        "2027-08-21": "Eikev", "2027-08-28": "Re’eh", "2027-09-04": "Shoftim", "2027-09-11": "Ki Teitzei",
+        "2027-09-18": "Ki Tavo", "2027-09-25": "Nitzavim-Vayeilech", "2027-10-09": "Ha’azinu",
+        "2027-10-30": "Bereshit", "2027-11-06": "Noach", "2027-11-13": "Lech-Lecha", "2027-11-20": "Vayera",
+        "2027-11-27": "Chayei Sara", "2027-12-04": "Toldot", "2027-12-11": "Vayetzei", "2027-12-18": "Vayishlach",
+        "2027-12-25": "Vayeshev"
+      };
 
       function parshaForDate(dateObj) {
         const iso = dateObj.toISOString().slice(0,10);
@@ -318,7 +339,6 @@
         const status = document.getElementById("orderStatusText");
         const labelEl = document.getElementById("orderShabbosLabel");
         if (!select) return;
-        await loadParshaMap();
 
         const options = [];
         const today = nowInIsrael();
