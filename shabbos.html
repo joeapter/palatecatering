@@ -265,6 +265,25 @@
       }
 
       const parshaCache = {};
+      async function loadParshaMap() {
+        const today = nowInIsrael();
+        const years = [today.getFullYear(), today.getFullYear() + 1, today.getFullYear() + 2];
+        for (const yr of years) {
+          const url = `https://www.hebcal.com/hebcal?cfg=json&v=1&year=${yr}&i=on&ss=on&c=on&geo=geoname&geonameid=293397`;
+          try {
+            const res = await fetch(url);
+            const data = await res.json();
+            (data?.items || []).forEach(item => {
+              if (item.category === "parashat" && item.date) {
+                parshaCache[item.date] = (item.title || "").replace(/^Parashat /, "");
+              }
+            });
+          } catch (err) {
+            console.warn("Parsha map fetch failed", err);
+          }
+        }
+      }
+
       function parshaForDate(dateObj) {
         const iso = dateObj.toISOString().slice(0,10);
         if (parshaCache[iso]) return parshaCache[iso];
@@ -299,6 +318,7 @@
         const status = document.getElementById("orderStatusText");
         const labelEl = document.getElementById("orderShabbosLabel");
         if (!select) return;
+        await loadParshaMap();
 
         const options = [];
         const today = nowInIsrael();
@@ -332,10 +352,9 @@
             ? `Next open week: ${firstOpen.value}`
             : (firstClosed ? `${firstClosed.value} is closed.` : "Ordering currently closed.");
         }
-        const firstOpen = options.find(o => !o.closed);
-        if (labelEl && firstOpen) {
-          labelEl.textContent = firstOpen.value;
-          labelEl.classList.remove("hidden");
+        if (labelEl) {
+          labelEl.textContent = "";
+          labelEl.classList.add("hidden");
         }
         if (note) note.textContent = "Orders close Wednesday 23:59 Israel time for that week.";
 
