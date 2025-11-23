@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Palate Orders Admin</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background:#0f172a; color:#e2e8f0; }
+    .card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); }
+    .chip { padding:2px 8px; border-radius:999px; font-size:12px; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <header class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-semibold text-white">Order Admin</h1>
+        <p class="text-slate-300 text-sm">View, update status, and print orders.</p>
+      </div>
+      <div class="flex gap-2 items-center">
+        <input id="adminKeyInput" type="password" placeholder="Admin key" class="rounded px-3 py-2 text-sm text-slate-900" />
+        <button id="loadBtn" class="bg-amber-400 text-slate-900 px-3 py-2 rounded text-sm font-semibold">Load Orders</button>
+      </div>
+    </header>
+
+    <div id="status" class="text-sm text-amber-300"></div>
+
+    <div id="orders" class="grid gap-4"></div>
+  </div>
+
+  <script>
+    const ordersEl = document.getElementById('orders');
+    const statusEl = document.getElementById('status');
+    const keyInput = document.getElementById('adminKeyInput');
+    const loadBtn = document.getElementById('loadBtn');
+    const savedKey = localStorage.getItem('palate_admin_key') || '';
+    if (savedKey) keyInput.value = savedKey;
+
+    function formatDate(d) {
+      try { return new Date(d).toLocaleString(); } catch { return d; }
+    }
+
+    function renderOrders(list) {
+      ordersEl.innerHTML = '';
+      if (!list.length) {
+        ordersEl.innerHTML = '<p class="text-slate-300">No orders yet.</p>';
+        return;
+      }
+      list.forEach(o => {
+        const div = document.createElement('div');
+        const statusColor = o.status === 'delivered' ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40'
+          : o.status === 'ready' ? 'bg-blue-500/20 text-blue-200 border border-blue-500/40'
+          : 'bg-amber-500/20 text-amber-100 border border-amber-500/40';
+        div.className = 'card rounded-xl p-4';
+        div.innerHTML = `
+          <div class="flex justify-between items-start gap-3">
+            <div>
+              <div class="text-lg font-semibold text-white">#${o.order_number || '—'} — ${o.shabbos_label || 'Shabbos Order'}</div>
+              <div class="text-slate-300 text-sm">${o.customer_name || ''} · ${o.customer_phone || ''} · ${o.customer_email || ''}</div>
+              <div class="text-slate-400 text-sm">${o.customer_address || ''}</div>
+              <div class="text-slate-500 text-xs mt-1">Placed: ${formatDate(o.created_at)}</div>
+            </div>
+            <span class="chip ${statusColor}">${o.status || 'new'}</span>
+          </div>
+          <div class="mt-3 text-slate-200 text-sm">
+            <div class="font-semibold">Total: ${o.total || ''}</div>
+            ${o.allergies ? `<div class="text-amber-200 font-semibold">Allergies: ${o.allergies}</div>` : ''}
+          </div>
+          <div class="mt-3 text-slate-200 text-sm space-y-1">
+            ${(o.items || []).map(i => `<div class="flex justify-between border-b border-white/5 pb-1"><span>${i.item}</span><span>${i.qty} ${i.soldBy || ''}</span></div>`).join('')}
+          </div>
+          <div class="flex gap-2 mt-4 flex-wrap">
+            <button data-id="${o.id}" data-status="ready" class="status-btn bg-blue-500 text-white px-3 py-2 rounded text-sm">Mark Ready</button>
+            <button data-id="${o.id}" data-status="delivered" class="status-btn bg-emerald-500 text-white px-3 py-2 rounded text-sm">Mark Delivered</button>
+            <button data-html='${encodeURIComponent(o.html_body || '')}' class="print-btn bg-slate-700 text-white px-3 py-2 rounded text-sm">Print</button>
+          </div>
+        `;
+        ordersEl.appendChild(div);
+      });
+      document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.addEventListener('click', () => updateStatus(btn.dataset.id, btn.dataset.status));
+      });
+      document.querySelectorAll('.print-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const html = decodeURIComponent(btn.getAttribute('data-html') || '');
+          const w = window.open('', '_blank', 'width=900,height=1200');
+          w.document.write(html || '<p>No HTML available</p>');
+          w.document.close();
+          w.focus();
+          setTimeout(() => w.print(), 300);
+        });
+      });
+    }
+
+    async function loadOrders() {
+      const key = keyInput.value.trim();
+      if (!key) return;
+      localStorage.setItem('palate_admin_key', key);
+      statusEl.textContent = 'Loading orders...';
+      try {
+        const res = await fetch(`/api/orders?key=${encodeURIComponent(key)}`);
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        renderOrders(data.orders || []);
+        statusEl.textContent = `Loaded ${data.orders?.length || 0} orders`;
+      } catch (err) {
+        statusEl.textContent = 'Failed to load orders';
+        console.error(err);
+        alert(err.message || 'Error');
+      }
+    }
+
+    async function updateStatus(id, status) {
+      const key = keyInput.value.trim();
+      if (!key) return;
+      try {
+        const res = await fetch('/api/order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status, key })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        loadOrders();
+      } catch (err) {
+        alert(err.message || 'Status update failed');
+      }
+    }
+
+    loadBtn.addEventListener('click', loadOrders);
+    if (savedKey) loadOrders();
+  </script>
+</body>
+</html>

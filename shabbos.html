@@ -93,7 +93,7 @@
           </div>
         </section>
 
-        <form name="shabbos-order" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" action="/thank-you.html" id="orderForm" class="space-y-12 card-surface rounded-3xl p-6 md:p-8">
+        <form name="shabbos-order" method="GET" action="/thank-you.html" id="orderForm" class="space-y-12 card-surface rounded-3xl p-6 md:p-8">
           <input type="hidden" name="form-name" value="shabbos-order" />
           <input type="hidden" name="bot-field" />
 
@@ -105,6 +105,22 @@
         <input type="hidden" id="orderItemsField" />
 
         <div id="menuContainer" class="space-y-12"></div>
+
+        <!-- Account -->
+        <section class="border border-neutral-200 rounded-2xl p-4 bg-white/70">
+          <h2 class="text-xl font-serif mb-2">Account (optional)</h2>
+          <p class="text-sm text-neutral-600 mb-3">Log in to save your details for next time. No email verification needed.</p>
+          <div class="grid md:grid-cols-3 gap-3 items-end">
+            <input type="email" id="accountEmail" placeholder="Email" class="border rounded-md px-3 py-2 md:col-span-1" />
+            <input type="password" id="accountPassword" placeholder="Password" class="border rounded-md px-3 py-2 md:col-span-1" />
+            <div class="flex gap-2 md:justify-end">
+              <button type="button" id="btnRegister" class="text-sm bg-neutral-900 text-white px-3 py-2 rounded">Register</button>
+              <button type="button" id="btnLogin" class="text-sm bg-neutral-200 px-3 py-2 rounded">Login</button>
+              <button type="button" id="btnLogout" class="text-sm bg-neutral-200 px-3 py-2 rounded hidden">Logout</button>
+            </div>
+          </div>
+          <div id="accountStatus" class="text-sm text-amber-700 mt-2"></div>
+        </section>
 
         <!-- Customer Info -->
         <section>
@@ -174,6 +190,9 @@
     <script>
       const { jsPDF } = window.jspdf;
       document.getElementById("year").textContent = new Date().getFullYear();
+      const TOKEN_KEY = "palate_token";
+      const USER_INFO_KEY = "palate_user_info";
+      const CONTACT_KEY = "palate_saved_contact";
 
       // Mobile menu toggle
       document.getElementById("menuBtn").addEventListener("click", () => {
@@ -264,6 +283,33 @@
 
         const cutoffText = document.getElementById("orderCutoffText");
         if (cutoffText) cutoffText.textContent = "Orders lock Wednesday 23:59 (Israel) for this Shabbos.";
+      }
+
+      function prefillContact(data) {
+        if (!data) return;
+        if (data.name) document.querySelector('input[name="Name"]').value = data.name;
+        if (data.phone) document.querySelector('input[name="Phone"]').value = data.phone;
+        if (data.email) document.querySelector('input[name="Email"]').value = data.email;
+        if (data.address) document.querySelector('textarea[name="Delivery Address"]').value = data.address;
+        if (data.allergies) document.querySelector('textarea[name="Allergies"]').value = data.allergies;
+      }
+
+      function loadSavedContact() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(CONTACT_KEY) || "{}");
+          prefillContact(saved);
+        } catch {}
+      }
+
+      function saveContactToLocal() {
+        const data = {
+          name: document.querySelector('input[name="Name"]')?.value || "",
+          phone: document.querySelector('input[name="Phone"]')?.value || "",
+          email: document.querySelector('input[name="Email"]')?.value || "",
+          address: document.querySelector('textarea[name="Delivery Address"]')?.value || "",
+          allergies: document.querySelector('textarea[name="Allergies"]')?.value || ""
+        };
+        try { localStorage.setItem(CONTACT_KEY, JSON.stringify(data)); } catch {}
       }
 
       function renderMenu(data) {
@@ -360,46 +406,50 @@
 
       async function generateAndUploadPDF(data) {
         const pdf = new jsPDF();
-        const gold = [184, 134, 11];
+        const ink = [28, 32, 37];
+        const subtle = [100, 116, 139];
+        const accent = [59, 130, 246];
 
-        // Simple, fast header (no background images)
-        pdf.setTextColor(30, 30, 30);
-        pdf.setFontSize(18);
+        pdf.setTextColor(...ink);
+        pdf.setFontSize(20);
         pdf.text("Palate Catering", 15, 18);
         pdf.setFontSize(11);
+        pdf.setTextColor(...subtle);
         pdf.text("058-728-0062", 15, 26);
-        pdf.setFontSize(13);
-        pdf.text(data.shabbosLabel, 15, 38);
+
+        pdf.setTextColor(...ink);
+        pdf.setFontSize(14);
+        pdf.text(data.shabbosLabel || "Shabbos Order", 15, 38);
         pdf.setFontSize(12);
-        pdf.text(`Order Total: ${data.total}`, 195, 26, null, null, "right");
+        pdf.text(`Total: ${data.total}`, 195, 18, null, null, "right");
         if (data.allergies) {
-          pdf.setTextColor(161, 39, 22);
+          pdf.setTextColor(180, 32, 32);
           pdf.setFont(undefined, "bold");
           pdf.text(`Allergies: ${data.allergies}`, 15, 50);
-          pdf.setTextColor(30, 30, 30);
           pdf.setFont(undefined, "normal");
+          pdf.setTextColor(...ink);
         }
 
-        pdf.setTextColor(40, 40, 40);
+        pdf.setTextColor(...ink);
         let line = data.allergies ? 62 : 54;
         pdf.text(`Name: ${data.name}`, 15, line); line += 7;
         pdf.text(`Phone: ${data.phone}`, 15, line); line += 7;
         pdf.text(`Email: ${data.email}`, 15, line); line += 7;
-        pdf.text(`Address: ${data.address}`, 15, line); line += 7;
-        pdf.text(`Total: ${data.total}`, 15, line); line += 12;
-        const tableStart = line;
+        pdf.text(`Address: ${data.address}`, 15, line); line += 10;
 
         pdf.autoTable({
           head: [["Item", "Qty", "Sold By", "Price"]],
-          body: data.items.map(i => [i.item, i.qty, i.soldBy, i.price ? `₪${(i.price||0).toFixed(2)}` : ""]),
+          body: data.items.map(i => [i.item, i.qty, i.soldBy || "", i.price ? `₪${(i.price||0).toFixed(2)}` : ""]),
           foot: [[{ content: "Total", colSpan: 3, styles: { halign: "right", fontStyle: "bold" } }, data.total]],
-          startY: tableStart,
-          headStyles: { fillColor: gold, textColor: 255 },
-          styles: { fontSize: 11 },
-          footStyles: { fillColor: [245, 240, 230], textColor: 30 }
+          startY: line,
+          styles: { fontSize: 11, textColor: ink },
+          headStyles: { fillColor: accent, textColor: 255 },
+          footStyles: { fillColor: [241, 245, 249], textColor: ink, lineWidth: 0.2 }
         });
 
-        pdf.text("Thank you for your order!", 15, 285);
+        pdf.setFontSize(11);
+        pdf.setTextColor(...subtle);
+        pdf.text("Thank you for your order.", 15, 285);
 
         const dataUrl = pdf.output("datauristring");
         return { dataUrl };
@@ -519,6 +569,7 @@
         }
 
         let blocked = false;
+        let redirected = false;
         try {
           updateTotals();
 
@@ -557,8 +608,7 @@
 
           const bgPayload = { name, phone, email, address, total, items, shabbosLabel, allergies };
 
-          // Submit immediately; background work happens after.
-          form.action = "/thank-you.html";
+          // Redirect immediately; background work happens after.
           setTimeout(() => {
             fireAndForgetEmail(async () => {
               let pdfDataUrl = "";
@@ -575,17 +625,21 @@
                 total,
                 shabbosLabel,
                 allergies,
+                authToken,
                 emailBody,
                 htmlBody: emailHtml,
                 pdfDataUrl
               };
             });
           }, 50);
+          redirected = true;
+          window.location.href = "/thank-you.html";
         } catch (err) {
           console.error("Order submit error", err);
         } finally {
-          if (!blocked) form.submit();
-          else if (submitBtn) {
+          if (!blocked && !redirected && form.submit) {
+            form.submit();
+          } else if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.textContent = originalBtnText || "Submit Order";
             submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
@@ -600,6 +654,87 @@
       });
 
       populateShabbosOptions();
+
+      // Account + local save
+      const accountEmail = document.getElementById("accountEmail");
+      const accountPassword = document.getElementById("accountPassword");
+      const btnRegister = document.getElementById("btnRegister");
+      const btnLogin = document.getElementById("btnLogin");
+      const btnLogout = document.getElementById("btnLogout");
+      const accountStatus = document.getElementById("accountStatus");
+      let authToken = "";
+      let currentUser = null;
+
+      function loadAuthFromStorage() {
+        authToken = localStorage.getItem(TOKEN_KEY) || "";
+        try { currentUser = JSON.parse(localStorage.getItem(USER_INFO_KEY) || "null"); } catch { currentUser = null; }
+        if (authToken && currentUser) {
+          accountStatus.textContent = `Signed in as ${currentUser.email}`;
+          btnLogout.classList.remove("hidden");
+          btnLogin.classList.add("hidden");
+          btnRegister.classList.add("hidden");
+          prefillContact(currentUser);
+        } else {
+          accountStatus.textContent = "";
+          btnLogout.classList.add("hidden");
+          btnLogin.classList.remove("hidden");
+          btnRegister.classList.remove("hidden");
+        }
+      }
+
+      function setAuth(token, user) {
+        authToken = token;
+        currentUser = user;
+        try { localStorage.setItem(TOKEN_KEY, token || ""); } catch {}
+        try { localStorage.setItem(USER_INFO_KEY, JSON.stringify(user || null)); } catch {}
+        loadAuthFromStorage();
+      }
+
+      async function doAuth(path) {
+        const email = accountEmail.value.trim();
+        const password = accountPassword.value.trim();
+        if (!email || !password) {
+          accountStatus.textContent = "Email and password required.";
+          return;
+        }
+        accountStatus.textContent = "Working...";
+        const name = document.querySelector('input[name="Name"]')?.value || "";
+        const phone = document.querySelector('input[name="Phone"]')?.value || "";
+        const address = document.querySelector('textarea[name="Delivery Address"]')?.value || "";
+        try {
+          const res = await fetch(path, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, name, phone, address })
+          });
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          setAuth(data.token, data.user);
+          accountStatus.textContent = "Signed in.";
+          prefillContact(data.user);
+        } catch (err) {
+          accountStatus.textContent = err.message || "Error";
+        }
+      }
+
+      btnRegister?.addEventListener("click", () => doAuth("/api/auth-register"));
+      btnLogin?.addEventListener("click", () => doAuth("/api/auth-login"));
+      btnLogout?.addEventListener("click", () => {
+        setAuth("", null);
+        accountStatus.textContent = "Signed out.";
+      });
+
+      ["Name","Phone","Email"].forEach(n => {
+        const el = document.querySelector(`input[name="${n}"]`);
+        el?.addEventListener("input", saveContactToLocal);
+      });
+      ["Delivery Address","Allergies"].forEach(n => {
+        const el = document.querySelector(`textarea[name="${n}"]`);
+        el?.addEventListener("input", saveContactToLocal);
+      });
+
+      loadSavedContact();
+      loadAuthFromStorage();
     </script>
   </body>
 </html>
