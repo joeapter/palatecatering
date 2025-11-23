@@ -265,37 +265,28 @@
       }
 
       const parshaCache = {};
-      async function populateParshaCache() {
-        const start = nowInIsrael();
-        const end = shabbosDate(104); // ~2 years ahead
-        const startStr = start.toISOString().slice(0,10);
-        const endStr = end.toISOString().slice(0,10);
-        const url = `https://www.hebcal.com/hebcal?cfg=json&v=1&start=${startStr}&end=${endStr}&geo=geoname&geonameid=293397&ss=on&c=on`;
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          (data?.items || []).forEach(item => {
-            if (item.category === "parashat" && item.date) {
-              parshaCache[item.date] = item.title?.replace(/^Parashat /, "") || "";
-            }
-          });
-        } catch (err) {
-          console.warn("Parsha API fetch failed", err);
-        }
-      }
-
       function parshaForDate(dateObj) {
         const iso = dateObj.toISOString().slice(0,10);
         if (parshaCache[iso]) return parshaCache[iso];
-        try {
-          const h = new Hebcal.HDate(dateObj, 'israel');
-          const sedra = h.getSedra('israel');
-          if (Array.isArray(sedra) && sedra.length) return sedra[0];
-        } catch (err) {}
+
+        // Primary: Sedra by year (Israel)
         try {
           const sedraYear = new Hebcal.Sedra(dateObj.getFullYear(), true);
           const info = sedraYear.get(dateObj);
-          if (info && info.parsha) return info.parsha;
+          if (info && Array.isArray(info.parsha) && info.parsha.length) {
+            parshaCache[iso] = info.parsha[0];
+            return parshaCache[iso];
+          }
+        } catch (err) {}
+
+        // Fallback: HDate.getSedra
+        try {
+          const h = new Hebcal.HDate(dateObj, 'israel');
+          const sedra = h.getSedra('israel');
+          if (Array.isArray(sedra) && sedra.length) {
+            parshaCache[iso] = sedra[0];
+            return parshaCache[iso];
+          }
         } catch (err) {
           console.warn("Parsha calc failed", err);
         }
@@ -308,10 +299,6 @@
         const status = document.getElementById("orderStatusText");
         const labelEl = document.getElementById("orderShabbosLabel");
         if (!select) return;
-
-        if (!Object.keys(parshaCache).length) {
-          await populateParshaCache();
-        }
 
         const options = [];
         const today = nowInIsrael();
