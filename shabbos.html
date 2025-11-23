@@ -193,6 +193,33 @@
       const TOKEN_KEY = "palate_token";
       const USER_INFO_KEY = "palate_user_info";
       const CONTACT_KEY = "palate_saved_contact";
+      const HEBREW_FONT_URL = "https://fonts.gstatic.com/s/notosanshebrew/v50/or3HQ7v33eiDljA1IufXTtVf7V6RvEEdhQlk0LlGxCyaeNKYZC0sqk3xXGiXd4qtog.ttf";
+      let hebrewFontPromise = null;
+
+      async function ensureHebrewFont(pdf) {
+        if (hebrewFontPromise) {
+          await hebrewFontPromise;
+          return;
+        }
+        hebrewFontPromise = (async () => {
+          try {
+            const res = await fetch(HEBREW_FONT_URL);
+            const buf = await res.arrayBuffer();
+            const bytes = new Uint8Array(buf);
+            let binary = "";
+            const chunk = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunk) {
+              binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+            }
+            const base64 = btoa(binary);
+            pdf.addFileToVFS("NotoSansHebrew.ttf", base64);
+            pdf.addFont("NotoSansHebrew.ttf", "NotoSansHebrew", "normal");
+          } catch (err) {
+            console.error("Hebrew font load error", err);
+          }
+        })();
+        await hebrewFontPromise;
+      }
 
       // Mobile menu toggle
       document.getElementById("menuBtn").addEventListener("click", () => {
@@ -410,6 +437,9 @@
         const subtle = [100, 116, 139];
         const accent = [59, 130, 246];
 
+        await ensureHebrewFont(pdf);
+        try { pdf.setFont("NotoSansHebrew"); } catch {}
+
         pdf.setTextColor(...ink);
         pdf.setFontSize(20);
         pdf.text("Palate Catering", 15, 18);
@@ -442,9 +472,9 @@
           body: data.items.map(i => [i.item, i.qty, i.soldBy || "", i.price ? `₪${(i.price||0).toFixed(2)}` : ""]),
           foot: [[{ content: "Total", colSpan: 3, styles: { halign: "right", fontStyle: "bold" } }, data.total]],
           startY: line,
-          styles: { fontSize: 11, textColor: ink },
-          headStyles: { fillColor: accent, textColor: 255 },
-          footStyles: { fillColor: [241, 245, 249], textColor: ink, lineWidth: 0.2 }
+          styles: { fontSize: 11, textColor: ink, font: "NotoSansHebrew" },
+          headStyles: { fillColor: accent, textColor: 255, font: "NotoSansHebrew" },
+          footStyles: { fillColor: [241, 245, 249], textColor: ink, lineWidth: 0.2, font: "NotoSansHebrew" }
         });
 
         pdf.setFontSize(11);
