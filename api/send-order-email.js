@@ -1,4 +1,35 @@
 const nodemailer = require('nodemailer');
+const { sql } = require('@vercel/postgres');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+
+async function ensureOrdersTable() {
+  try {
+    await sql`CREATE SEQUENCE IF NOT EXISTS order_number_seq START 1600`;
+    await sql`
+      CREATE TABLE IF NOT EXISTS orders (
+        id serial PRIMARY KEY,
+        order_number integer NOT NULL DEFAULT nextval('order_number_seq'),
+        created_at timestamptz DEFAULT now(),
+        status text DEFAULT 'new',
+        customer_name text,
+        customer_email text,
+        customer_phone text,
+        customer_address text,
+        shabbos_label text,
+        allergies text,
+        total text,
+        items jsonb,
+        email_body text,
+        html_body text
+      );
+    `;
+    await sql`ALTER TABLE orders ALTER COLUMN order_number SET DEFAULT nextval('order_number_seq')`;
+  } catch (err) {
+    console.error('ensureOrdersTable error', err);
+  }
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -14,7 +45,8 @@ module.exports = async (req, res) => {
     allergies = '',
     emailBody = '',
     htmlBody = '',
-    pdfDataUrl = ''
+    pdfDataUrl = '',
+    authToken = ''
   } = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
 
   const user = process.env.GMAIL_USER;
@@ -50,12 +82,48 @@ module.exports = async (req, res) => {
   const safeTextBody = (emailBody || '').trim();
   const fallbackHtml = safeHtmlBody || `<pre style="font-family:Arial,sans-serif;white-space:pre-wrap;">${safeTextBody.replace(/</g,"&lt;")}</pre>`;
 
+  let orderNumber;
+  try {
+    await ensureOrdersTable();
+    let userEmailFromToken = '';
+    try {
+      if (authToken) {
+        const decoded = jwt.verify(authToken, JWT_SECRET);
+        userEmailFromToken = decoded?.email || '';
+      }
+    } catch (err) {
+      console.warn('authToken verify failed', err.message);
+    }
+    const insert = await sql`
+      INSERT INTO orders (
+        customer_name, customer_email, customer_phone, customer_address,
+        shabbos_label, allergies, total, items, email_body, html_body, status
+      ) VALUES (
+        ${customer?.name || ''},
+        ${customer?.email || userEmailFromToken || ''},
+        ${customer?.phone || ''},
+        ${customer?.address || ''},
+        ${shabbosLabel || ''},
+        ${allergies || ''},
+        ${total || ''},
+        ${JSON.stringify(items || [])},
+        ${safeTextBody || ''},
+        ${fallbackHtml || ''},
+        'new'
+      )
+      RETURNING order_number
+    `;
+    orderNumber = insert?.rows?.[0]?.order_number;
+  } catch (err) {
+    console.error('Order save error', err);
+  }
+
   const staffMail = {
     from: `${fromName} <${user}>`,
     to,
     cc,
     replyTo,
-    subject: `New Palate Shabbos Order — ${shabbosLabel || 'New Order'}`,
+    subject: `Order #${orderNumber || 'NEW'} — ${shabbosLabel || 'Palate Shabbos Order'}`,
     text: safeTextBody || undefined,
     html: fallbackHtml,
     attachments: attachment ? [attachment] : []
@@ -69,7 +137,7 @@ module.exports = async (req, res) => {
         from: `${fromName} <${user}>`,
         to: customer.email,
         replyTo,
-        subject: `Your Palate Shabbos Order — ${shabbosLabel || ''}`,
+        subject: `Your Order #${orderNumber || ''} — ${shabbosLabel || ''}`,
         text: safeTextBody || undefined,
         html: fallbackHtml,
         attachments: attachment ? [attachment] : []
@@ -79,7 +147,7 @@ module.exports = async (req, res) => {
 
   try {
     await Promise.all(mails);
-    res.status(200).json({ ok: true });
+    res.status(200).json({ ok: true, orderNumber });
   } catch (err) {
     console.error('Email send error', err);
     res.status(500).send('Email failed');
