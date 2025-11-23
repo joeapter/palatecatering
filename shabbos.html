@@ -78,6 +78,9 @@
               Build your full menu, confirm your details, and we’ll reply with an email confirmation.
             </p>
           </div>
+          <div class="w-24 lg:w-28">
+            <img src="/Hechsher.png" alt="Hechsher" class="w-full h-auto rounded-xl border border-neutral-200 shadow-md bg-white/80 p-2">
+          </div>
           <div class="card-surface rounded-3xl p-6 lg:w-[420px]">
             <div class="flex items-start gap-3 mb-4">
               <span class="inline-flex h-10 w-10 rounded-full bg-amber-100 text-amber-800 items-center justify-center font-semibold">⏳</span>
@@ -247,11 +250,13 @@
       function labelShabbos(d, parshaName) {
         return parshaName ? `Shabbos Parshas ${parshaName} — ${formatDate(d)}` : `Shabbos — ${formatDate(d)}`;
       }
-      function getCutoffFor(date) {
-        const cutoff = new Date(date);
-        cutoff.setDate(cutoff.getDate() - 3); // Wednesday night before Shabbos
-        cutoff.setHours(23, 59, 59, 999);
-        return cutoff;
+      function getCloseAndDropTimes(date) {
+        const close = new Date(date);
+        close.setDate(close.getDate() - 2); // Thursday (00:00) before Shabbos
+        close.setHours(0, 0, 0, 0);
+        const drop = new Date(date);
+        drop.setHours(23, 59, 59, 999); // end of Shabbos day
+        return { close, drop };
       }
 
       function parshaForDate(dateObj) {
@@ -260,6 +265,12 @@
           const sedra = h.getSedra('israel');
           if (sedra && sedra.length) return sedra[0];
         } catch (err) {
+          // fallback to sedra by year if needed
+          try {
+            const sedraYear = new Hebcal.Sedra(dateObj.getFullYear(), true);
+            const info = sedraYear.get(dateObj);
+            if (info && info.parsha) return info.parsha;
+          } catch {}
           console.warn("Parsha calc failed", err);
         }
         return "";
@@ -278,8 +289,9 @@
           const d = shabbosDate(weeks);
           const iso = d.toISOString().slice(0,10);
           const parsha = parshaForDate(d);
-          const cutoff = getCutoffFor(d);
-          const closed = today > cutoff;
+          const { close, drop } = getCloseAndDropTimes(d);
+          if (today > drop) continue; // hide past Shabbos after Motzei
+          const closed = today >= close;
           options.push({
             value: labelShabbos(d, parsha),
             text: labelShabbos(d, parsha) + (closed ? " (closed)" : ""),
@@ -309,7 +321,7 @@
         if (note) note.textContent = "Orders close Wednesday 23:59 Israel time for that week.";
 
         const cutoffText = document.getElementById("orderCutoffText");
-        if (cutoffText) cutoffText.textContent = "Orders lock Wednesday 23:59 (Israel) for this Shabbos.";
+        if (cutoffText) cutoffText.textContent = "Orders close Thursday 00:00 (Israel) for that Shabbos; hidden after Motzei.";
       }
 
       function prefillContact(data) {
