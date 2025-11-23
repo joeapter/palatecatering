@@ -35,6 +35,7 @@
           <a href="/#gallery" class="hover:opacity-70">Gallery</a>
           <a href="/#services" class="hover:opacity-70">Services</a>
           <a href="/#contact" class="hover:opacity-70">Contact</a>
+          <a href="/kashrus.html" class="hover:opacity-70">Kashrus</a>
           <a href="/shabbos.html" class="font-semibold">Shabbos</a>
         </nav>
 
@@ -57,6 +58,7 @@
           <a href="/#gallery" class="block">Gallery</a>
           <a href="/#services" class="block">Services</a>
           <a href="/#contact" class="block">Contact</a>
+          <a href="/kashrus.html" class="block">Kashrus</a>
           <a href="/shabbos.html" class="block font-semibold">Shabbos</a>
         </nav>
       </div>
@@ -78,8 +80,13 @@
               Build your full menu, confirm your details, and we’ll reply with an email confirmation.
             </p>
           </div>
-          <div class="w-24 lg:w-28">
-            <img src="/Hechsher.png" alt="Hechsher" class="w-full h-auto rounded-xl border border-neutral-200 shadow-md bg-white/80 p-2">
+          <div class="w-24 lg:w-28 relative group">
+            <a href="/kashrus.html" class="block">
+              <img src="/Hechsher.png" alt="Hechsher" class="w-full h-auto rounded-xl border border-neutral-200 shadow-md bg-white/80 p-2">
+            </a>
+            <div class="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 rounded-lg bg-neutral-900 text-white text-xs shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition">
+              Click for Kashrus info
+            </div>
           </div>
           <div class="card-surface rounded-3xl p-6 lg:w-[420px]">
             <div class="flex items-start gap-3 mb-4">
@@ -257,21 +264,40 @@
         return { close, drop };
       }
 
+      const parshaCache = {};
+      async function populateParshaCache() {
+        const start = nowInIsrael();
+        const end = shabbosDate(104); // ~2 years ahead
+        const startStr = start.toISOString().slice(0,10);
+        const endStr = end.toISOString().slice(0,10);
+        const url = `https://www.hebcal.com/hebcal?cfg=json&v=1&start=${startStr}&end=${endStr}&geo=geoname&geonameid=293397&ss=on&c=on`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          (data?.items || []).forEach(item => {
+            if (item.category === "parashat" && item.date) {
+              parshaCache[item.date] = item.title?.replace(/^Parashat /, "") || "";
+            }
+          });
+        } catch (err) {
+          console.warn("Parsha API fetch failed", err);
+        }
+      }
+
       function parshaForDate(dateObj) {
+        const iso = dateObj.toISOString().slice(0,10);
+        if (parshaCache[iso]) return parshaCache[iso];
         try {
           const h = new Hebcal.HDate(dateObj, 'israel');
           const sedra = h.getSedra('israel');
           if (Array.isArray(sedra) && sedra.length) return sedra[0];
-        } catch (err) {
-          console.warn("Hebcal getSedra failed", err);
-        }
-        // fallback using Sedra helper by year
+        } catch (err) {}
         try {
           const sedraYear = new Hebcal.Sedra(dateObj.getFullYear(), true);
           const info = sedraYear.get(dateObj);
           if (info && info.parsha) return info.parsha;
         } catch (err) {
-          console.warn("Hebcal Sedra fallback failed", err);
+          console.warn("Parsha calc failed", err);
         }
         return "";
       }
@@ -283,11 +309,14 @@
         const labelEl = document.getElementById("orderShabbosLabel");
         if (!select) return;
 
+        if (!Object.keys(parshaCache).length) {
+          await populateParshaCache();
+        }
+
         const options = [];
         const today = nowInIsrael();
         for (let weeks = 0; weeks <= 104; weeks++) {
           const d = shabbosDate(weeks);
-          const iso = d.toISOString().slice(0,10);
           const parsha = parshaForDate(d);
           const { close, drop } = getCloseAndDropTimes(d);
           if (today > drop) continue; // hide past Shabbos after Motzei
@@ -317,7 +346,10 @@
             : (firstClosed ? `${firstClosed.value} is closed.` : "Ordering currently closed.");
         }
         const firstOpen = options.find(o => !o.closed);
-        if (labelEl && firstOpen) labelEl.textContent = firstOpen.value;
+        if (labelEl && firstOpen) {
+          labelEl.textContent = firstOpen.value;
+          labelEl.classList.remove("hidden");
+        }
         if (note) note.textContent = "Orders close Wednesday 23:59 Israel time for that week.";
 
         const cutoffText = document.getElementById("orderCutoffText");
