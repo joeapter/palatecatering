@@ -73,7 +73,7 @@
         <section class="flex flex-col lg:flex-row gap-8 lg:items-center">
           <div class="flex-1">
             <p class="uppercase text-xs tracking-[0.32em] text-amber-700 mb-3">Weekly Menu</p>
-            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Order a polished Shabbos spread</h1>
+            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Shabbos Menu</h1>
             <p class="text-neutral-600 text-lg max-w-2xl">
               Build your full menu, confirm your details, and we’ll reply with an email confirmation.
             </p>
@@ -86,13 +86,11 @@
               <span class="inline-flex h-10 w-10 rounded-full bg-amber-100 text-amber-800 items-center justify-center font-semibold">⏳</span>
               <div>
                 <p class="text-sm text-neutral-600">Cutoff</p>
-                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Wednesday 23:59 (Israel)</p>
+                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Wednesday 23:59 Israel time for this Shabbos.</p>
                 <p class="text-sm text-neutral-600 mt-1" id="orderStatusText"></p>
               </div>
             </div>
-            <div class="text-sm text-neutral-600 leading-relaxed" id="orderShabbosLabel">
-              Taking orders for Shabbos — date loading…
-            </div>
+            <div class="text-sm text-neutral-600 leading-relaxed hidden" id="orderShabbosLabel"></div>
           </div>
         </section>
 
@@ -263,15 +261,17 @@
         try {
           const h = new Hebcal.HDate(dateObj, 'israel');
           const sedra = h.getSedra('israel');
-          if (sedra && sedra.length) return sedra[0];
+          if (Array.isArray(sedra) && sedra.length) return sedra[0];
         } catch (err) {
-          // fallback to sedra by year if needed
-          try {
-            const sedraYear = new Hebcal.Sedra(dateObj.getFullYear(), true);
-            const info = sedraYear.get(dateObj);
-            if (info && info.parsha) return info.parsha;
-          } catch {}
-          console.warn("Parsha calc failed", err);
+          console.warn("Hebcal getSedra failed", err);
+        }
+        // fallback using Sedra helper by year
+        try {
+          const sedraYear = new Hebcal.Sedra(dateObj.getFullYear(), true);
+          const info = sedraYear.get(dateObj);
+          if (info && info.parsha) return info.parsha;
+        } catch (err) {
+          console.warn("Hebcal Sedra fallback failed", err);
         }
         return "";
       }
@@ -321,7 +321,7 @@
         if (note) note.textContent = "Orders close Wednesday 23:59 Israel time for that week.";
 
         const cutoffText = document.getElementById("orderCutoffText");
-        if (cutoffText) cutoffText.textContent = "Orders close Thursday 00:00 (Israel) for that Shabbos; hidden after Motzei.";
+        if (cutoffText) cutoffText.textContent = "Orders close Wednesday 23:59 Israel time for this Shabbos.";
       }
 
       function prefillContact(data) {
