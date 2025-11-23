@@ -14,18 +14,30 @@
 </head>
 <body class="min-h-screen">
   <div class="max-w-6xl mx-auto px-4 py-8 space-y-6">
-    <header class="flex items-center justify-between">
+    <header class="flex items-center justify-between flex-wrap gap-3">
       <div>
         <h1 class="text-3xl font-semibold text-white">Order Admin</h1>
         <p class="text-slate-300 text-sm">View, update status, and print orders.</p>
       </div>
-      <div class="flex gap-2 items-center">
+      <div class="flex gap-2 items-center flex-wrap">
         <input id="adminKeyInput" type="password" placeholder="Admin key" class="rounded px-3 py-2 text-sm text-slate-900" />
         <button id="loadBtn" class="bg-amber-400 text-slate-900 px-3 py-2 rounded text-sm font-semibold">Load Orders</button>
       </div>
     </header>
 
-    <div id="status" class="text-sm text-amber-300"></div>
+    <div class="flex items-center gap-3 text-sm text-slate-200 flex-wrap">
+      <div id="status" class="text-amber-300"></div>
+      <label class="flex items-center gap-2">
+        <span class="text-slate-300">Filter:</span>
+        <select id="statusFilter" class="bg-slate-800 border border-white/10 rounded px-3 py-2 text-sm">
+          <option value="all">All</option>
+          <option value="new">New</option>
+          <option value="ready">Ready</option>
+          <option value="delivered">Delivered</option>
+        </select>
+      </label>
+      <div id="counts" class="text-slate-400"></div>
+    </div>
 
     <div id="orders" class="grid gap-4"></div>
   </div>
@@ -33,22 +45,33 @@
   <script>
     const ordersEl = document.getElementById('orders');
     const statusEl = document.getElementById('status');
+    const countsEl = document.getElementById('counts');
+    const filterEl = document.getElementById('statusFilter');
     const keyInput = document.getElementById('adminKeyInput');
     const loadBtn = document.getElementById('loadBtn');
     const savedKey = localStorage.getItem('palate_admin_key') || '';
     if (savedKey) keyInput.value = savedKey;
+    let allOrders = [];
 
     function formatDate(d) {
       try { return new Date(d).toLocaleString(); } catch { return d; }
     }
 
     function renderOrders(list) {
+      const filter = filterEl.value;
+      const filtered = filter === 'all' ? list : list.filter(o => (o.status || 'new') === filter);
+
+      const newCount = list.filter(o => (o.status || 'new') === 'new').length;
+      const readyCount = list.filter(o => o.status === 'ready').length;
+      const deliveredCount = list.filter(o => o.status === 'delivered').length;
+      countsEl.textContent = `New: ${newCount} · Ready: ${readyCount} · Delivered: ${deliveredCount}`;
+
       ordersEl.innerHTML = '';
-      if (!list.length) {
+      if (!filtered.length) {
         ordersEl.innerHTML = '<p class="text-slate-300">No orders yet.</p>';
         return;
       }
-      list.forEach(o => {
+      filtered.forEach(o => {
         const div = document.createElement('div');
         const statusColor = o.status === 'delivered' ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40'
           : o.status === 'ready' ? 'bg-blue-500/20 text-blue-200 border border-blue-500/40'
@@ -103,8 +126,9 @@
         const res = await fetch(`/api/orders?key=${encodeURIComponent(key)}`);
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
-        renderOrders(data.orders || []);
-        statusEl.textContent = `Loaded ${data.orders?.length || 0} orders`;
+        allOrders = data.orders || [];
+        renderOrders(allOrders);
+        statusEl.textContent = `Loaded ${allOrders.length} orders`;
       } catch (err) {
         statusEl.textContent = 'Failed to load orders';
         console.error(err);
@@ -129,6 +153,7 @@
     }
 
     loadBtn.addEventListener('click', loadOrders);
+    filterEl.addEventListener('change', () => renderOrders(allOrders));
     if (savedKey) loadOrders();
   </script>
 </body>
