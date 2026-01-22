@@ -670,7 +670,7 @@
         clearError();
         els.lastUpdatedAt.textContent = 'Loading...';
         try {
-          const response = await fetch(`/api/orders?key=${encodeURIComponent(state.adminKey)}`);
+        const response = await apiFetch(`orders?key=${encodeURIComponent(state.adminKey)}`);
           if (!response.ok) {
             const text = await response.text();
             throw new Error(text || 'Unable to fetch orders');
@@ -1148,7 +1148,7 @@
           showToast('No changes to save', { type: 'info' });
           return;
         }
-        fetch('/api/order-update', {
+        apiFetch('order-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ key: state.adminKey, id: order.id, patch })
@@ -1227,7 +1227,7 @@
         const previousStatus = order.status;
         order.status = newStatus;
         render();
-        fetch('/api/order-status', {
+        apiFetch('order-status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: order.id, status: newStatus, key: state.adminKey })
