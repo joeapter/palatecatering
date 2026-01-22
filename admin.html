@@ -106,6 +106,22 @@
 </head>
 <body class="bg-slate-100 text-slate-900">
   <div id="toastContainer"></div>
+  <div id="loginOverlay" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-slate-900/80 px-4 py-6">
+    <div class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-xl">
+      <p class="text-sm font-semibold uppercase tracking-[0.4em] text-slate-500">Admin login</p>
+      <h2 class="mt-2 text-2xl font-semibold text-slate-900">Unlock Palate Admin</h2>
+      <p id="loginOverlayMessage" class="mt-1 text-sm text-slate-500">Enter the admin key to load orders once.</p>
+      <div class="mt-6 space-y-3">
+        <label class="text-xs uppercase tracking-[0.3em] text-slate-500">Admin key</label>
+        <input id="loginKeyInput" type="password" autocomplete="current-password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" />
+        <p id="loginErrorText" class="min-h-[24px] text-xs font-semibold text-rose-500"></p>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button id="loginUnlockBtn" class="flex-1 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg">Unlock dashboard</button>
+        <button id="loginCloseInfoBtn" class="text-xs text-slate-500 underline hover:text-slate-700" type="button">Need help? Check Settings</button>
+      </div>
+    </div>
+  </div>
   <div class="flex min-h-screen">
     <aside class="no-print w-72 bg-white border-r border-slate-200 flex flex-col">
       <div class="px-6 py-6 border-b border-slate-200">
@@ -131,8 +147,6 @@
           <p class="text-sm text-slate-500">palatecateringisrael.com</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
-          <input id="adminKeyInput" type="password" placeholder="Admin key" class="bg-white border border-slate-200 text-sm text-slate-900 rounded-full px-4 py-2 focus:border-amber-400 focus:outline-none" />
-          <button id="loadBtn" class="rounded-full bg-amber-400 text-slate-900 px-4 py-2 text-sm font-semibold">Load orders</button>
           <button id="refreshBtn" class="rounded-full border border-amber-500/60 px-4 py-2 text-sm text-amber-600 hover:bg-amber-500/10">Refresh</button>
           <span id="lastUpdated" class="text-xs text-slate-500"></span>
         </div>
@@ -416,8 +430,12 @@
       };
       const els = {
         toastContainer: document.getElementById('toastContainer'),
-        adminKeyInput: document.getElementById('adminKeyInput'),
-        loadBtn: document.getElementById('loadBtn'),
+        loginOverlay: document.getElementById('loginOverlay'),
+        loginOverlayMessage: document.getElementById('loginOverlayMessage'),
+        loginKeyInput: document.getElementById('loginKeyInput'),
+        loginUnlockBtn: document.getElementById('loginUnlockBtn'),
+        loginErrorText: document.getElementById('loginErrorText'),
+        loginCloseInfoBtn: document.getElementById('loginCloseInfoBtn'),
         refreshBtn: document.getElementById('refreshBtn'),
         lastUpdatedAt: document.getElementById('lastUpdated'),
         errorBanner: document.getElementById('errorBanner'),
@@ -483,6 +501,52 @@
       };
       const tabButtons = document.querySelectorAll('[data-tab-btn]');
       const tabSections = document.querySelectorAll('[data-tab-content]');
+      let loginPending = false;
+
+      function showLoginOverlay(message = 'Enter the admin key to unlock the dashboard.') {
+        if (message) {
+          els.loginOverlayMessage.textContent = message;
+        }
+        els.loginErrorText.textContent = '';
+        els.loginOverlay.classList.remove('hidden');
+        setTimeout(() => els.loginKeyInput?.focus(), 50);
+      }
+
+      function hideLoginOverlay() {
+        els.loginOverlay.classList.add('hidden');
+        els.loginErrorText.textContent = '';
+      }
+
+      function setLoginError(message) {
+        els.loginErrorText.textContent = message || '';
+      }
+
+      async function handleLoginUnlock(event) {
+        if (event && typeof event.preventDefault === 'function') {
+          event.preventDefault();
+        }
+        if (loginPending) return;
+        const key = els.loginKeyInput.value.trim();
+        if (!key) {
+          setLoginError('Admin key is required.');
+          els.loginKeyInput.focus();
+          return;
+        }
+        setLoginError('');
+        showLoginOverlay('Verifying admin key...');
+        loginPending = true;
+        setAdminKey(key, { persist: false });
+        const success = await loadOrders();
+        loginPending = false;
+        if (success) {
+          setAdminKey(key, { persist: true });
+          hideLoginOverlay();
+        } else {
+          setAdminKey('', { persist: true });
+          showLoginOverlay('Key rejected. Try again or update it in Settings.');
+          setLoginError('Unable to load orders with that key.');
+        }
+      }
 
       async function apiFetch(endpoint, options = {}) {
         const normalizedEndpoint = endpoint.replace(/^\/+/, '');
@@ -515,25 +579,44 @@
         throw lastError || new Error('Unable to reach API');
       }
 
-      function init() {
+      async function init() {
         const storedKey = localStorage.getItem(KEY_STORAGE) || '';
-        setAdminKey(storedKey);
         const storedMode = localStorage.getItem(PRINT_MODE_STORAGE) || 'receipt';
         setDefaultPrintMode(storedMode);
         attachListeners();
         setActiveTab(state.activeTab);
-        if (state.adminKey) {
-          loadOrders();
+        if (storedKey) {
+          els.loginKeyInput.value = storedKey;
+          showLoginOverlay('Verifying saved key…');
+          setAdminKey(storedKey, { persist: true });
+          const success = await loadOrders();
+          if (success) {
+            hideLoginOverlay();
+          } else {
+            setAdminKey('', { persist: true });
+            showLoginOverlay('Stored key rejected. Enter a new key.');
+          }
+        } else {
+          els.loginKeyInput.value = '';
+          showLoginOverlay('Enter the admin key to load orders once.');
         }
       }
 
-      function setAdminKey(value) {
+      function setAdminKey(value, { persist = true } = {}) {
         state.adminKey = value || '';
-        els.adminKeyInput.value = state.adminKey;
         if (els.settingsKeyInput.value !== state.adminKey) {
           els.settingsKeyInput.value = state.adminKey;
         }
-        localStorage.setItem(KEY_STORAGE, state.adminKey);
+        if (els.loginKeyInput.value !== state.adminKey) {
+          els.loginKeyInput.value = state.adminKey;
+        }
+        if (persist) {
+          if (state.adminKey) {
+            localStorage.setItem(KEY_STORAGE, state.adminKey);
+          } else {
+            localStorage.removeItem(KEY_STORAGE);
+          }
+        }
       }
 
       function setDefaultPrintMode(mode) {
@@ -548,9 +631,17 @@
 
       function attachListeners() {
         tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveTab(btn.dataset.tabBtn)));
-        els.loadBtn.addEventListener('click', () => loadOrders());
         els.refreshBtn.addEventListener('click', () => loadOrders());
-        els.adminKeyInput.addEventListener('input', (event) => setAdminKey(event.target.value.trim()));
+        els.loginUnlockBtn.addEventListener('click', handleLoginUnlock);
+        els.loginKeyInput.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') {
+            handleLoginUnlock();
+          }
+        });
+        els.loginCloseInfoBtn.addEventListener('click', () => {
+          hideLoginOverlay();
+          setActiveTab('settings');
+        });
         els.searchInput.addEventListener('input', (event) => {
           state.filters.search = event.target.value;
           applyFilters();
@@ -587,8 +678,15 @@
           state.selected.clear();
           render();
         });
-        els.settingsSaveKeyBtn.addEventListener('click', () => setAdminKey(els.settingsKeyInput.value.trim()));
-        els.settingsClearKeyBtn.addEventListener('click', () => setAdminKey(''));
+        els.settingsSaveKeyBtn.addEventListener('click', () => {
+          els.loginKeyInput.value = els.settingsKeyInput.value.trim();
+          showLoginOverlay('Verifying new key...');
+          handleLoginUnlock();
+        });
+        els.settingsClearKeyBtn.addEventListener('click', () => {
+          setAdminKey('', { persist: true });
+          showLoginOverlay('Key cleared. Enter a new admin key to continue.');
+        });
         els.defaultPrintModeSelect.addEventListener('change', (event) => setDefaultPrintMode(event.target.value));
         els.dismissError.addEventListener('click', clearError);
         els.ordersList.addEventListener('click', handleOrderCardClick);
@@ -664,13 +762,20 @@
 
       async function loadOrders() {
         if (!state.adminKey) {
-          showError('Enter admin key to load orders');
-          return;
+          showLoginOverlay('Enter the admin key to load orders.');
+          return false;
         }
         clearError();
         els.lastUpdatedAt.textContent = 'Loading...';
+        let success = true;
         try {
-        const response = await apiFetch(`orders?key=${encodeURIComponent(state.adminKey)}`);
+          const response = await apiFetch(`orders?key=${encodeURIComponent(state.adminKey)}`);
+          if (response.status === 401) {
+            setAdminKey('', { persist: true });
+            showLoginOverlay('Key rejected. Enter the correct admin key.');
+            setLoginError('Unauthorized. Please try again.');
+            return false;
+          }
           if (!response.ok) {
             const text = await response.text();
             throw new Error(text || 'Unable to fetch orders');
@@ -683,10 +788,12 @@
           applyFilters();
           render();
         } catch (error) {
+          success = false;
           showError(error.message || 'Failed to load orders');
         } finally {
           updateLastUpdatedStamp();
         }
+        return success;
       }
 
       function applyFilters() {
