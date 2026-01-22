@@ -7,154 +7,1446 @@
   <link rel="icon" type="image/png" href="/favicon.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background:#0f172a; color:#e2e8f0; }
-    .card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); }
-    .chip { padding:2px 8px; border-radius:999px; font-size:12px; }
+    :root {
+      color-scheme: dark;
+    }
+    body { background: #020617; color: #e2e8f0; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+    .status-chip { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 0.1rem 0.9rem; font-size: 0.7rem; text-transform: capitalize; border-width: 1px; }
+    .order-card { border-width: 1px; border-style: solid; border-color: rgba(148, 163, 184, 0.2); background: rgba(15, 23, 42, 0.9); }
+    #drawer { position: fixed; inset: 0; pointer-events: none; z-index: 50; display: flex; justify-content: flex-end; }
+    #drawerPanel { width: min(480px, 100vw); max-width: 480px; height: 100%; background: #020617; border-left: 1px solid #1e293b; transform: translateX(100%); transition: transform 0.3s ease; box-shadow: -12px 0 30px rgba(2,6,23,0.85); }
+    #drawer.open { pointer-events: auto; }
+    #drawer.open #drawerPanel { transform: translateX(0); }
+    #drawerOverlay { position: absolute; inset: 0; background: rgba(2,6,23,0.65); opacity: 0; transition: opacity 0.3s ease; }
+    #drawer.open #drawerOverlay { opacity: 1; }
+    #toastContainer { position: fixed; top: 1.5rem; right: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem; z-index: 60; }
+    .toast { background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(148, 163, 184, 0.3); padding: 0.8rem 1rem; border-radius: 1rem; min-width: 220px; display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; }
+    .toast-error { border-color: rgba(244, 114, 182, 0.5); }
+    .toast-action { color: #fbbf24; font-weight: 600; }
+    .page-break { page-break-after: always; }
+    @media print {
+      body { background: #fff; color: #111827; }
+      .no-print, button, input, select, nav, header, aside, #toastContainer, #drawer { display: none !important; }
+    }
   </style>
 </head>
-<body class="min-h-screen">
-  <div class="max-w-6xl mx-auto px-4 py-8 space-y-6">
-    <header class="flex items-center justify-between flex-wrap gap-3">
-      <div>
-        <h1 class="text-3xl font-semibold text-white">Order Admin</h1>
-        <p class="text-slate-300 text-sm">View, update status, and print orders.</p>
+<body class="bg-slate-950 text-slate-100">
+  <div id="toastContainer"></div>
+  <div class="flex min-h-screen">
+    <aside class="no-print w-72 bg-slate-900 border-r border-slate-800 flex flex-col">
+      <div class="px-6 py-6 border-b border-slate-800">
+        <div class="text-lg font-semibold text-white">Palate Admin</div>
+        <p class="text-xs uppercase tracking-[0.3em] text-amber-400 mt-1">Orders & printing</p>
       </div>
-      <div class="flex gap-2 items-center flex-wrap">
-        <input id="adminKeyInput" type="password" placeholder="Admin key" class="rounded px-3 py-2 text-sm text-slate-900" />
-        <button id="loadBtn" class="bg-amber-400 text-slate-900 px-3 py-2 rounded text-sm font-semibold">Load Orders</button>
+      <nav class="flex-1 px-3 py-6 space-y-2" aria-label="Admin tabs">
+        <button data-tab-btn="orders" class="w-full text-left px-4 py-3 rounded-2xl text-slate-300 hover:bg-amber-500/10">Orders</button>
+        <button data-tab-btn="kitchen" class="w-full text-left px-4 py-3 rounded-2xl text-slate-300 hover:bg-amber-500/10">Kitchen Print</button>
+        <button data-tab-btn="delivery" class="w-full text-left px-4 py-3 rounded-2xl text-slate-300 hover:bg-amber-500/10">Delivery Sheets</button>
+        <button data-tab-btn="customers" class="w-full text-left px-4 py-3 rounded-2xl text-slate-300 hover:bg-amber-500/10">Customers</button>
+        <button data-tab-btn="settings" class="w-full text-left px-4 py-3 rounded-2xl text-slate-300 hover:bg-amber-500/10">Settings</button>
+      </nav>
+      <div class="px-6 py-4 border-t border-slate-800 space-y-1 text-sm">
+        <div class="text-slate-400 uppercase text-[0.65rem] tracking-[0.3em]">Default mode</div>
+        <div id="sidebarPrintMode" class="text-white font-semibold"></div>
       </div>
-    </header>
-
-    <div class="flex items-center gap-3 text-sm text-slate-200 flex-wrap">
-      <div id="status" class="text-amber-300"></div>
-      <label class="flex items-center gap-2">
-        <span class="text-slate-300">Filter:</span>
-        <select id="statusFilter" class="bg-slate-800 border border-white/10 rounded px-3 py-2 text-sm">
-          <option value="all">All</option>
-          <option value="new">New</option>
-          <option value="ready">Ready</option>
-          <option value="delivered">Delivered</option>
-        </select>
-      </label>
-      <div id="counts" class="text-slate-400"></div>
-    </div>
-
-    <div id="orders" class="grid gap-4"></div>
-  </div>
-
-  <script>
-    const ordersEl = document.getElementById('orders');
-    const statusEl = document.getElementById('status');
-    const countsEl = document.getElementById('counts');
-    const filterEl = document.getElementById('statusFilter');
-    const keyInput = document.getElementById('adminKeyInput');
-    const loadBtn = document.getElementById('loadBtn');
-    const savedKey = localStorage.getItem('palate_admin_key') || '';
-    if (savedKey) keyInput.value = savedKey;
-    let allOrders = [];
-
-    function formatDate(d) {
-      try { return new Date(d).toLocaleString(); } catch { return d; }
-    }
-
-    function renderOrders(list) {
-      const filter = filterEl.value;
-      const filtered = filter === 'all' ? list : list.filter(o => (o.status || 'new') === filter);
-
-      const newCount = list.filter(o => (o.status || 'new') === 'new').length;
-      const readyCount = list.filter(o => o.status === 'ready').length;
-      const deliveredCount = list.filter(o => o.status === 'delivered').length;
-      countsEl.textContent = `New: ${newCount} · Ready: ${readyCount} · Delivered: ${deliveredCount}`;
-
-      ordersEl.innerHTML = '';
-      if (!filtered.length) {
-        ordersEl.innerHTML = '<p class="text-slate-300">No orders yet.</p>';
-        return;
-      }
-      filtered.forEach(o => {
-        const div = document.createElement('div');
-        const statusColor = o.status === 'delivered' ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40'
-          : o.status === 'ready' ? 'bg-blue-500/20 text-blue-200 border border-blue-500/40'
-          : 'bg-amber-500/20 text-amber-100 border border-amber-500/40';
-        div.className = 'card rounded-xl p-4';
-        div.innerHTML = `
-          <div class="flex justify-between items-start gap-3">
-            <div>
-              <div class="text-lg font-semibold text-white">#${o.order_number || '—'} — ${o.shabbos_label || 'Shabbos Order'}</div>
-              <div class="text-slate-300 text-sm">${o.customer_name || ''} · ${o.customer_phone || ''} · ${o.customer_email || ''}</div>
-              <div class="text-slate-400 text-sm">${o.customer_address || ''}</div>
-              <div class="text-slate-500 text-xs mt-1">Placed: ${formatDate(o.created_at)}</div>
+    </aside>
+    <div class="flex-1 flex flex-col">
+      <header class="no-print sticky top-0 z-20 bg-slate-950/95 backdrop-blur border-b border-slate-800 px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div>
+          <h1 class="text-2xl font-semibold text-white">Palate Catering Admin</h1>
+          <p class="text-sm text-slate-400">palatecateringisrael.com</p>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <input id="adminKeyInput" type="password" placeholder="Admin key" class="bg-slate-900 border border-slate-700 text-sm text-slate-100 rounded-full px-4 py-2 focus:border-amber-400 focus:outline-none" />
+          <button id="loadBtn" class="rounded-full bg-amber-400 text-slate-900 px-4 py-2 text-sm font-semibold">Load orders</button>
+          <button id="refreshBtn" class="rounded-full border border-amber-500/60 px-4 py-2 text-sm text-amber-200 hover:bg-amber-500/10">Refresh</button>
+          <span id="lastUpdated" class="text-xs text-slate-400"></span>
+        </div>
+      </header>
+      <div id="errorBanner" class="no-print hidden mx-6 mt-4 rounded-2xl bg-rose-900/20 border border-rose-500/50 px-4 py-3 flex items-center justify-between text-sm text-rose-200">
+        <span id="errorText"></span>
+        <button id="dismissError" class="text-amber-300 hover:underline">Dismiss</button>
+      </div>
+      <main class="flex-1 overflow-hidden">
+        <div class="h-full overflow-y-auto px-6 py-6 space-y-6">
+          <section data-tab-content="orders">
+            <div id="summaryCards" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap gap-4 items-end">
+              <div class="flex-1 min-w-[240px]">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Search</p>
+                <input id="searchInput" type="search" placeholder="Name, phone, email, order #, address" class="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-2 text-sm text-slate-100 focus:border-amber-400 focus:outline-none" />
+              </div>
+              <label class="flex flex-col text-sm">
+                <span class="text-slate-400 text-xs uppercase tracking-[0.2em]">Status</span>
+                <select id="statusFilter" class="mt-2 rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                  <option value="all">All statuses</option>
+                </select>
+              </label>
+              <label class="flex flex-col text-sm">
+                <span class="text-slate-400 text-xs uppercase tracking-[0.2em]">Shabbos</span>
+                <select id="labelFilter" class="mt-2 rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                  <option value="all">All labels</option>
+                </select>
+              </label>
+              <label class="flex flex-col text-sm">
+                <span class="text-slate-400 text-xs uppercase tracking-[0.2em]">Delivery</span>
+                <select id="deliveryFilter" class="mt-2 rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                  <option value="all">All</option>
+                  <option value="delivery">Delivery</option>
+                  <option value="pickup">Pickup</option>
+                </select>
+              </label>
+              <label class="flex flex-col text-sm">
+                <span class="text-slate-400 text-xs uppercase tracking-[0.2em]">Sort</span>
+                <select id="sortSelect" class="mt-2 rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                  <option value="status">Status</option>
+                  <option value="customer">Customer</option>
+                </select>
+              </label>
             </div>
-            <span class="chip ${statusColor}">${o.status || 'new'}</span>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-wrap gap-3 items-center">
+              <label class="flex items-center gap-2 text-sm text-slate-300">
+                <input id="selectAllCheckbox" type="checkbox" class="h-4 w-4 rounded border-slate-600 text-amber-400 bg-slate-900" />
+                Select all filtered
+              </label>
+              <div id="selectionSummary" class="text-sm text-slate-400">0 selected</div>
+              <div class="ml-auto flex flex-wrap gap-2">
+                <button id="batchKitchenBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 hover:border-amber-400" type="button">Kitchen print</button>
+                <button id="batchDeliveryBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 hover:border-amber-400" type="button">Delivery print</button>
+              </div>
+            </div>
+            <div id="ordersList" class="space-y-3"></div>
+            <div class="flex flex-wrap justify-between items-center text-sm text-slate-400">
+              <div id="paginationInfo">0 orders</div>
+              <div class="flex gap-2">
+                <button id="prevPageBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs text-slate-200 hover:border-amber-400" type="button">Previous</button>
+                <button id="nextPageBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs text-slate-200 hover:border-amber-400" type="button">Next</button>
+              </div>
+            </div>
+          </section>
+          <section data-tab-content="kitchen" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Kitchen queue</p>
+                  <h2 class="text-lg font-semibold text-white">Prep sheets</h2>
+                </div>
+                <button id="kitchenPrintBtn" class="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white disabled:opacity-40" type="button">Print selected kitchen</button>
+              </div>
+              <p class="text-sm text-slate-400 mt-2">One order per page. Allergies are front and center.</p>
+              <div id="kitchenSelection" class="mt-4 space-y-3"></div>
+            </div>
+          </section>
+          <section data-tab-content="delivery" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Delivery queue</p>
+                  <h2 class="text-lg font-semibold text-white">Packing / driver sheets</h2>
+                </div>
+                <button id="deliveryPrintBtn" class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white disabled:opacity-40" type="button">Print selected delivery</button>
+              </div>
+              <p class="text-sm text-slate-400 mt-2">Includes address, phone, notes, and checkboxes for every item.</p>
+              <div id="deliverySelection" class="mt-4 space-y-3"></div>
+            </div>
+          </section>
+          <section data-tab-content="customers" class="hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-white">Customers</h2>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Unique contacts</p>
+              </div>
+              <div class="mt-4 overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-200">
+                  <thead class="text-xs uppercase tracking-[0.3em] text-slate-500">
+                    <tr>
+                      <th class="px-3 py-2">Name</th>
+                      <th class="px-3 py-2">Email</th>
+                      <th class="px-3 py-2">Phone</th>
+                      <th class="px-3 py-2">Orders</th>
+                      <th class="px-3 py-2">Last order</th>
+                      <th class="px-3 py-2">Label</th>
+                    </tr>
+                  </thead>
+                  <tbody id="customersTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+          <section data-tab-content="settings" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+              <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Admin key</p>
+                <h2 class="text-lg font-semibold text-white">Credentials</h2>
+              </div>
+              <input id="settingsKeyInput" type="password" placeholder="Admin key" class="w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-2 text-sm text-slate-100 focus:border-amber-400 focus:outline-none" />
+              <div class="flex flex-wrap gap-3">
+                <button id="settingsSaveKeyBtn" class="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-900" type="button">Save key</button>
+                <button id="settingsClearKeyBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Clear key</button>
+              </div>
+              <p class="text-xs text-slate-400">Key is stored as <code class="rounded bg-slate-800 px-1 text-amber-300">palate_admin_key</code> in your browser.</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Default print</p>
+                  <h2 class="text-lg font-semibold text-white">Print mode</h2>
+                </div>
+                <select id="defaultPrintModeSelect" class="rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                  <option value="receipt">Customer receipt</option>
+                  <option value="kitchen">Kitchen prep</option>
+                  <option value="delivery">Delivery sheet</option>
+                </select>
+              </div>
+              <p class="text-xs text-slate-400">Used whenever you click "Print" on an order card or in the drawer.</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Selection</p>
+                <h2 class="text-lg font-semibold text-white">Batch reset</h2>
+              </div>
+              <button id="clearSelectionBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Clear selection</button>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div id="drawer" aria-hidden="true" class="no-print">
+    <div id="drawerOverlay"></div>
+    <div id="drawerPanel" role="dialog" aria-modal="true" tabindex="-1">
+      <div class="h-full flex flex-col gap-4 px-6 py-6 overflow-y-auto">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Order detail</p>
+            <h2 id="drawerTitle" class="text-2xl font-semibold text-white">Select an order</h2>
           </div>
-          <div class="mt-3 text-slate-200 text-sm">
-            <div class="font-semibold">Total: ${o.total || ''}</div>
-            ${o.allergies ? `<div class="text-amber-200 font-semibold">Allergies: ${o.allergies}</div>` : ''}
+          <button id="drawerCloseBtn" class="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300" type="button">Close</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span id="drawerBadge" class="status-chip text-xs"></span>
+          <span id="drawerLabel" class="text-xs text-slate-400 uppercase tracking-[0.3em]"></span>
+        </div>
+        <div id="drawerTimeline" class="space-y-1 text-xs text-slate-400"></div>
+        <div class="space-y-3 text-sm text-slate-300">
+          <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Customer</p>
+            <p id="drawerCustomer" class="text-base font-semibold text-white">No order selected</p>
+            <p id="drawerContact" class="text-xs text-slate-400"></p>
           </div>
-          <div class="mt-3 text-slate-200 text-sm space-y-1">
-            ${(o.items || []).map(i => `<div class="flex justify-between border-b border-white/5 pb-1"><span>${i.item}</span><span>${i.qty} ${i.soldBy || ''}</span></div>`).join('')}
+          <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Address</p>
+            <p id="drawerAddress" class="text-sm text-slate-300"></p>
           </div>
-          <div class="flex gap-2 mt-4 flex-wrap">
-            <button data-id="${o.id}" data-status="ready" class="status-btn bg-blue-500 text-white px-3 py-2 rounded text-sm">Mark Ready</button>
-            <button data-id="${o.id}" data-status="delivered" class="status-btn bg-emerald-500 text-white px-3 py-2 rounded text-sm">Mark Delivered</button>
-            <button data-html='${encodeURIComponent(o.html_body || '')}' class="print-btn bg-slate-700 text-white px-3 py-2 rounded text-sm">Print</button>
+          <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Allergies / notes</p>
+            <p id="drawerAllergies" class="text-sm text-slate-300"></p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Items</p>
+            <div id="drawerItemsList" class="space-y-1 text-sm text-slate-200"></div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
+          <select id="drawerStatusSelect" class="rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+            <option value="new">New</option>
+            <option value="ready">Ready</option>
+            <option value="delivered">Delivered</option>
+          </select>
+          <button id="drawerStatusBtn" class="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white" type="button">Update status</button>
+          <button id="drawerPrintDefaultBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Print receipt</button>
+          <button id="drawerPrintKitchenBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Kitchen sheet</button>
+          <button id="drawerPrintDeliveryBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Delivery sheet</button>
+        </div>
+        <div id="drawerError" class="hidden rounded-2xl border border-rose-500/50 bg-rose-900/20 p-3 text-xs text-rose-200"></div>
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Editor</p>
+            <h3 class="text-base font-semibold text-white">Edit order</h3>
+          </div>
+          <button id="editToggleBtn" class="text-xs text-amber-300 hover:text-amber-200" type="button">Open editor</button>
+        </div>
+        <div id="editContainer" class="hidden space-y-4">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="text-xs uppercase tracking-[0.2em] text-slate-400">
+              Name
+              <input id="editName" data-draft-field="customer_name" type="text" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
+            </label>
+            <label class="text-xs uppercase tracking-[0.2em] text-slate-400">
+              Phone
+              <input id="editPhone" data-draft-field="customer_phone" type="text" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
+            </label>
+            <label class="text-xs uppercase tracking-[0.2em] text-slate-400">
+              Email
+              <input id="editEmail" data-draft-field="customer_email" type="text" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
+            </label>
+            <label class="text-xs uppercase tracking-[0.2em] text-slate-400">
+              Status
+              <select id="editStatus" data-draft-field="status" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                <option value="new">New</option>
+                <option value="ready">Ready</option>
+                <option value="delivered">Delivered</option>
+              </select>
+            </label>
+            <label class="text-xs uppercase tracking-[0.2em] text-slate-400 sm:col-span-2">
+              Address
+              <input id="editAddress" data-draft-field="customer_address" type="text" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
+            </label>
+            <label class="text-xs uppercase tracking-[0.2em] text-slate-400 sm:col-span-2">
+              Allergies / notes
+              <textarea id="editAllergies" data-draft-field="allergies" rows="2" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100"></textarea>
+            </label>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Items</p>
+              <button id="addItemBtn" class="text-xs text-amber-300 hover:text-amber-200" type="button">Add row</button>
+            </div>
+            <div id="itemsEditor" class="space-y-3"></div>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button id="saveEditBtn" class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white" type="button">Save changes</button>
+            <button id="cancelEditBtn" class="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Cancel</button>
+          </div>
+          <p id="autosaveMessage" class="text-xs italic text-slate-400">Draft not saved yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const KEY_STORAGE = 'palate_admin_key';
+      const PRINT_MODE_STORAGE = 'palate_default_print_mode';
+      const printModes = {
+        receipt: { label: 'Customer Receipt', description: 'Includes prices & totals' },
+        kitchen: { label: 'Kitchen Prep Sheet', description: 'No prices, allergies up front' },
+        delivery: { label: 'Packing/Delivery Sheet', description: 'Address + checkboxes' }
+      };
+      const state = {
+        adminKey: '',
+        activeTab: 'orders',
+        orders: [],
+        filteredOrders: [],
+        filters: { search: '', status: 'all', label: 'all', delivery: 'all', sort: 'newest' },
+        pagination: { page: 1, perPage: 40 },
+        selected: new Set(),
+        lastRefresh: null,
+        drawerOrderId: null,
+        draft: null,
+        draftSavedAt: null,
+        defaultPrintMode: 'receipt'
+      };
+      const els = {
+        toastContainer: document.getElementById('toastContainer'),
+        adminKeyInput: document.getElementById('adminKeyInput'),
+        loadBtn: document.getElementById('loadBtn'),
+        refreshBtn: document.getElementById('refreshBtn'),
+        lastUpdatedAt: document.getElementById('lastUpdated'),
+        errorBanner: document.getElementById('errorBanner'),
+        errorText: document.getElementById('errorText'),
+        dismissError: document.getElementById('dismissError'),
+        summaryCards: document.getElementById('summaryCards'),
+        searchInput: document.getElementById('searchInput'),
+        statusFilter: document.getElementById('statusFilter'),
+        labelFilter: document.getElementById('labelFilter'),
+        deliveryFilter: document.getElementById('deliveryFilter'),
+        sortSelect: document.getElementById('sortSelect'),
+        selectAllCheckbox: document.getElementById('selectAllCheckbox'),
+        selectionSummary: document.getElementById('selectionSummary'),
+        batchKitchenBtn: document.getElementById('batchKitchenBtn'),
+        batchDeliveryBtn: document.getElementById('batchDeliveryBtn'),
+        ordersList: document.getElementById('ordersList'),
+        paginationInfo: document.getElementById('paginationInfo'),
+        prevPageBtn: document.getElementById('prevPageBtn'),
+        nextPageBtn: document.getElementById('nextPageBtn'),
+        kitchenSelection: document.getElementById('kitchenSelection'),
+        deliverySelection: document.getElementById('deliverySelection'),
+        customersTable: document.getElementById('customersTable'),
+        settingsKeyInput: document.getElementById('settingsKeyInput'),
+        settingsSaveKeyBtn: document.getElementById('settingsSaveKeyBtn'),
+        settingsClearKeyBtn: document.getElementById('settingsClearKeyBtn'),
+        defaultPrintModeSelect: document.getElementById('defaultPrintModeSelect'),
+        clearSelectionBtn: document.getElementById('clearSelectionBtn'),
+        sidebarPrintMode: document.getElementById('sidebarPrintMode'),
+        drawer: document.getElementById('drawer'),
+        drawerPanel: document.getElementById('drawerPanel'),
+        drawerOverlay: document.getElementById('drawerOverlay'),
+        drawerCloseBtn: document.getElementById('drawerCloseBtn'),
+        drawerTitle: document.getElementById('drawerTitle'),
+        drawerBadge: document.getElementById('drawerBadge'),
+        drawerLabel: document.getElementById('drawerLabel'),
+        drawerTimeline: document.getElementById('drawerTimeline'),
+        drawerStatusSelect: document.getElementById('drawerStatusSelect'),
+        drawerStatusBtn: document.getElementById('drawerStatusBtn'),
+        drawerPrintDefaultBtn: document.getElementById('drawerPrintDefaultBtn'),
+        drawerPrintKitchenBtn: document.getElementById('drawerPrintKitchenBtn'),
+        drawerPrintDeliveryBtn: document.getElementById('drawerPrintDeliveryBtn'),
+        drawerCustomer: document.getElementById('drawerCustomer'),
+        drawerContact: document.getElementById('drawerContact'),
+        drawerAddress: document.getElementById('drawerAddress'),
+        drawerAllergies: document.getElementById('drawerAllergies'),
+        drawerItemsList: document.getElementById('drawerItemsList'),
+        drawerError: document.getElementById('drawerError'),
+        editToggleBtn: document.getElementById('editToggleBtn'),
+        editContainer: document.getElementById('editContainer'),
+        editName: document.getElementById('editName'),
+        editPhone: document.getElementById('editPhone'),
+        editEmail: document.getElementById('editEmail'),
+        editAddress: document.getElementById('editAddress'),
+        editAllergies: document.getElementById('editAllergies'),
+        editStatus: document.getElementById('editStatus'),
+        itemsEditor: document.getElementById('itemsEditor'),
+        addItemBtn: document.getElementById('addItemBtn'),
+        saveEditBtn: document.getElementById('saveEditBtn'),
+        cancelEditBtn: document.getElementById('cancelEditBtn'),
+        autosaveMessage: document.getElementById('autosaveMessage'),
+        kitchenPrintBtn: document.getElementById('kitchenPrintBtn'),
+        deliveryPrintBtn: document.getElementById('deliveryPrintBtn')
+      };
+      const tabButtons = document.querySelectorAll('[data-tab-btn]');
+      const tabSections = document.querySelectorAll('[data-tab-content]');
+
+      function init() {
+        const storedKey = localStorage.getItem(KEY_STORAGE) || '';
+        setAdminKey(storedKey);
+        const storedMode = localStorage.getItem(PRINT_MODE_STORAGE) || 'receipt';
+        setDefaultPrintMode(storedMode);
+        attachListeners();
+        setActiveTab(state.activeTab);
+        if (state.adminKey) {
+          loadOrders();
+        }
+      }
+
+      function setAdminKey(value) {
+        state.adminKey = value || '';
+        els.adminKeyInput.value = state.adminKey;
+        if (els.settingsKeyInput.value !== state.adminKey) {
+          els.settingsKeyInput.value = state.adminKey;
+        }
+        localStorage.setItem(KEY_STORAGE, state.adminKey);
+      }
+
+      function setDefaultPrintMode(mode) {
+        if (!printModes[mode]) {
+          mode = 'receipt';
+        }
+        state.defaultPrintMode = mode;
+        els.defaultPrintModeSelect.value = mode;
+        els.sidebarPrintMode.textContent = printModes[mode].label;
+        localStorage.setItem(PRINT_MODE_STORAGE, mode);
+      }
+
+      function attachListeners() {
+        tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveTab(btn.dataset.tabBtn)));
+        els.loadBtn.addEventListener('click', () => loadOrders());
+        els.refreshBtn.addEventListener('click', () => loadOrders());
+        els.adminKeyInput.addEventListener('input', (event) => setAdminKey(event.target.value.trim()));
+        els.searchInput.addEventListener('input', (event) => {
+          state.filters.search = event.target.value;
+          applyFilters();
+          render();
+        });
+        els.statusFilter.addEventListener('change', (event) => {
+          state.filters.status = event.target.value;
+          applyFilters();
+          render();
+        });
+        els.labelFilter.addEventListener('change', (event) => {
+          state.filters.label = event.target.value;
+          applyFilters();
+          render();
+        });
+        els.deliveryFilter.addEventListener('change', (event) => {
+          state.filters.delivery = event.target.value;
+          applyFilters();
+          render();
+        });
+        els.sortSelect.addEventListener('change', (event) => {
+          state.filters.sort = event.target.value;
+          applyFilters();
+          render();
+        });
+        els.selectAllCheckbox.addEventListener('change', handleSelectAllToggle);
+        els.batchKitchenBtn.addEventListener('click', () => executeBatchPrint('kitchen'));
+        els.batchDeliveryBtn.addEventListener('click', () => executeBatchPrint('delivery'));
+        els.kitchenPrintBtn.addEventListener('click', () => executeBatchPrint('kitchen'));
+        els.deliveryPrintBtn.addEventListener('click', () => executeBatchPrint('delivery'));
+        els.prevPageBtn.addEventListener('click', () => changePage(-1));
+        els.nextPageBtn.addEventListener('click', () => changePage(1));
+        els.clearSelectionBtn.addEventListener('click', () => {
+          state.selected.clear();
+          render();
+        });
+        els.settingsSaveKeyBtn.addEventListener('click', () => setAdminKey(els.settingsKeyInput.value.trim()));
+        els.settingsClearKeyBtn.addEventListener('click', () => setAdminKey(''));
+        els.defaultPrintModeSelect.addEventListener('change', (event) => setDefaultPrintMode(event.target.value));
+        els.dismissError.addEventListener('click', clearError);
+        els.ordersList.addEventListener('click', handleOrderCardClick);
+        els.ordersList.addEventListener('change', handleOrderCheckboxChange);
+        els.drawerOverlay.addEventListener('click', closeDrawer);
+        els.drawerCloseBtn.addEventListener('click', closeDrawer);
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && state.drawerOrderId) {
+            closeDrawer();
+          }
+        });
+        els.drawerStatusBtn.addEventListener('click', handleDrawerStatusChange);
+        els.drawerPrintDefaultBtn.addEventListener('click', () => printCurrentOrder());
+        els.drawerPrintKitchenBtn.addEventListener('click', () => printCurrentOrder('kitchen'));
+        els.drawerPrintDeliveryBtn.addEventListener('click', () => printCurrentOrder('delivery'));
+        els.editToggleBtn.addEventListener('click', toggleEditor);
+        [els.editName, els.editPhone, els.editEmail, els.editAddress, els.editAllergies, els.editStatus].forEach((input) => {
+          input.addEventListener('input', handleDraftInput);
+        });
+        els.addItemBtn.addEventListener('click', () => {
+          if (!state.draft) {
+            return;
+          }
+          state.draft.items = state.draft.items || [];
+          state.draft.items.push({ item: '', qty: '', soldBy: '' });
+          renderItemsEditor();
+          persistDraft();
+        });
+        els.saveEditBtn.addEventListener('click', saveDraft);
+        els.cancelEditBtn.addEventListener('click', cancelDraft);
+        els.itemsEditor.addEventListener('input', handleItemInput);
+        els.itemsEditor.addEventListener('click', handleItemRemove);
+        els.drawerPanel.addEventListener('keydown', trapDrawerFocus);
+      }
+
+      function setActiveTab(tab) {
+        state.activeTab = tab;
+        tabButtons.forEach(btn => {
+          if (btn.dataset.tabBtn === tab) {
+            btn.classList.add('bg-amber-500/20', 'text-amber-300');
+            btn.classList.remove('text-slate-300');
+          } else {
+            btn.classList.remove('bg-amber-500/20', 'text-amber-300');
+            btn.classList.add('text-slate-300');
+          }
+        });
+        tabSections.forEach(section => {
+          section.hidden = section.dataset.tabContent !== tab;
+        });
+        render();
+      }
+
+      function trapDrawerFocus(event) {
+        if (!state.drawerOrderId || event.key !== 'Tab') {
+          return;
+        }
+        const focusable = Array.from(els.drawerPanel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.hasAttribute('disabled'));
+        if (!focusable.length) {
+          return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey) {
+          if (document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          }
+        } else if (document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+
+      async function loadOrders() {
+        if (!state.adminKey) {
+          showError('Enter admin key to load orders');
+          return;
+        }
+        clearError();
+        els.lastUpdatedAt.textContent = 'Loading...';
+        try {
+          const response = await fetch(`/api/orders?key=${encodeURIComponent(state.adminKey)}`);
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to fetch orders');
+          }
+          const data = await response.json();
+          state.orders = (data.orders || []).map(order => ({ ...order }));
+          state.lastRefresh = new Date();
+          state.selected.clear();
+          state.pagination.page = 1;
+          applyFilters();
+          render();
+        } catch (error) {
+          showError(error.message || 'Failed to load orders');
+        } finally {
+          updateLastUpdatedStamp();
+        }
+      }
+
+      function applyFilters() {
+        const { search, status, label, delivery, sort } = state.filters;
+        let list = state.orders.slice();
+        if (search) {
+          const token = search.toLowerCase();
+          list = list.filter(order => `${order.customer_name || ''} ${order.customer_phone || ''} ${order.customer_email || ''} ${order.customer_address || ''} ${order.order_number || ''}`.toLowerCase().includes(token));
+        }
+        if (status !== 'all') {
+          list = list.filter(order => (order.status || 'new').toLowerCase() === status);
+        }
+        if (label !== 'all') {
+          list = list.filter(order => (order.shabbos_label || '').toLowerCase() === label.toLowerCase());
+        }
+        if (delivery !== 'all') {
+          list = list.filter(order => getDeliveryType(order) === delivery);
+        }
+        list.sort((a, b) => {
+          if (sort === 'oldest') {
+            return new Date(a.created_at) - new Date(b.created_at);
+          }
+          if (sort === 'status') {
+            return (a.status || 'new').localeCompare(b.status || 'new');
+          }
+          if (sort === 'customer') {
+            return (a.customer_name || '').localeCompare(b.customer_name || '');
+          }
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
+        state.filteredOrders = list;
+        const totalPages = Math.max(1, Math.ceil(list.length / state.pagination.perPage));
+        if (state.pagination.page > totalPages) {
+          state.pagination.page = totalPages;
+        }
+      }
+
+      function render() {
+        renderSummary();
+        renderFiltersOptions();
+        renderOrdersList();
+        renderPagination();
+        updateSelectionUI();
+        if (state.activeTab === 'customers') {
+          renderCustomers();
+        }
+        if (state.activeTab === 'kitchen' || state.activeTab === 'delivery') {
+          renderSelectionPreview();
+        }
+        updateDrawerIfOpen();
+      }
+
+      function renderSummary() {
+        const statusCounts = {};
+        const labelCounts = {};
+        let totalItems = 0;
+        let todayCount = 0;
+        const today = new Date();
+        state.orders.forEach(order => {
+          const status = (order.status || 'new').toLowerCase();
+          statusCounts[status] = (statusCounts[status] || 0) + 1;
+          const label = order.shabbos_label || 'Unlabeled';
+          labelCounts[label] = (labelCounts[label] || 0) + 1;
+          const items = Array.isArray(order.items) ? order.items : [];
+          totalItems += items.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
+          if (isSameDay(new Date(order.created_at), today)) {
+            todayCount += 1;
+          }
+        });
+        const topLabelEntry = Object.entries(labelCounts).sort((a, b) => b[1] - a[1])[0];
+        const statusBadges = Object.entries(statusCounts)
+          .map(([status, count]) => `<span class="${getStatusChipClass(status)}">${status} · ${count}</span>`)
+          .join('');
+        els.summaryCards.innerHTML = `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Status</p>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs">${statusBadges || '<span class="text-slate-500">No orders</span>'}</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Items</p>
+            <p class="mt-2 text-2xl font-semibold">${totalItems}</p>
+            <p class="text-xs text-slate-500">items across orders</p>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Today</p>
+            <p class="mt-2 text-2xl font-semibold">${todayCount}</p>
+            <p class="text-xs text-slate-500">orders placed</p>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Top label</p>
+            <p class="mt-2 text-lg font-semibold">${topLabelEntry ? escapeHtml(topLabelEntry[0]) : 'None'}</p>
+            <p class="text-xs text-slate-500">${topLabelEntry ? `${topLabelEntry[1]} orders` : ''}</p>
           </div>
         `;
-        ordersEl.appendChild(div);
-      });
-      document.querySelectorAll('.status-btn').forEach(btn => {
-        btn.addEventListener('click', () => updateStatus(btn.dataset.id, btn.dataset.status));
-      });
-      document.querySelectorAll('.print-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const html = decodeURIComponent(btn.getAttribute('data-html') || '');
-          const w = window.open('', '_blank', 'width=900,height=1200');
-          w.document.write(html || '<p>No HTML available</p>');
-          w.document.close();
-          w.focus();
-          setTimeout(() => w.print(), 300);
-        });
-      });
-    }
-
-    async function loadOrders() {
-      const key = keyInput.value.trim();
-      if (!key) return;
-      localStorage.setItem('palate_admin_key', key);
-      statusEl.textContent = 'Loading orders...';
-      try {
-        const res = await fetch(`/api/orders?key=${encodeURIComponent(key)}`);
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        allOrders = data.orders || [];
-        renderOrders(allOrders);
-        statusEl.textContent = `Loaded ${allOrders.length} orders`;
-      } catch (err) {
-        statusEl.textContent = 'Failed to load orders';
-        console.error(err);
-        alert(err.message || 'Error');
       }
-    }
 
-    async function updateStatus(id, status) {
-      const key = keyInput.value.trim();
-      if (!key) return;
-      try {
-        const res = await fetch('/api/order-status', {
+      function renderFiltersOptions() {
+        const statuses = new Set(['new', 'ready', 'delivered']);
+        state.orders.forEach(order => {
+          const status = (order.status || 'new').toLowerCase();
+          statuses.add(status);
+        });
+        const previousStatus = state.filters.status;
+        els.statusFilter.innerHTML = `<option value="all">All statuses</option>${[...statuses]
+          .sort()
+          .map(status => `<option value="${status}">${capitalize(status)}</option>`)
+          .join('')}`;
+        state.filters.status = statuses.has(previousStatus) ? previousStatus : 'all';
+        els.statusFilter.value = state.filters.status;
+        const labels = new Set();
+        state.orders.forEach(order => {
+          if (order.shabbos_label) {
+            labels.add(order.shabbos_label);
+          }
+        });
+        els.labelFilter.innerHTML = `<option value="all">All labels</option>${[...labels]
+          .sort()
+          .map(label => `<option value="${label}">${label}</option>`)
+          .join('')}`;
+        if (!labels.has(state.filters.label)) {
+          state.filters.label = 'all';
+        }
+        els.labelFilter.value = state.filters.label;
+      }
+
+      function renderOrdersList() {
+        const totalOrders = state.filteredOrders.length;
+        if (!totalOrders) {
+          els.ordersList.innerHTML = '<div class="order-card rounded-2xl p-6 text-center text-slate-400">No orders match the current filters.</div>';
+          return;
+        }
+        const start = (state.pagination.page - 1) * state.pagination.perPage;
+        const pageOrders = state.filteredOrders.slice(start, start + state.pagination.perPage);
+        els.ordersList.innerHTML = pageOrders
+          .map(order => {
+            const status = order.status || 'new';
+            const items = Array.isArray(order.items) ? order.items : [];
+            const itemsPreview = items
+              .slice(0, 2)
+              .map(item => `<div class="flex justify-between text-sm text-slate-300"><span>${escapeHtml(item.item || 'Item')}</span><span>${escapeHtml(item.qty || '')} ${escapeHtml(item.soldBy || '')}</span></div>`)
+              .join('');
+            const moreItems = items.length > 2 ? `<span class="text-xs text-slate-500">+${items.length - 2} more</span>` : '';
+            const deliveryType = getDeliveryType(order);
+            return `
+              <div data-order-card data-order-id="${order.id}" class="order-card rounded-2xl p-4 space-y-3 cursor-pointer transition hover:border-amber-400/60">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-start gap-3 flex-1">
+                    <input type="checkbox" data-order-id="${order.id}" ${state.selected.has(order.id) ? 'checked' : ''} class="h-4 w-4 rounded border-slate-600 text-amber-400 bg-slate-900 mt-1" />
+                    <div>
+                      <p class="text-base font-semibold text-white">#${order.order_number || '—'} · ${escapeHtml(order.shabbos_label || 'Shabbos Order')}</p>
+                      <p class="text-sm text-slate-400">${escapeHtml(order.customer_name || 'Guest')} ${order.customer_phone ? '· ' + escapeHtml(order.customer_phone) : ''} ${order.customer_email ? '· ' + escapeHtml(order.customer_email) : ''}</p>
+                      <p class="text-xs text-slate-500">${formatDate(order.created_at)} · ${deliveryType === 'delivery' ? 'Delivery' : 'Pickup'}</p>
+                      <p class="text-xs text-slate-500">${order.customer_address ? escapeHtml(order.customer_address) : 'No address recorded'}</p>
+                    </div>
+                  </div>
+                  <span class="${getStatusChipClass(status)}">${status}</span>
+                </div>
+                <div class="flex flex-wrap items-center justify-between text-sm text-slate-300">
+                  <span>Total: ${order.total ? escapeHtml(order.total) : '—'}</span>
+                  <span>${items.length} item${items.length === 1 ? '' : 's'}</span>
+                </div>
+                <div class="space-y-1 text-sm text-slate-300">
+                  ${itemsPreview || '<p class="text-xs text-slate-500">No item data</p>'}
+                  ${moreItems}
+                </div>
+                ${order.allergies ? `<div class="text-xs text-amber-200">Notes: ${escapeHtml(order.allergies)}</div>` : ''}
+                <div class="flex flex-wrap gap-2">
+                  <button data-action="status" data-order-id="${order.id}" data-status="ready" class="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Mark ready</button>
+                  <button data-action="status" data-order-id="${order.id}" data-status="delivered" class="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Mark delivered</button>
+                  <button data-action="print" data-order-id="${order.id}" data-mode="default" class="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200" type="button">Print</button>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
+      function renderPagination() {
+        const total = state.filteredOrders.length;
+        const perPage = state.pagination.perPage;
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        const start = total === 0 ? 0 : (state.pagination.page - 1) * perPage + 1;
+        const end = Math.min(total, state.pagination.page * perPage);
+        els.paginationInfo.textContent = total ? `${start}-${end} of ${total} orders` : 'No orders';
+        els.prevPageBtn.disabled = state.pagination.page <= 1;
+        els.nextPageBtn.disabled = state.pagination.page >= totalPages;
+      }
+
+      function updateSelectionUI() {
+        const totalSelected = state.selected.size;
+        els.selectionSummary.textContent = `${totalSelected} order${totalSelected === 1 ? '' : 's'} selected`;
+        const filteredCount = state.filteredOrders.filter(order => state.selected.has(order.id)).length;
+        if (!state.filteredOrders.length) {
+          els.selectAllCheckbox.checked = false;
+          els.selectAllCheckbox.indeterminate = false;
+        } else {
+          els.selectAllCheckbox.checked = filteredCount === state.filteredOrders.length && filteredCount > 0;
+          els.selectAllCheckbox.indeterminate = filteredCount > 0 && filteredCount < state.filteredOrders.length;
+        }
+        const hasSelection = totalSelected > 0;
+        [els.batchKitchenBtn, els.batchDeliveryBtn, els.kitchenPrintBtn, els.deliveryPrintBtn].forEach(btn => {
+          btn.disabled = !hasSelection;
+        });
+        renderSelectionPreview();
+      }
+
+      function renderSelectionPreview() {
+        const selectedOrders = state.orders.filter(order => state.selected.has(order.id)).slice(0, 6);
+        const moreHtml = state.selected.size > selectedOrders.length ? `<p class="text-xs text-slate-500">+${state.selected.size - selectedOrders.length} more orders selected</p>` : '';
+        const previewHtml = selectedOrders.length
+          ? selectedOrders
+              .map(order => `<div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3 text-sm text-slate-200">
+                  <div class="flex items-center justify-between text-xs text-slate-400">
+                    <span>#${order.order_number || order.id}</span>
+                    <span>${escapeHtml(order.shabbos_label || 'Shabbos')}</span>
+                  </div>
+                  <p class="mt-1 text-base font-semibold text-white">${escapeHtml(order.customer_name || 'Guest')}</p>
+                  <p class="text-xs text-slate-400">${order.customer_phone || order.customer_email || 'No contact'}</p>
+                </div>`)
+              .join('') + moreHtml
+          : '<p class="text-sm text-slate-500">Select orders to preview.</p>';
+        els.kitchenSelection.innerHTML = previewHtml;
+        els.deliverySelection.innerHTML = previewHtml;
+      }
+
+      function handleSelectAllToggle(event) {
+        if (event.target.checked) {
+          state.filteredOrders.forEach(order => state.selected.add(order.id));
+        } else {
+          state.filteredOrders.forEach(order => state.selected.delete(order.id));
+        }
+        render();
+      }
+
+      function changePage(delta) {
+        const total = state.filteredOrders.length;
+        const totalPages = Math.max(1, Math.ceil(total / state.pagination.perPage));
+        let nextPage = state.pagination.page + delta;
+        if (nextPage < 1) nextPage = 1;
+        if (nextPage > totalPages) nextPage = totalPages;
+        state.pagination.page = nextPage;
+        render();
+      }
+
+      function handleOrderCardClick(event) {
+        const actionBtn = event.target.closest('button[data-action]');
+        if (actionBtn) {
+          const orderId = Number(actionBtn.dataset.orderId);
+          const action = actionBtn.dataset.action;
+          if (action === 'print') {
+            const mode = actionBtn.dataset.mode === 'default' ? state.defaultPrintMode : actionBtn.dataset.mode;
+            printSingleOrder(orderId, mode);
+            return;
+          }
+          if (action === 'status') {
+            updateStatus(orderId, actionBtn.dataset.status);
+            return;
+          }
+        }
+        const checkbox = event.target.closest('input[type="checkbox"][data-order-id]');
+        if (checkbox) {
+          return;
+        }
+        const card = event.target.closest('[data-order-card]');
+        if (card) {
+          openDrawer(Number(card.dataset.orderId));
+        }
+      }
+
+      function handleOrderCheckboxChange(event) {
+        const checkbox = event.target.closest('input[type="checkbox"][data-order-id]');
+        if (!checkbox) return;
+        const id = Number(checkbox.dataset.orderId);
+        if (checkbox.checked) {
+          state.selected.add(id);
+        } else {
+          state.selected.delete(id);
+        }
+        updateSelectionUI();
+      }
+
+      function openDrawer(orderId) {
+        const order = state.orders.find(o => o.id === Number(orderId));
+        if (!order) return;
+        state.drawerOrderId = order.id;
+        state.drawer.classList.add('open');
+        state.drawer.setAttribute('aria-hidden', 'false');
+        els.drawerPanel.focus();
+        els.editContainer.classList.add('hidden');
+        updateDrawerContent(order);
+        prepareDraftForOrder(order);
+      }
+
+      function closeDrawer() {
+        if (!state.drawerOrderId) return;
+        state.drawerOrderId = null;
+        state.drawer.classList.remove('open');
+        state.drawer.setAttribute('aria-hidden', 'true');
+        state.draft = null;
+        state.draftSavedAt = null;
+        els.editContainer.classList.add('hidden');
+      }
+
+      function updateDrawerIfOpen() {
+        if (state.drawerOrderId) {
+          const order = state.orders.find(o => o.id === state.drawerOrderId);
+          if (order) {
+            updateDrawerContent(order);
+          } else {
+            closeDrawer();
+          }
+        }
+      }
+
+      function updateDrawerContent(order) {
+        if (!order) return;
+        els.drawerTitle.textContent = `Order #${order.order_number || order.id}`;
+        const status = (order.status || 'new').toLowerCase();
+        els.drawerBadge.textContent = status;
+        els.drawerBadge.className = getStatusChipClass(status);
+        els.drawerLabel.textContent = order.shabbos_label || 'No label';
+        els.drawerCustomer.textContent = order.customer_name || 'Guest';
+        els.drawerContact.textContent = [order.customer_phone, order.customer_email].filter(Boolean).join(' · ') || 'No contact info';
+        els.drawerAddress.textContent = order.customer_address || 'Pickup / no address';
+        els.drawerAllergies.textContent = order.allergies || 'None';
+        const timelineEntries = [
+          { label: 'Placed', value: formatDate(order.created_at) },
+          { label: 'Status', value: status }
+        ];
+        els.drawerTimeline.innerHTML = timelineEntries
+          .map(entry => `<div class="flex items-center justify-between text-xs text-slate-400"><span>${entry.label}</span><span class="text-slate-200">${entry.value}</span></div>`)
+          .join('');
+        renderDrawerItems(order);
+        els.drawerStatusSelect.value = status;
+      }
+
+      function renderDrawerItems(order) {
+        const items = Array.isArray(order.items) ? order.items : [];
+        if (!items.length) {
+          els.drawerItemsList.innerHTML = '<p class="text-xs text-slate-500">No items recorded.</p>';
+          return;
+        }
+        els.drawerItemsList.innerHTML = items
+          .map(item => `<div class="flex justify-between text-sm text-slate-200 border-b border-slate-800/60 pb-1"><span>${escapeHtml(item.item || 'Item')}</span><span class="text-slate-400">${item.qty || ''} ${item.soldBy ? '· ' + escapeHtml(item.soldBy) : ''}</span></div>`)
+          .join('');
+      }
+
+      function prepareDraftForOrder(order) {
+        if (!order) return;
+        const stored = sessionStorage.getItem(`order-draft-${order.id}`);
+        const base = {
+          customer_name: order.customer_name || '',
+          customer_phone: order.customer_phone || '',
+          customer_email: order.customer_email || '',
+          customer_address: order.customer_address || '',
+          allergies: order.allergies || '',
+          items: Array.isArray(order.items) ? order.items.map(item => ({ ...item })) : [],
+          status: order.status || 'new'
+        };
+        state.draft = stored ? JSON.parse(stored) : base;
+        state.draftSavedAt = stored ? new Date().toISOString() : null;
+        fillEditFields();
+      }
+
+      function fillEditFields() {
+        if (!state.draft) return;
+        els.editName.value = state.draft.customer_name || '';
+        els.editPhone.value = state.draft.customer_phone || '';
+        els.editEmail.value = state.draft.customer_email || '';
+        els.editAddress.value = state.draft.customer_address || '';
+        els.editAllergies.value = state.draft.allergies || '';
+        els.editStatus.value = state.draft.status || 'new';
+        renderItemsEditor();
+        updateAutosaveMessage();
+      }
+
+      function renderItemsEditor() {
+        if (!state.draft || !Array.isArray(state.draft.items) || !state.draft.items.length) {
+          els.itemsEditor.innerHTML = '<p class="text-xs text-slate-500">No items yet. Add one.</p>';
+          return;
+        }
+        els.itemsEditor.innerHTML = '';
+        state.draft.items.forEach((item, index) => {
+          const row = document.createElement('div');
+          row.className = 'grid gap-2 sm:grid-cols-4 rounded-2xl border border-slate-800/50 bg-slate-950/40 p-3';
+          row.innerHTML = `
+            <input data-draft-item-field="item" data-index="${index}" class="rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" placeholder="Item" value="${escapeAttribute(item.item)}" />
+            <input data-draft-item-field="qty" data-index="${index}" class="rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" placeholder="Qty" value="${escapeAttribute(item.qty)}" />
+            <input data-draft-item-field="soldBy" data-index="${index}" class="rounded-2xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" placeholder="Category" value="${escapeAttribute(item.soldBy)}" />
+            <button data-draft-item-remove="${index}" type="button" class="text-xs font-semibold text-amber-300 hover:text-amber-200">Remove</button>
+          `;
+          els.itemsEditor.appendChild(row);
+        });
+      }
+
+      function handleDraftInput(event) {
+        if (!state.draft) return;
+        const field = event.target.dataset.draftField;
+        if (!field) return;
+        state.draft[field] = event.target.value;
+        persistDraft();
+      }
+
+      function handleItemInput(event) {
+        const input = event.target.closest('input[data-draft-item-field]');
+        if (!input || !state.draft) return;
+        const field = input.dataset.draftItemField;
+        const index = Number(input.dataset.index);
+        state.draft.items = state.draft.items || [];
+        if (!state.draft.items[index]) {
+          state.draft.items[index] = { item: '', qty: '', soldBy: '' };
+        }
+        state.draft.items[index][field] = input.value;
+        persistDraft();
+      }
+
+      function handleItemRemove(event) {
+        const button = event.target.closest('[data-draft-item-remove]');
+        if (!button || !state.draft) return;
+        const index = Number(button.dataset.draftItemRemove);
+        state.draft.items = state.draft.items || [];
+        state.draft.items.splice(index, 1);
+        renderItemsEditor();
+        persistDraft();
+      }
+
+      function persistDraft() {
+        if (!state.draft || !state.drawerOrderId) return;
+        sessionStorage.setItem(`order-draft-${state.drawerOrderId}`, JSON.stringify(state.draft));
+        state.draftSavedAt = new Date().toISOString();
+        updateAutosaveMessage();
+      }
+
+      function updateAutosaveMessage() {
+        if (!state.draftSavedAt) {
+          els.autosaveMessage.textContent = 'Draft not saved yet.';
+          return;
+        }
+        els.autosaveMessage.textContent = `Draft saved at ${formatTime(new Date(state.draftSavedAt))}.`;
+      }
+
+      function toggleEditor() {
+        if (els.editContainer.classList.contains('hidden')) {
+          const order = getCurrentOrder();
+          if (order) {
+            prepareDraftForOrder(order);
+          }
+          els.editContainer.classList.remove('hidden');
+        } else {
+          els.editContainer.classList.add('hidden');
+        }
+      }
+
+      function saveDraft() {
+        const order = getCurrentOrder();
+        if (!order) return;
+        const patch = buildPatchFromDraft(order);
+        if (!patch || !Object.keys(patch).length) {
+          showToast('No changes to save', { type: 'info' });
+          return;
+        }
+        fetch('/api/order-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, status, key })
+          body: JSON.stringify({ key: state.adminKey, id: order.id, patch })
+        }).then(async (response) => {
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Order update failed');
+          }
+          return response.json();
+        }).then((data) => {
+          const updated = data.order || data;
+          const index = state.orders.findIndex(o => o.id === updated.id);
+          if (index !== -1) {
+            state.orders[index] = updated;
+          } else {
+            state.orders.unshift(updated);
+          }
+          sessionStorage.removeItem(`order-draft-${order.id}`);
+          state.draft = null;
+          state.draftSavedAt = null;
+          els.autosaveMessage.textContent = 'Saved.';
+          els.editContainer.classList.add('hidden');
+          render();
+          updateDrawerContent(updated);
+          showToast('Order saved');
+        }).catch((error) => {
+          showToast(error.message || 'Order update failed', { type: 'error' });
         });
-        if (!res.ok) throw new Error(await res.text());
-        loadOrders();
-      } catch (err) {
-        alert(err.message || 'Status update failed');
       }
-    }
 
-    loadBtn.addEventListener('click', loadOrders);
-    filterEl.addEventListener('change', () => renderOrders(allOrders));
-    if (savedKey) loadOrders();
+      function cancelDraft() {
+        if (!state.drawerOrderId) return;
+        sessionStorage.removeItem(`order-draft-${state.drawerOrderId}`);
+        state.draft = null;
+        state.draftSavedAt = null;
+        els.editContainer.classList.add('hidden');
+        els.autosaveMessage.textContent = 'Draft discarded.';
+      }
+
+      function buildPatchFromDraft(order) {
+        if (!state.draft) return null;
+        const patch = {};
+        ['customer_name', 'customer_phone', 'customer_email', 'customer_address', 'allergies', 'status'].forEach(field => {
+          if ((state.draft[field] || '') !== (order[field] || '')) {
+            patch[field] = state.draft[field];
+          }
+        });
+        const draftItems = state.draft.items || [];
+        const actualItems = Array.isArray(order.items) ? order.items : [];
+        if (JSON.stringify(draftItems) !== JSON.stringify(actualItems)) {
+          patch.items = draftItems;
+        }
+        return patch;
+      }
+
+      function handleDrawerStatusChange() {
+        const order = getCurrentOrder();
+        if (!order) return;
+        const newStatus = els.drawerStatusSelect.value;
+        updateStatus(order.id, newStatus);
+      }
+
+      function updateStatus(orderId, newStatus, options = {}) {
+        const order = state.orders.find(o => o.id === Number(orderId));
+        if (!order) return;
+        if (!state.adminKey) {
+          showToast('Admin key required', { type: 'error' });
+          return;
+        }
+        if (newStatus === 'delivered' && !options.skipConfirm) {
+          const confirmed = confirm('Are you sure you want to mark this order as delivered?');
+          if (!confirmed) {
+            return;
+          }
+        }
+        const previousStatus = order.status;
+        order.status = newStatus;
+        render();
+        fetch('/api/order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: order.id, status: newStatus, key: state.adminKey })
+        }).then(async (response) => {
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Status update failed');
+          }
+          if (!options.silent) {
+            showToast(`Order ${order.order_number || order.id} marked ${newStatus}`, {
+              action: {
+                text: 'Undo',
+                onClick: () => updateStatus(order.id, previousStatus, { silent: true, skipConfirm: true })
+              }
+            });
+          }
+        }).catch((error) => {
+          order.status = previousStatus;
+          render();
+          showToast(error.message || 'Status update failed', { type: 'error' });
+        });
+      }
+
+      function printCurrentOrder(mode = 'default') {
+        const order = getCurrentOrder();
+        if (!order) return;
+        const useMode = mode === 'default' ? state.defaultPrintMode : mode;
+        printSingleOrder(order.id, useMode);
+      }
+
+      function printSingleOrder(orderId, mode = 'receipt') {
+        const order = state.orders.find(o => o.id === Number(orderId));
+        if (!order) return;
+        const html = buildPrintDocument([order], mode);
+        openPrintWindow(`Order #${order.order_number || order.id}`, html);
+      }
+
+      function executeBatchPrint(mode) {
+        const selectedOrders = state.orders.filter(order => state.selected.has(order.id));
+        if (!selectedOrders.length) {
+          showToast('Select at least one order to print', { type: 'info' });
+          return;
+        }
+        const html = buildPrintDocument(selectedOrders, mode);
+        openPrintWindow(`${printModes[mode]?.label || 'Print'}`, html);
+      }
+
+      function buildPrintDocument(orders, mode) {
+        const sections = orders.map(order => createPrintSection(order, mode)).join('<div class="page-break"></div>');
+        const styles = `
+          body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 24px; background: #fff; color: #111827; }
+          h1, h2, h3 { margin: 0; }
+          .page-break { page-break-after: always; }
+          .receipt-header { margin-bottom: 1rem; }
+          .receipt-header h1 { font-size: 24px; letter-spacing: 0.1em; text-transform: uppercase; }
+          .section { margin-bottom: 1.5rem; }
+          .kitchen-group { margin-bottom: 0.75rem; }
+          .item-line { display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding: 0.4rem 0; }
+          .item-line:last-child { border-bottom: none; }
+          .delivery-item { display: flex; justify-content: space-between; }
+          .notes { font-size: 0.75rem; color: #4b5563; }
+          @media print {
+            body { margin: 0; padding: 16px; }
+            .page-break { page-break-after: always; }
+          }
+        `;
+        return `
+          <!doctype html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <title>${escapeHtml(printModes[mode]?.label || 'Print')}</title>
+              <style>${styles}</style>
+            </head>
+            <body>
+              ${sections}
+            </body>
+          </html>
+        `;
+      }
+
+      function createPrintSection(order, mode) {
+        if (mode === 'kitchen') {
+          return generateKitchenHtml(order);
+        }
+        if (mode === 'delivery') {
+          return generateDeliveryHtml(order);
+        }
+        return generateReceiptHtml(order);
+      }
+
+      function generateReceiptHtml(order) {
+        if (order.html_body && order.html_body.trim()) {
+          return `<section class="section">${order.html_body}</section>`;
+        }
+        const items = Array.isArray(order.items) ? order.items : [];
+        const itemsHtml = items.length
+          ? items.map(item => `<div class="item-line"><span>${escapeHtml(item.item || '')}</span><span>${escapeHtml(item.qty || '')} ${escapeHtml(item.soldBy || '')}</span></div>`).join('')
+          : '<p class="notes">No items available.</p>';
+        return `
+          <section class="section receipt">
+            <div class="receipt-header">
+              <h1>Palate Catering</h1>
+              <p class="notes">Order #${order.order_number || order.id}</p>
+            </div>
+            <div class="section">
+              <p><strong>Customer:</strong> ${escapeHtml(order.customer_name || 'Guest')}</p>
+              <p><strong>Email:</strong> ${escapeHtml(order.customer_email || 'Not set')}</p>
+              <p><strong>Phone:</strong> ${escapeHtml(order.customer_phone || 'Not set')}</p>
+              <p><strong>Address:</strong> ${escapeHtml(order.customer_address || 'N/A')}</p>
+              <p><strong>Shabbos:</strong> ${escapeHtml(order.shabbos_label || 'N/A')}</p>
+              <p><strong>Placed:</strong> ${formatDate(order.created_at)}</p>
+            </div>
+            <div class="section">
+              ${itemsHtml}
+            </div>
+            <div class="section">
+              <p><strong>Allergies / notes:</strong> ${escapeHtml(order.allergies || 'None')}</p>
+              <p><strong>Total:</strong> ${escapeHtml(order.total || '—')}</p>
+            </div>
+          </section>
+        `;
+      }
+
+      function generateKitchenHtml(order) {
+        const items = Array.isArray(order.items) ? order.items : [];
+        const grouped = {};
+        items.forEach(item => {
+          const category = item.soldBy || 'Kitchen';
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(item);
+        });
+        const groupsHtml = Object.entries(grouped)
+          .map(
+            ([category, items]) => `
+              <div class="kitchen-group">
+                <p class="text-sm font-semibold">${escapeHtml(category)}</p>
+                ${items.map(item => `<div class="item-line"><span>${escapeHtml(item.item || '')}</span><span>${escapeHtml(item.qty || '')}</span></div>`).join('')}
+              </div>`
+          )
+          .join('');
+        return `
+          <section class="section">
+            <div class="receipt-header">
+              <h2>Kitchen Prep</h2>
+              <p class="notes">Order #${order.order_number || order.id} · ${escapeHtml(order.shabbos_label || 'Shabbos')}</p>
+            </div>
+            <div class="section">
+              <p><strong>Customer:</strong> ${escapeHtml(order.customer_name || 'Guest')}</p>
+              <p><strong>Allergies / notes:</strong> ${escapeHtml(order.allergies || 'None')}</p>
+            </div>
+            <div class="section">
+              ${groupsHtml || '<p class="notes">No items.</p>'}
+            </div>
+          </section>
+        `;
+      }
+
+      function generateDeliveryHtml(order) {
+        const items = Array.isArray(order.items) ? order.items : [];
+        const itemsHtml = items
+          .map(item => `
+            <div class="delivery-item">
+              <span>${escapeHtml(item.item || '')}</span>
+              <span><input type="checkbox" checked disabled /></span>
+            </div>`)
+          .join('');
+        return `
+          <section class="section">
+            <div class="receipt-header">
+              <h2>Packing / Delivery</h2>
+              <p class="notes">Order #${order.order_number || order.id}</p>
+            </div>
+            <div class="section">
+              <p><strong>Customer:</strong> ${escapeHtml(order.customer_name || '')}</p>
+              <p><strong>Phone:</strong> ${escapeHtml(order.customer_phone || 'N/A')}</p>
+              <p><strong>Address:</strong> ${escapeHtml(order.customer_address || 'Pickup')}</p>
+              <p><strong>Notes:</strong> ${escapeHtml(order.allergies || 'None')}</p>
+            </div>
+            <div class="section">
+              ${itemsHtml || '<p class="notes">No items.</p>'}
+            </div>
+          </section>
+        `;
+      }
+
+      function openPrintWindow(title, html) {
+        const w = window.open('', '_blank');
+        if (!w) {
+          showToast('Pop-up blocked. Allow pop-ups to print.', { type: 'error' });
+          return;
+        }
+        w.document.write(html);
+        w.document.title = title;
+        w.document.close();
+        w.focus();
+        setTimeout(() => w.print(), 500);
+      }
+
+      function showToast(message, { type = 'info', action } = {}) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type === 'error' ? 'toast-error' : ''}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        if (action?.text && typeof action.onClick === 'function') {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'toast-action';
+          btn.textContent = action.text;
+          btn.addEventListener('click', () => {
+            action.onClick();
+            toast.remove();
+          });
+          toast.appendChild(btn);
+        }
+        els.toastContainer.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+      }
+
+      function showError(message) {
+        els.errorText.textContent = message;
+        els.errorBanner.classList.remove('hidden');
+      }
+
+      function clearError() {
+        els.errorBanner.classList.add('hidden');
+        els.errorText.textContent = '';
+      }
+
+      function updateLastUpdatedStamp() {
+        if (state.lastRefresh) {
+          els.lastUpdatedAt.textContent = `Last refreshed ${formatDate(state.lastRefresh)}`;
+        } else {
+          els.lastUpdatedAt.textContent = '';
+        }
+      }
+
+      function getCurrentOrder() {
+        return state.orders.find(order => order.id === state.drawerOrderId);
+      }
+
+      function renderCustomers() {
+        const map = new Map();
+        state.orders.forEach(order => {
+          const key = (order.customer_email || order.customer_phone || order.customer_name || order.id).toString().toLowerCase();
+          if (!map.has(key)) {
+            map.set(key, {
+              name: order.customer_name || 'Guest',
+              email: order.customer_email || '—',
+              phone: order.customer_phone || '—',
+              orders: 0,
+              last: order.created_at,
+              label: order.shabbos_label || ''
+            });
+          }
+          const entry = map.get(key);
+          entry.orders += 1;
+          if (!entry.last || new Date(order.created_at) > new Date(entry.last)) {
+            entry.last = order.created_at;
+          }
+          if (order.shabbos_label) {
+            entry.label = order.shabbos_label;
+          }
+        });
+        const rows = Array.from(map.values())
+          .sort((a, b) => b.orders - a.orders || new Date(b.last) - new Date(a.last));
+        els.customersTable.innerHTML = rows.length
+          ? rows
+              .map(entry => `
+                <tr class="border-b border-slate-800">
+                  <td class="px-3 py-2 text-sm text-slate-200">${escapeHtml(entry.name)}</td>
+                  <td class="px-3 py-2 text-sm text-slate-200">${escapeHtml(entry.email)}</td>
+                  <td class="px-3 py-2 text-sm text-slate-200">${escapeHtml(entry.phone)}</td>
+                  <td class="px-3 py-2 text-sm text-slate-200">${entry.orders}</td>
+                  <td class="px-3 py-2 text-sm text-slate-200">${formatDate(entry.last)}</td>
+                  <td class="px-3 py-2 text-sm text-slate-200">${escapeHtml(entry.label)}</td>
+                </tr>`)
+              .join('')
+          : '<tr><td colspan="6" class="px-3 py-4 text-center text-xs text-slate-500">No customers yet.</td></tr>';
+      }
+
+      function getDeliveryType(order) {
+        return order.customer_address?.trim() ? 'delivery' : 'pickup';
+      }
+
+      function formatDate(value) {
+        if (!value) return 'Unknown';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+      }
+
+      function formatTime(date) {
+        if (!(date instanceof Date)) return '';
+        return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+
+      function isSameDay(a, b) {
+        return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      }
+
+      function getStatusChipClass(status) {
+        const normalized = (status || 'new').toLowerCase();
+        if (normalized === 'delivered') {
+          return 'status-chip bg-emerald-500/20 text-emerald-200 border border-emerald-500/40';
+        }
+        if (normalized === 'ready') {
+          return 'status-chip bg-blue-500/20 text-blue-200 border border-blue-500/40';
+        }
+        return 'status-chip bg-amber-500/20 text-amber-200 border border-amber-500/40';
+      }
+
+      function escapeHtml(value) {
+        return (value || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function escapeAttribute(value) {
+        return (value || '').toString().replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function capitalize(value) {
+        if (!value) return '';
+        return value.charAt(0).toUpperCase() + value.slice(1);
+      }
+
+      init();
+    })();
   </script>
 </body>
 </html>
