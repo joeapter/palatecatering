@@ -83,13 +83,6 @@ async function seedLegacyMenu() {
 }
 
 async function seedDairyMenu() {
-  const { rows } = await sql`
-    SELECT COUNT(*)::int AS count
-    FROM products
-    WHERE menu_tags @> ARRAY['dairy']::text[];
-  `;
-  const count = rows?.[0]?.count || 0;
-  if (count > 0) return;
   if (!Array.isArray(dairyMenu)) return;
   for (const category of dairyMenu) {
     const categoryName = category?.category || 'Uncategorized';
@@ -97,6 +90,22 @@ async function seedDairyMenu() {
     for (const item of items) {
       const title = item?.title || '';
       if (!title) continue;
+      const updated = await sql`
+        UPDATE products
+        SET
+          description = CASE WHEN COALESCE(description, '') = '' THEN ${item.description || ''} ELSE description END,
+          price = CASE WHEN COALESCE(price, 0) = 0 THEN ${Number(item.price) || 0} ELSE price END,
+          sold_by = CASE WHEN COALESCE(sold_by, '') = '' THEN ${item.soldBy || ''} ELSE sold_by END,
+          qty_label = CASE WHEN COALESCE(qty_label, '') = '' THEN ${item.qtyLabel || 'Order Qty'} ELSE qty_label END,
+          menu_tags = CASE
+            WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['dairy']::text[]
+            WHEN NOT ('dairy' = ANY(menu_tags)) THEN array_append(menu_tags, 'dairy')
+            ELSE menu_tags
+          END
+        WHERE category = ${categoryName}
+          AND title = ${title};
+      `;
+      if ((updated.rowCount || 0) > 0) continue;
       await sql`
         INSERT INTO products (category, title, description, price, sold_by, qty_label, image_url, menu_tags, active)
         VALUES (
