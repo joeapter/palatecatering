@@ -378,6 +378,10 @@
               </div>
               <button id="createProductBtn" type="button" class="rounded-2xl border border-amber-400 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100">Add item</button>
             </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+              <div id="productMenuTabs" class="flex flex-wrap gap-2"></div>
+              <p id="productMenuSummary" class="text-sm text-slate-500">Viewing all menus.</p>
+            </div>
             <div id="productsList" class="grid gap-4"></div>
             <div id="productEditor" class="hidden rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm space-y-4">
               <div class="grid gap-3 sm:grid-cols-2">
@@ -624,6 +628,7 @@
         defaultPrintMode: 'receipt',
         products: [],
         productsLoaded: false,
+        activeProductMenu: 'all',
         productEditorOpen: false,
         productDraft: null,
         productEditorMode: 'create',
@@ -666,6 +671,8 @@
         deliverySelection: document.getElementById('deliverySelection'),
         productsList: document.getElementById('productsList'),
         createProductBtn: document.getElementById('createProductBtn'),
+        productMenuTabs: document.getElementById('productMenuTabs'),
+        productMenuSummary: document.getElementById('productMenuSummary'),
         productEditor: document.getElementById('productEditor'),
         productCategory: document.getElementById('productCategory'),
         productTitle: document.getElementById('productTitle'),
@@ -759,6 +766,12 @@
       };
       const tabButtons = document.querySelectorAll('[data-tab-btn]');
       const tabSections = document.querySelectorAll('[data-tab-content]');
+      const productMenuViews = {
+        all: { label: 'All Menus', buttonLabel: 'Add item', emptyLabel: 'No products defined yet.' },
+        shabbos: { label: 'Shabbos', buttonLabel: 'Add Shabbos item', emptyLabel: 'No Shabbos items defined yet.' },
+        purim: { label: 'Purim', buttonLabel: 'Add Purim item', emptyLabel: 'No Purim items defined yet.' },
+        dairy: { label: 'Dairy', buttonLabel: 'Add Dairy item', emptyLabel: 'No Dairy items defined yet.' }
+      };
       let loginPending = false;
 
       function showLoginOverlay(message = 'Enter the admin key to unlock the dashboard.') {
@@ -991,6 +1004,7 @@
         els.itemsEditor.addEventListener('input', handleItemInput);
         els.itemsEditor.addEventListener('click', handleItemRemove);
         els.createProductBtn?.addEventListener('click', () => openProductEditor());
+        els.productMenuTabs?.addEventListener('click', handleProductMenuTabClick);
         els.productsList?.addEventListener('click', handleProductCardAction);
         els.productSaveBtn?.addEventListener('click', handleProductSave);
         els.productCancelBtn?.addEventListener('click', closeProductEditor);
@@ -1417,13 +1431,105 @@
         }
       }
 
+      function getProductMenuTags(item) {
+        const tags = Array.isArray(item?.menuTags)
+          ? item.menuTags.map(tag => String(tag || '').toLowerCase()).filter(Boolean)
+          : [];
+        return tags.length ? tags : ['shabbos'];
+      }
+
+      function productMatchesActiveMenu(item, menu = state.activeProductMenu) {
+        if (menu === 'all') return true;
+        return getProductMenuTags(item).includes(menu);
+      }
+
+      function getProductMenuCounts() {
+        const counts = { all: 0, shabbos: 0, purim: 0, dairy: 0 };
+        for (const category of state.products || []) {
+          const items = Array.isArray(category.items) ? category.items : [];
+          for (const item of items) {
+            counts.all += 1;
+            const tags = new Set(getProductMenuTags(item));
+            if (tags.has('shabbos')) counts.shabbos += 1;
+            if (tags.has('purim')) counts.purim += 1;
+            if (tags.has('dairy')) counts.dairy += 1;
+          }
+        }
+        return counts;
+      }
+
+      function getFilteredProductCategories() {
+        return (state.products || []).map(category => {
+          const items = (Array.isArray(category.items) ? category.items : []).filter(item => productMatchesActiveMenu(item));
+          if (!items.length) return null;
+          return { ...category, items };
+        }).filter(Boolean);
+      }
+
+      function formatProductCountLabel(count, noun) {
+        return `${count} ${noun}${count === 1 ? '' : 's'}`;
+      }
+
+      function renderProductMenuTabs(filteredCategories) {
+        const counts = getProductMenuCounts();
+        if (els.productMenuTabs) {
+          els.productMenuTabs.innerHTML = Object.entries(productMenuViews).map(([menu, view]) => {
+            const active = state.activeProductMenu === menu;
+            return `
+              <button
+                type="button"
+                data-product-menu-tab="${menu}"
+                aria-pressed="${active ? 'true' : 'false'}"
+                class="rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                  active
+                    ? 'border-amber-500 bg-amber-500 text-white'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:text-amber-700'
+                }"
+              >
+                ${escapeHtml(view.label)}
+                <span class="ml-2 rounded-full ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'} px-2 py-0.5 text-[10px] tracking-normal">
+                  ${counts[menu] || 0}
+                </span>
+              </button>`;
+          }).join('');
+        }
+        if (els.productMenuSummary) {
+          const itemCount = filteredCategories.reduce((sum, category) => sum + category.items.length, 0);
+          const categoryCount = filteredCategories.length;
+          const label = productMenuViews[state.activeProductMenu]?.label || productMenuViews.all.label;
+          els.productMenuSummary.textContent = `Viewing ${label.toLowerCase()} · ${formatProductCountLabel(itemCount, 'item')} across ${formatProductCountLabel(categoryCount, 'category')}.`;
+        }
+        if (els.createProductBtn) {
+          els.createProductBtn.textContent = productMenuViews[state.activeProductMenu]?.buttonLabel || productMenuViews.all.buttonLabel;
+        }
+      }
+
+      function handleProductMenuTabClick(event) {
+        const button = event.target.closest('button[data-product-menu-tab]');
+        if (!button) return;
+        const menu = button.dataset.productMenuTab || 'all';
+        if (!productMenuViews[menu] || state.activeProductMenu === menu) return;
+        state.activeProductMenu = menu;
+        renderProductsList();
+      }
+
+      function applyDefaultProductMenuSelection() {
+        const activeMenu = state.activeProductMenu;
+        if (els.productMenuShabbos) els.productMenuShabbos.checked = activeMenu === 'all' || activeMenu === 'shabbos';
+        if (els.productMenuPurim) els.productMenuPurim.checked = activeMenu === 'purim';
+        if (els.productMenuDairy) els.productMenuDairy.checked = activeMenu === 'dairy';
+      }
+
       function renderProductsList() {
         if (!els.productsList) return;
-        if (!state.products.length) {
-          els.productsList.innerHTML = '<div class="rounded-2xl border border-slate-200 bg-white/70 p-6 text-sm text-slate-500">No products defined yet.</div>';
+        const filteredCategories = getFilteredProductCategories();
+        renderProductMenuTabs(filteredCategories);
+        if (!filteredCategories.length) {
+          const emptyLabel = productMenuViews[state.activeProductMenu]?.emptyLabel || productMenuViews.all.emptyLabel;
+          els.productsList.innerHTML = `<div class="rounded-2xl border border-slate-200 bg-white/70 p-6 text-sm text-slate-500">${escapeHtml(emptyLabel)}</div>`;
           return;
         }
-        els.productsList.innerHTML = state.products.map(category => {
+        els.productsList.innerHTML = filteredCategories.map(category => {
           const itemsHtml = category.items.map(item => `
             <article class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2 shadow-sm">
               <div>
@@ -1432,7 +1538,7 @@
                   <span class="text-xs font-semibold text-slate-500">${item.active ? 'Active' : 'Inactive'}</span>
                 </div>
                 <p class="text-sm text-slate-500">${escapeHtml(item.description || 'No description')}</p>
-                <p class="mt-2 text-xs text-slate-400">Menus: ${escapeHtml((item.menuTags && item.menuTags.length ? item.menuTags : ['Shabbos']).join(', '))}</p>
+                <p class="mt-2 text-xs text-slate-400">Menus: ${escapeHtml(getProductMenuTags(item).join(', '))}</p>
               </div>
               <div class="flex items-center justify-between text-sm text-slate-600">
                 <span>${escapeHtml(item.soldBy || '—')}</span>
@@ -1478,7 +1584,7 @@
           els.productQtyLabel.value = product.qtyLabel || '';
           els.productImage.value = product.image || '';
           els.productActive.checked = Boolean(product.active);
-          const tags = Array.isArray(product.menuTags) ? product.menuTags.map(tag => tag.toLowerCase()) : [];
+          const tags = getProductMenuTags(product);
           els.productMenuShabbos.checked = tags.length ? tags.includes('shabbos') : true;
           els.productMenuPurim.checked = tags.includes('purim');
           if (els.productMenuDairy) els.productMenuDairy.checked = tags.includes('dairy');
@@ -1491,9 +1597,7 @@
           els.productQtyLabel.value = '';
           els.productImage.value = '';
           els.productActive.checked = true;
-          if (els.productMenuShabbos) els.productMenuShabbos.checked = true;
-          if (els.productMenuPurim) els.productMenuPurim.checked = false;
-          if (els.productMenuDairy) els.productMenuDairy.checked = false;
+          applyDefaultProductMenuSelection();
         }
         if (els.productImageFile) {
           els.productImageFile.value = '';
@@ -1531,7 +1635,7 @@
           soldBy: els.productSoldBy?.value.trim() || '',
           qtyLabel: els.productQtyLabel?.value.trim() || '',
           imageUrl: els.productImage?.value.trim() || '',
-          menuTags: tags.length ? tags : ['shabbos'],
+          menuTags: tags.length ? tags : [state.activeProductMenu === 'all' ? 'shabbos' : state.activeProductMenu],
           active: Boolean(els.productActive?.checked)
         };
       }
