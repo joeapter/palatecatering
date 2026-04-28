@@ -1,0 +1,293 @@
+[
+  {
+    "category": "Appetizers",
+    "items": [
+      {
+        "title": "Mini Quiches (Assorted)",
+        "description": "24 pieces",
+        "price": 200,
+        "soldBy": "Per Platter"
+      }
+    ]
+  },
+  {
+    "category": "Bakery",
+    "items": [
+      {
+        "title": "Bagels",
+        "description": "1 dozen",
+        "price": 88,
+        "soldBy": "Per Dozen"
+      },
+      {
+        "title": "Mini Bagels",
+        "description": "1 dozen",
+        "price": 65,
+        "soldBy": "Per Dozen"
+      },
+      {
+        "title": "Mini Muffin Platter",
+        "description": "25 mini muffins",
+        "price": 115,
+        "soldBy": "Per Platter"
+      }
+    ]
+  },
+  {
+    "category": "Breakfast",
+    "items": [
+      {
+        "title": "Shakshuka",
+        "description": "Individual serving",
+        "price": 12,
+        "soldBy": "Each"
+      }
+    ]
+  },
+  {
+    "category": "Breakfast Stations",
+    "items": [
+      {
+        "title": "Pancake Bar",
+        "description": "Per person",
+        "price": 20,
+        "soldBy": "Per Person"
+      },
+      {
+        "title": "Omelet Bar",
+        "description": "Per person",
+        "price": 20,
+        "soldBy": "Per Person"
+      }
+    ]
+  },
+  {
+    "category": "Combination Platters",
+    "items": [
+      {
+        "title": "Combination Platter",
+        "description": "Tuna + Egg + Cream Cheese (1L each)",
+        "price": 400,
+        "soldBy": "Per Platter"
+      }
+    ]
+  },
+  {
+    "category": "Desserts",
+    "items": [
+      {
+        "title": "Round Cheesecake",
+        "description": "Round cheesecake",
+        "price": 290,
+        "soldBy": "Per Cake"
+      }
+    ]
+  },
+  {
+    "category": "Dips",
+    "items": [
+      {
+        "title": "Hummus Dip",
+        "description": "500ml",
+        "price": 50,
+        "soldBy": "Per 500ml"
+      },
+      {
+        "title": "Pesto Dip",
+        "description": "500ml",
+        "price": 50,
+        "soldBy": "Per 500ml"
+      },
+      {
+        "title": "Olive Dip",
+        "description": "500ml",
+        "price": 50,
+        "soldBy": "Per 500ml"
+      },
+      {
+        "title": "Onion Dip",
+        "description": "500ml",
+        "price": 50,
+        "soldBy": "Per 500ml"
+      },
+      {
+        "title": "Dill Dip",
+        "description": "500ml",
+        "price": 50,
+        "soldBy": "Per 500ml"
+      },
+      {
+        "title": "Honey Jalapeño Butter",
+        "description": "500ml",
+        "price": 50,
+        "soldBy": "Per 500ml"
+      },
+      {
+        "title": "Artichoke Dip",
+        "description": "500ml",
+        "price": 50,
+        "soldBy": "Per 500ml"
+      },
+      {
+        "title": "Sun-Dried Tomato Dip",
+        "description": "500ml",
+        "price": 50,
+        "soldBy": "Per 500ml"
+      }
+    ]
+  },
+  {
+    "category": "Fish",
+    "items": [
+      {
+        "title": "Salmon Fillet",
+        "description": "Approx. 2 kilo, serves 18–20 people",
+        "price": 290,
+        "soldBy": "Per Tray"
+      },
+      {
+        "title": "Smoked Salmon Platter",
+        "description": "Serves 10 people",
+        "price": 220,
+        "soldBy": "Per Platter"
+      }
+    ]
+  },
+  {
+    "category": "Hot Foods",
+    "items": [
+      {
+        "title": "Potatoes Au Gratin",
+        "description": "9x13 pan",
+        "price": 170,
+        "soldBy": "9x13 Pan"
+      }
+    ]
+  },
+  {
+    "category": "Pasta",
+    "items": [
+      {
+        "title": "Lasagna",
+        "description": "9x13 pan, cut into 20 pieces",
+        "price": 195,
+        "soldBy": "9x13 Pan"
+      },
+      {
+        "title": "Baked Ziti",
+        "description": "Pasta with tomato sauce, 9x13 pan",
+        "price": 170,
+        "soldBy": "9x13 Pan"
+      },
+      {
+        "title": "Fettuccine Alfredo",
+        "description": "9x13 pan",
+        "price": 180,
+        "soldBy": "9x13 Pan"
+      },
+      {
+        "title": "Penne alla Vodka",
+        "description": "Per pan",
+        "price": 220,
+        "soldBy": "Per Pan"
+      }
+    ]
+  },
+  {
+    "category": "Platters",
+    "items": [
+      {
+        "title": "Hard Cheese Platter (Small)",
+        "description": "Includes 3 cheeses",
+        "price": 150,
+        "soldBy": "Per Platter"
+      },
+      {
+        "title": "Basic Veggie Platter",
+        "description": "Vegetable platter",
+        "price": 195,
+        "soldBy": "Per Platter"
+      },
+      {
+        "title": "Veggie & Dip Platter",
+        "description": "Includes 3 dips (250ml each)",
+        "price": 250,
+        "soldBy": "Per Platter"
+      },
+      {
+        "title": "Fruit Platter",
+        "description": "Medium size",
+        "price": 285,
+        "soldBy": "Per Platter"
+      }
+    ]
+  },
+  {
+    "category": "Salads",
+    "items": [
+      {
+        "title": "Caesar Salad",
+        "description": "2 liters",
+        "price": 110,
+        "soldBy": "2 L Container"
+      },
+      {
+        "title": "Greek Salad",
+        "description": "2 liters",
+        "price": 110,
+        "soldBy": "3 L Container"
+      },
+      {
+        "title": "Pasta Salad",
+        "description": "2 liters",
+        "price": 110,
+        "soldBy": "4 L Container"
+      },
+      {
+        "title": "Israeli Salad",
+        "description": "2 liters",
+        "price": 105,
+        "soldBy": "Per 2 Liter"
+      }
+    ]
+  },
+  {
+    "category": "Sandwich Platters",
+    "items": [
+      {
+        "title": "Sandwich Platter",
+        "description": "10 sandwiches cut in half",
+        "price": 320,
+        "soldBy": "Per Platter"
+      }
+    ]
+  },
+  {
+    "category": "Soups",
+    "items": [
+      {
+        "title": "Soup",
+        "description": "Mushroom Barley, Sweet Potato, Vegetable, or Onion soup — seasonal, minimum 4 liters",
+        "price": 45,
+        "soldBy": "Per Liter"
+      }
+    ]
+  },
+  {
+    "category": "Spreads & Salads",
+    "items": [
+      {
+        "title": "Tuna Salad / Egg Salad",
+        "description": "500g",
+        "price": 70,
+        "soldBy": "Per 500g"
+      },
+      {
+        "title": "Cream Cheese",
+        "description": "Plain, Vegetable, Olive, Garlic-Dill",
+        "price": 60,
+        "soldBy": "Per 500g"
+      }
+    ]
+  }
+]

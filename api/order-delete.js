@@ -22,41 +22,43 @@ async function ensureOrdersTable() {
       deleted_at timestamptz
     );
   `;
-  await sql`
-    ALTER TABLE orders ADD COLUMN IF NOT EXISTS pending_payment_link text;
-  `;
-  await sql`
-    ALTER TABLE orders ADD COLUMN IF NOT EXISTS pending_payment_url text;
-  `;
   await sql`ALTER TABLE orders ALTER COLUMN order_number SET DEFAULT nextval('order_number_seq')`;
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'GET') {
+  if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
   }
 
-  const adminKey = req.headers['x-admin-key'] || req.query.key || '';
+  const adminKey = req.headers['x-admin-key'] || req.body?.key || '';
   if (!process.env.ADMIN_PASSWORD || adminKey !== process.env.ADMIN_PASSWORD) {
     res.status(401).send('Unauthorized');
     return;
   }
 
+  const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+  const { id } = body;
+  if (!id) {
+    res.status(400).send('Missing order id');
+    return;
+  }
+
   try {
     await ensureOrdersTable();
-    const { rows } = await sql`
-      SELECT id, order_number, created_at, status, customer_name, customer_email, customer_phone,
-             customer_address, shabbos_label, allergies, total, items, html_body, email_body,
-             pending_payment_link, pending_payment_url
-      FROM orders
-      WHERE NOT is_deleted
-      ORDER BY created_at DESC
-      LIMIT 300;
+    const result = await sql`
+      UPDATE orders
+      SET is_deleted = true,
+          deleted_at = now()
+      WHERE id = ${id}
+      RETURNING id
     `;
-    res.status(200).json({ orders: rows });
-  } catch (err) {
-    console.error('Orders fetch error', err);
+    if (!result.rows.length) {
+      return res.status(404).send('Order not found');
+    }
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error('Order delete error', error);
     res.status(500).send('Server Error');
   }
 };

@@ -31,39 +31,33 @@
       background: #ffffff;
       box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
     }
-    #drawer {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 50;
-      display: flex;
-      justify-content: flex-end;
-    }
-    #drawerPanel {
-      width: min(480px, 100vw);
-      max-width: 480px;
-      height: 100%;
+    .order-detail-panel {
       background: #ffffff;
-      border-left: 1px solid #e5e7eb;
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-      box-shadow: -12px 0 30px rgba(15, 23, 42, 0.15);
+      border: 1px solid #e5e7eb;
+      border-radius: 1.5rem;
+      box-shadow: 0 25px 50px rgba(15, 23, 42, 0.08);
+      padding: 1.5rem;
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
-    #drawer.open {
-      pointer-events: auto;
+    .order-detail-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
     }
-    #drawer.open #drawerPanel {
-      transform: translateX(0);
+    .order-detail-panel .status-chip {
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
     }
-    #drawerOverlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.25);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    #drawer.open #drawerOverlay {
-      opacity: 1;
+    .order-detail-placeholder {
+      color: #64748b;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: auto;
+      margin-bottom: auto;
     }
     #toastContainer {
       position: fixed;
@@ -100,7 +94,7 @@
     }
     @media print {
       body { background: #fff; color: #111827; }
-      .no-print, button, input, select, nav, header, aside, #toastContainer, #drawer { display: none !important; }
+      .no-print, button, input, select, nav, header, aside, #toastContainer { display: none !important; }
     }
   </style>
 </head>
@@ -133,6 +127,7 @@
         <button data-tab-btn="kitchen" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Kitchen Print</button>
         <button data-tab-btn="delivery" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Delivery Sheets</button>
         <button data-tab-btn="customers" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Customers</button>
+        <button data-tab-btn="products" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Products</button>
         <button data-tab-btn="settings" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Settings</button>
       </nav>
       <div class="px-6 py-4 border-t border-slate-200 space-y-1 text-sm">
@@ -158,60 +153,172 @@
       <main class="flex-1 overflow-hidden">
         <div class="h-full overflow-y-auto px-6 py-6 space-y-6">
           <section data-tab-content="orders">
-            <div id="summaryCards" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
-            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-4 items-end shadow-sm">
-              <div class="flex-1 min-w-[240px]">
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Search</p>
-                <input id="searchInput" type="search" placeholder="Name, phone, email, order #, address" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/60 px-4 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" />
+            <div class="grid gap-6">
+              <div class="space-y-6">
+                <div id="summaryCards" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Manual payment links</p>
+                    <p class="text-sm text-slate-600">Create a new order from scratch and send a Stripe payment link directly.</p>
+                  </div>
+                  <button id="openCreateOrderBtn" type="button" class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white">Create new order</button>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-4 items-end shadow-sm">
+                  <div class="flex-1 min-w-[240px]">
+                    <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Search</p>
+                    <input id="searchInput" type="search" placeholder="Name, phone, email, order #, address" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/60 px-4 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" />
+                  </div>
+                  <label class="flex flex-col text-sm">
+                    <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Status</span>
+                    <select id="statusFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
+                      <option value="all">All statuses</option>
+                    </select>
+                  </label>
+                  <label class="flex flex-col text-sm">
+                    <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Shabbos</span>
+                    <select id="labelFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
+                      <option value="all">All labels</option>
+                    </select>
+                  </label>
+                  <label class="flex flex-col text-sm">
+                    <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Delivery</span>
+                    <select id="deliveryFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
+                      <option value="all">All</option>
+                      <option value="delivery">Delivery</option>
+                      <option value="pickup">Pickup</option>
+                    </select>
+                  </label>
+                  <label class="flex flex-col text-sm">
+                    <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Sort</span>
+                    <select id="sortSelect" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
+                      <option value="newest">Newest</option>
+                      <option value="oldest">Oldest</option>
+                      <option value="status">Status</option>
+                      <option value="customer">Customer</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl p-3 flex flex-wrap gap-3 items-center shadow-sm">
+                  <label class="flex items-center gap-2 text-sm text-slate-500">
+                    <input id="selectAllCheckbox" type="checkbox" class="h-4 w-4 rounded border-slate-400 text-amber-400 bg-white" />
+                    Select all filtered
+                  </label>
+                  <div id="selectionSummary" class="text-sm text-slate-600">0 selected</div>
+                  <div class="ml-auto flex flex-wrap gap-2">
+                    <button id="batchKitchenBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 hover:border-amber-400" type="button">Kitchen print</button>
+                    <button id="batchDeliveryBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 hover:border-amber-400" type="button">Delivery print</button>
+                  </div>
+                </div>
+                <div id="ordersList" class="space-y-3"></div>
+                <div class="flex flex-wrap justify-between items-center text-sm text-slate-500">
+                  <div id="paginationInfo">0 orders</div>
+                  <div class="flex gap-2">
+                    <button id="prevPageBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-700 hover:border-amber-400" type="button">Previous</button>
+                    <button id="nextPageBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-700 hover:border-amber-400" type="button">Next</button>
+                  </div>
+                </div>
               </div>
-              <label class="flex flex-col text-sm">
-                <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Status</span>
-                <select id="statusFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
-                  <option value="all">All statuses</option>
-                </select>
-              </label>
-              <label class="flex flex-col text-sm">
-                <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Shabbos</span>
-                <select id="labelFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
-                  <option value="all">All labels</option>
-                </select>
-              </label>
-              <label class="flex flex-col text-sm">
-                <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Delivery</span>
-                <select id="deliveryFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
-                  <option value="all">All</option>
-                  <option value="delivery">Delivery</option>
-                  <option value="pickup">Pickup</option>
-                </select>
-              </label>
-              <label class="flex flex-col text-sm">
-                <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Sort</span>
-                <select id="sortSelect" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
-                  <option value="newest">Newest</option>
-                  <option value="oldest">Oldest</option>
-                  <option value="status">Status</option>
-                  <option value="customer">Customer</option>
-                </select>
-              </label>
-            </div>
-            <div class="bg-white border border-slate-200 rounded-2xl p-3 flex flex-wrap gap-3 items-center shadow-sm">
-              <label class="flex items-center gap-2 text-sm text-slate-500">
-                <input id="selectAllCheckbox" type="checkbox" class="h-4 w-4 rounded border-slate-400 text-amber-400 bg-white" />
-                Select all filtered
-              </label>
-              <div id="selectionSummary" class="text-sm text-slate-600">0 selected</div>
-              <div class="ml-auto flex flex-wrap gap-2">
-                <button id="batchKitchenBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 hover:border-amber-400" type="button">Kitchen print</button>
-                <button id="batchDeliveryBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 hover:border-amber-400" type="button">Delivery print</button>
-              </div>
-            </div>
-            <div id="ordersList" class="space-y-3"></div>
-            <div class="flex flex-wrap justify-between items-center text-sm text-slate-500">
-              <div id="paginationInfo">0 orders</div>
-              <div class="flex gap-2">
-                <button id="prevPageBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-700 hover:border-amber-400" type="button">Previous</button>
-                <button id="nextPageBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-700 hover:border-amber-400" type="button">Next</button>
-              </div>
+              <aside id="orderDetailPanel" class="order-detail-panel no-print hidden">
+                <p id="orderDetailPlaceholder" class="order-detail-placeholder">Select an order to view details.</p>
+                <div id="orderDetailContent" class="hidden space-y-4 overflow-y-auto">
+                  <div class="order-detail-panel-header">
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Order detail</p>
+                      <h2 id="orderDetailTitle" class="text-2xl font-semibold text-slate-900">Select an order</h2>
+                    </div>
+                    <div class="flex gap-2">
+                      <button id="orderDetailClearBtn" class="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-500" type="button">Clear</button>
+                      <button id="orderDetailDeleteBtn" class="rounded-full border border-rose-200 px-3 py-1 text-xs text-rose-500 hover:bg-rose-50" type="button">Delete order</button>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span id="orderDetailBadge" class="status-chip text-xs"></span>
+                    <span id="orderDetailLabel" class="text-xs text-slate-500 uppercase tracking-[0.3em]"></span>
+                  </div>
+                  <div id="orderDetailTimeline" class="space-y-1 text-xs text-slate-500"></div>
+                  <div class="space-y-3 text-sm text-slate-700">
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Customer</p>
+                      <p id="orderDetailCustomer" class="text-base font-semibold text-slate-900">No order selected</p>
+                      <p id="orderDetailContact" class="text-xs text-slate-500"></p>
+                    </div>
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Address</p>
+                      <p id="orderDetailAddress" class="text-sm text-slate-600"></p>
+                    </div>
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Allergies / notes</p>
+                      <p id="orderDetailAllergies" class="text-sm text-slate-600"></p>
+                    </div>
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Items</p>
+                      <div id="orderDetailItemsList" class="space-y-1 text-sm text-slate-700"></div>
+                    </div>
+                  </div>
+                  <div class="mt-2 pt-4 border-t border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status</p>
+                      <button id="editToggleBtn" class="text-xs text-amber-500 hover:text-amber-400" type="button">Open editor</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                      <select id="orderDetailStatusSelect" class="rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900">
+                        <option value="new">New</option>
+                        <option value="ready">Ready</option>
+                        <option value="delivered">Delivered</option>
+                      </select>
+                      <button id="orderDetailStatusBtn" class="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white" type="button">Update status</button>
+                      <button id="orderDetailPrintDefaultBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700" type="button">Print receipt</button>
+                      <button id="orderDetailPrintKitchenBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700" type="button">Kitchen sheet</button>
+                      <button id="orderDetailPrintDeliveryBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700" type="button">Delivery sheet</button>
+                    </div>
+                    <div id="orderDetailError" class="hidden rounded-2xl border border-rose-500/50 bg-rose-900/20 p-3 text-xs text-rose-200"></div>
+                  </div>
+                  <div id="editContainer" class="hidden space-y-4">
+                    <div class="grid gap-3 sm:grid-cols-2">
+                      <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                        Name
+                      <input id="editName" data-draft-field="customer_name" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900" />
+                      </label>
+                      <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                        Phone
+                      <input id="editPhone" data-draft-field="customer_phone" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900" />
+                      </label>
+                      <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                        Email
+                      <input id="editEmail" data-draft-field="customer_email" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900" />
+                      </label>
+                      <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                        Status
+                      <select id="editStatus" data-draft-field="status" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900">
+                        <option value="new">New</option>
+                        <option value="ready">Ready</option>
+                        <option value="delivered">Delivered</option>
+                      </select>
+                      </label>
+                      <label class="text-xs uppercase tracking-[0.2em] text-slate-500 sm:col-span-2">
+                        Address
+                      <input id="editAddress" data-draft-field="customer_address" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900" />
+                      </label>
+                      <label class="text-xs uppercase tracking-[0.2em] text-slate-500 sm:col-span-2">
+                        Allergies / notes
+                      <textarea id="editAllergies" data-draft-field="allergies" rows="2" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900"></textarea>
+                      </label>
+                    </div>
+                    <div class="space-y-3">
+                      <div class="flex items-center justify-between">
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Items</p>
+                        <button id="addItemBtn" class="text-xs text-amber-600 hover:text-amber-500" type="button">Add row</button>
+                      </div>
+                      <div id="itemsEditor" class="space-y-3"></div>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                      <button id="saveEditBtn" class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white" type="button">Save changes</button>
+                      <button id="cancelEditBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700" type="button">Cancel</button>
+                    </div>
+                    <p id="autosaveMessage" class="text-xs italic text-slate-500">Draft not saved yet.</p>
+                  </div>
+                </div>
+              </aside>
             </div>
           </section>
           <section data-tab-content="kitchen" class="hidden space-y-4">
@@ -263,6 +370,86 @@
               </div>
             </div>
           </section>
+          <section data-tab-content="products" class="hidden space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Products</p>
+                <h2 class="text-xl font-semibold text-slate-900">Manage menu items</h2>
+              </div>
+              <button id="createProductBtn" type="button" class="rounded-2xl border border-amber-400 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100">Add item</button>
+            </div>
+            <div id="productsList" class="grid gap-4"></div>
+            <div id="productEditor" class="hidden rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm space-y-4">
+              <div class="grid gap-3 sm:grid-cols-2">
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Category *
+                  <input id="productCategory" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm" />
+                </label>
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Title *
+                  <input id="productTitle" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm" />
+                </label>
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Price *
+                  <input id="productPrice" type="number" min="0" step="0.01" class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm" />
+                </label>
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Sold by
+                  <input id="productSoldBy" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm" />
+                </label>
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Qty label
+                  <input id="productQtyLabel" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm" />
+                </label>
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Image URL
+                  <input id="productImage" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm" />
+                </label>
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500 sm:col-span-2">
+                  Menus
+                  <div class="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-700">
+                    <label class="flex items-center gap-2">
+                      <input id="productMenuShabbos" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                      Shabbos
+                    </label>
+                    <label class="flex items-center gap-2">
+                      <input id="productMenuPurim" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                      Purim
+                    </label>
+                    <label class="flex items-center gap-2">
+                      <input id="productMenuDairy" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                      Dairy
+                    </label>
+                  </div>
+                </label>
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500 sm:col-span-2">
+                  Upload image
+                  <input id="productImageFile" type="file" accept="image/*" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm" />
+                </label>
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <button id="productImageUploadBtn" type="button" class="rounded-2xl border border-amber-400 bg-amber-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-amber-700 hover:bg-amber-100">Upload image</button>
+                <span id="productImageStatus" class="text-xs text-slate-500"></span>
+              </div>
+              <img id="productImagePreview" src="" alt="Product preview" class="hidden w-full max-w-[320px] rounded-2xl border border-slate-200 bg-white/70 object-cover" />
+              <div>
+                <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Description
+                  <textarea id="productDescription" rows="3" class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm"></textarea>
+                </label>
+              </div>
+              <label class="flex items-center gap-2 text-sm">
+                <input id="productActive" type="checkbox" checked class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                Active
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button id="productSaveBtn" type="button" class="rounded-2xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white">Save</button>
+                <button id="productCancelBtn" type="button" class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-600">Cancel</button>
+                <button id="productDeleteBtn" type="button" class="rounded-2xl border border-rose-200 px-4 py-2 text-sm text-rose-600 hidden">Remove</button>
+              </div>
+              <p id="productEditorMessage" class="text-xs text-rose-500 hidden"></p>
+            </div>
+          </section>
           <section data-tab-content="settings" class="hidden space-y-4">
             <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-sm">
               <div>
@@ -288,7 +475,31 @@
                   <option value="delivery">Delivery sheet</option>
                 </select>
               </div>
-              <p class="text-xs text-slate-500">Used whenever you click "Print" on an order card or in the drawer.</p>
+              <p class="text-xs text-slate-500">Used whenever you click "Print" on an order card or in the detail panel.</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-sm">
+              <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Ordering</p>
+                <h2 class="text-lg font-semibold text-slate-900">Page availability</h2>
+              </div>
+              <div class="flex flex-wrap items-center gap-6 text-sm text-slate-700">
+                <label class="flex items-center gap-2">
+                  <input id="settingsShabbosEnabled" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                  Shabbos page enabled
+                </label>
+                <label class="flex items-center gap-2">
+                  <input id="settingsPurimEnabled" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                  Purim page enabled
+                </label>
+                <label class="flex items-center gap-2">
+                  <input id="settingsDairyEnabled" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                  Dairy page enabled
+                </label>
+              </div>
+              <div class="flex items-center gap-3">
+                <button id="settingsSaveSiteBtn" type="button" class="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-900">Save</button>
+                <span id="settingsSiteStatus" class="text-xs text-slate-500"></span>
+              </div>
             </div>
             <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
               <div>
@@ -302,107 +513,92 @@
       </main>
     </div>
   </div>
-  <div id="drawer" aria-hidden="true" class="no-print">
-    <div id="drawerOverlay"></div>
-    <div id="drawerPanel" role="dialog" aria-modal="true" tabindex="-1">
-      <div class="h-full flex flex-col gap-4 px-6 py-6 overflow-y-auto">
-        <div class="flex items-start justify-between gap-4">
+<div id="orderDetailPage" class="hidden fixed inset-0 z-50 overflow-auto bg-slate-900/70 backdrop-blur px-4 py-8">
+  <div class="mx-auto w-full max-w-6xl rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-slate-300">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Order editing</p>
+        <h2 id="orderDetailPageNumber" class="text-2xl font-semibold text-slate-900">Order #</h2>
+        <p id="orderDetailPageCustomer" class="text-sm text-slate-500"></p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button id="orderDetailPageSave" class="rounded-2xl bg-amber-500 px-5 py-2 text-sm font-semibold text-white">Save changes</button>
+        <button id="orderDetailPageClose" class="rounded-2xl border border-slate-200 px-5 py-2 text-sm text-slate-600">Close</button>
+      </div>
+    </div>
+    <div class="mt-6 grid gap-6 lg:grid-cols-[1.5fr,0.8fr]">
+      <div class="space-y-5">
+        <div class="flex items-center justify-between gap-4">
           <div>
-            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Order detail</p>
-            <h2 id="drawerTitle" class="text-2xl font-semibold text-slate-900">Select an order</h2>
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Status</p>
+            <select id="orderDetailPageStatus" class="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-900">
+              <option value="new">New</option>
+              <option value="ready">Ready</option>
+              <option value="delivered">Delivered</option>
+            </select>
           </div>
-          <button id="drawerCloseBtn" class="rounded-full border border-slate-300 px-3 py-1 text-xs text-slate-500" type="button">Close</button>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <span id="drawerBadge" class="status-chip text-xs"></span>
-          <span id="drawerLabel" class="text-xs text-slate-500 uppercase tracking-[0.3em]"></span>
-        </div>
-        <div id="drawerTimeline" class="space-y-1 text-xs text-slate-500"></div>
-        <div class="space-y-3 text-sm text-slate-700">
-          <div>
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Customer</p>
-            <p id="drawerCustomer" class="text-base font-semibold text-slate-900">No order selected</p>
-            <p id="drawerContact" class="text-xs text-slate-500"></p>
-          </div>
-          <div>
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Address</p>
-            <p id="drawerAddress" class="text-sm text-slate-600"></p>
-          </div>
-          <div>
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Allergies / notes</p>
-            <p id="drawerAllergies" class="text-sm text-slate-600"></p>
-          </div>
-          <div>
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Items</p>
-        <div id="drawerItemsList" class="space-y-1 text-sm text-slate-700"></div>
+          <div class="text-right">
+            <p class="text-sm text-slate-500">Order total</p>
+            <p id="orderDetailPageTotal" class="text-xl font-semibold text-slate-900">₪0</p>
           </div>
         </div>
-        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200">
-          <select id="drawerStatusSelect" class="rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900">
-            <option value="new">New</option>
-            <option value="ready">Ready</option>
-            <option value="delivered">Delivered</option>
-          </select>
-          <button id="drawerStatusBtn" class="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white" type="button">Update status</button>
-          <button id="drawerPrintDefaultBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700" type="button">Print receipt</button>
-          <button id="drawerPrintKitchenBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700" type="button">Kitchen sheet</button>
-          <button id="drawerPrintDeliveryBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700" type="button">Delivery sheet</button>
+        <div id="orderDetailPageItems" class="space-y-3"></div>
+      </div>
+      <div class="space-y-5">
+        <div class="space-y-3 rounded-2xl border border-slate-200 p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Add items</p>
+            <span id="orderDetailPagePendingBadge" class="text-xs font-semibold text-amber-600"></span>
+          </div>
+          <input id="orderDetailPageSearch" type="search" placeholder="Search catalog" class="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none" />
+          <div id="orderDetailPageSearchResults" class="grid gap-3 max-h-64 overflow-y-auto"></div>
         </div>
-        <div id="drawerError" class="hidden rounded-2xl border border-rose-500/50 bg-rose-900/20 p-3 text-xs text-rose-200"></div>
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Editor</p>
-            <h3 class="text-base font-semibold text-slate-900">Edit order</h3>
+        <div class="rounded-2xl border border-dashed border-slate-200 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Pending payment</p>
+            <button id="orderDetailPageGenerateLink" class="rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white">Generate link</button>
           </div>
-          <button id="editToggleBtn" class="text-xs text-amber-500 hover:text-amber-400" type="button">Open editor</button>
-        </div>
-        <div id="editContainer" class="hidden space-y-4">
-          <div class="grid gap-3 sm:grid-cols-2">
-            <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
-              Name
-            <input id="editName" data-draft-field="customer_name" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900" />
-            </label>
-            <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
-              Phone
-            <input id="editPhone" data-draft-field="customer_phone" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900" />
-            </label>
-            <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
-              Email
-            <input id="editEmail" data-draft-field="customer_email" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900" />
-            </label>
-            <label class="text-xs uppercase tracking-[0.2em] text-slate-500">
-              Status
-            <select id="editStatus" data-draft-field="status" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900">
-                <option value="new">New</option>
-                <option value="ready">Ready</option>
-                <option value="delivered">Delivered</option>
-              </select>
-            </label>
-            <label class="text-xs uppercase tracking-[0.2em] text-slate-500 sm:col-span-2">
-              Address
-            <input id="editAddress" data-draft-field="customer_address" type="text" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900" />
-            </label>
-            <label class="text-xs uppercase tracking-[0.2em] text-slate-500 sm:col-span-2">
-              Allergies / notes
-            <textarea id="editAllergies" data-draft-field="allergies" rows="2" class="mt-1 w-full rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900"></textarea>
-            </label>
+          <p id="orderDetailPagePendingTotal" class="text-lg font-semibold text-slate-900">₪0</p>
+          <a id="orderDetailPageLink" href="#" target="_blank" class="text-sm font-semibold text-amber-600 inline-flex items-center gap-1 hidden">
+            <span>Open payment link</span>
+          </a>
+          <button id="orderDetailPageCopyLink" type="button" class="hidden rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">Copy link</button>
+          <div id="orderDetailPageDiscountWrap" class="hidden rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-2">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Manual-order discount</p>
+            <input id="orderDetailPageDiscountDesc" type="text" placeholder="Discount description" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
+            <input id="orderDetailPageDiscountAmount" type="number" min="0" step="0.01" placeholder="Discount amount ($)" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
+            <p class="text-[11px] text-slate-500">Applies only to manual payment request orders.</p>
           </div>
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Items</p>
-              <button id="addItemBtn" class="text-xs text-amber-600 hover:text-amber-500" type="button">Add row</button>
-            </div>
-            <div id="itemsEditor" class="space-y-3"></div>
-          </div>
-          <div class="flex flex-wrap gap-3">
-            <button id="saveEditBtn" class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white" type="button">Save changes</button>
-            <button id="cancelEditBtn" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700" type="button">Cancel</button>
-          </div>
-          <p id="autosaveMessage" class="text-xs italic text-slate-500">Draft not saved yet.</p>
+          <p class="text-xs text-slate-500">Send this link to collect payment for the added items.</p>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<div id="createOrderModal" class="hidden fixed inset-0 z-50 overflow-auto bg-slate-900/70 backdrop-blur px-4 py-8">
+  <div class="mx-auto w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-slate-300">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-xs uppercase tracking-[0.3em] text-slate-500">New order</p>
+        <h2 class="text-2xl font-semibold text-slate-900">Create payment-request order</h2>
+      </div>
+      <button id="createOrderCloseBtn" type="button" class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-600">Close</button>
+    </div>
+    <div class="mt-5 space-y-4">
+      <label class="block text-xs uppercase tracking-[0.2em] text-slate-500">
+        Customer name *
+        <input id="createOrderNameInput" type="text" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" placeholder="Customer full name" />
+      </label>
+      <p class="text-xs text-slate-500">No phone/email/address required. You can add items and quantities on the next screen, then generate a payment link.</p>
+      <p id="createOrderErrorText" class="min-h-[20px] text-xs font-semibold text-rose-500"></p>
+      <div class="flex flex-wrap gap-3">
+        <button id="createOrderSubmitBtn" type="button" class="rounded-2xl bg-amber-500 px-5 py-2 text-sm font-semibold text-white">Create order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <script>
     (() => {
       const KEY_STORAGE = 'palate_admin_key';
@@ -412,7 +608,7 @@
         kitchen: { label: 'Kitchen Prep Sheet', description: 'No prices, allergies up front' },
         delivery: { label: 'Packing/Delivery Sheet', description: 'Address + checkboxes' }
       };
-      const API_BASE_CANDIDATES = ['/.netlify/functions', '/api'];
+      const API_BASE = '/api';
       const state = {
         adminKey: '',
         activeTab: 'orders',
@@ -422,11 +618,21 @@
         pagination: { page: 1, perPage: 40 },
         selected: new Set(),
         lastRefresh: null,
-        drawerOrderId: null,
+        detailOrderId: null,
         draft: null,
         draftSavedAt: null,
         defaultPrintMode: 'receipt',
-        apiBase: null
+        products: [],
+        productsLoaded: false,
+        productEditorOpen: false,
+        productDraft: null,
+        productEditorMode: 'create',
+        detailOrderPageOrder: null,
+        detailOrderSearchTerm: '',
+        detailOrderSearchResults: [],
+        detailCatalogItems: [],
+        detailPendingLink: '',
+        createOrderPending: false
       };
       const els = {
         toastContainer: document.getElementById('toastContainer'),
@@ -442,6 +648,7 @@
         errorText: document.getElementById('errorText'),
         dismissError: document.getElementById('dismissError'),
         summaryCards: document.getElementById('summaryCards'),
+        openCreateOrderBtn: document.getElementById('openCreateOrderBtn'),
         searchInput: document.getElementById('searchInput'),
         statusFilter: document.getElementById('statusFilter'),
         labelFilter: document.getElementById('labelFilter'),
@@ -457,32 +664,83 @@
         nextPageBtn: document.getElementById('nextPageBtn'),
         kitchenSelection: document.getElementById('kitchenSelection'),
         deliverySelection: document.getElementById('deliverySelection'),
+        productsList: document.getElementById('productsList'),
+        createProductBtn: document.getElementById('createProductBtn'),
+        productEditor: document.getElementById('productEditor'),
+        productCategory: document.getElementById('productCategory'),
+        productTitle: document.getElementById('productTitle'),
+        productDescription: document.getElementById('productDescription'),
+        productPrice: document.getElementById('productPrice'),
+        productSoldBy: document.getElementById('productSoldBy'),
+        productQtyLabel: document.getElementById('productQtyLabel'),
+        productImage: document.getElementById('productImage'),
+        productMenuShabbos: document.getElementById('productMenuShabbos'),
+        productMenuPurim: document.getElementById('productMenuPurim'),
+        productMenuDairy: document.getElementById('productMenuDairy'),
+        productImageFile: document.getElementById('productImageFile'),
+        productImageUploadBtn: document.getElementById('productImageUploadBtn'),
+        productImageStatus: document.getElementById('productImageStatus'),
+        productImagePreview: document.getElementById('productImagePreview'),
+        productActive: document.getElementById('productActive'),
+        productSaveBtn: document.getElementById('productSaveBtn'),
+        productCancelBtn: document.getElementById('productCancelBtn'),
+        productDeleteBtn: document.getElementById('productDeleteBtn'),
+        productEditorMessage: document.getElementById('productEditorMessage'),
         customersTable: document.getElementById('customersTable'),
         settingsKeyInput: document.getElementById('settingsKeyInput'),
         settingsSaveKeyBtn: document.getElementById('settingsSaveKeyBtn'),
         settingsClearKeyBtn: document.getElementById('settingsClearKeyBtn'),
         defaultPrintModeSelect: document.getElementById('defaultPrintModeSelect'),
+        settingsShabbosEnabled: document.getElementById('settingsShabbosEnabled'),
+        settingsPurimEnabled: document.getElementById('settingsPurimEnabled'),
+        settingsDairyEnabled: document.getElementById('settingsDairyEnabled'),
+        settingsSaveSiteBtn: document.getElementById('settingsSaveSiteBtn'),
+        settingsSiteStatus: document.getElementById('settingsSiteStatus'),
         clearSelectionBtn: document.getElementById('clearSelectionBtn'),
         sidebarPrintMode: document.getElementById('sidebarPrintMode'),
-        drawer: document.getElementById('drawer'),
-        drawerPanel: document.getElementById('drawerPanel'),
-        drawerOverlay: document.getElementById('drawerOverlay'),
-        drawerCloseBtn: document.getElementById('drawerCloseBtn'),
-        drawerTitle: document.getElementById('drawerTitle'),
-        drawerBadge: document.getElementById('drawerBadge'),
-        drawerLabel: document.getElementById('drawerLabel'),
-        drawerTimeline: document.getElementById('drawerTimeline'),
-        drawerStatusSelect: document.getElementById('drawerStatusSelect'),
-        drawerStatusBtn: document.getElementById('drawerStatusBtn'),
-        drawerPrintDefaultBtn: document.getElementById('drawerPrintDefaultBtn'),
-        drawerPrintKitchenBtn: document.getElementById('drawerPrintKitchenBtn'),
-        drawerPrintDeliveryBtn: document.getElementById('drawerPrintDeliveryBtn'),
-        drawerCustomer: document.getElementById('drawerCustomer'),
-        drawerContact: document.getElementById('drawerContact'),
-        drawerAddress: document.getElementById('drawerAddress'),
-        drawerAllergies: document.getElementById('drawerAllergies'),
-        drawerItemsList: document.getElementById('drawerItemsList'),
-        drawerError: document.getElementById('drawerError'),
+        orderDetailPanel: document.getElementById('orderDetailPanel'),
+        orderDetailPlaceholder: document.getElementById('orderDetailPlaceholder'),
+        orderDetailContent: document.getElementById('orderDetailContent'),
+        orderDetailClearBtn: document.getElementById('orderDetailClearBtn'),
+        orderDetailTitle: document.getElementById('orderDetailTitle'),
+        orderDetailBadge: document.getElementById('orderDetailBadge'),
+        orderDetailLabel: document.getElementById('orderDetailLabel'),
+        orderDetailTimeline: document.getElementById('orderDetailTimeline'),
+        orderDetailStatusSelect: document.getElementById('orderDetailStatusSelect'),
+        orderDetailStatusBtn: document.getElementById('orderDetailStatusBtn'),
+        orderDetailPrintDefaultBtn: document.getElementById('orderDetailPrintDefaultBtn'),
+        orderDetailPrintKitchenBtn: document.getElementById('orderDetailPrintKitchenBtn'),
+        orderDetailPrintDeliveryBtn: document.getElementById('orderDetailPrintDeliveryBtn'),
+        orderDetailDeleteBtn: document.getElementById('orderDetailDeleteBtn'),
+        orderDetailCustomer: document.getElementById('orderDetailCustomer'),
+        orderDetailContact: document.getElementById('orderDetailContact'),
+        orderDetailAddress: document.getElementById('orderDetailAddress'),
+        orderDetailAllergies: document.getElementById('orderDetailAllergies'),
+        orderDetailItemsList: document.getElementById('orderDetailItemsList'),
+        orderDetailError: document.getElementById('orderDetailError'),
+        orderDetailPage: document.getElementById('orderDetailPage'),
+        orderDetailPageNumber: document.getElementById('orderDetailPageNumber'),
+        orderDetailPageCustomer: document.getElementById('orderDetailPageCustomer'),
+        orderDetailPageStatus: document.getElementById('orderDetailPageStatus'),
+        orderDetailPageTotal: document.getElementById('orderDetailPageTotal'),
+        orderDetailPageItems: document.getElementById('orderDetailPageItems'),
+        orderDetailPagePendingBadge: document.getElementById('orderDetailPagePendingBadge'),
+        orderDetailPageSearch: document.getElementById('orderDetailPageSearch'),
+        orderDetailPageSearchResults: document.getElementById('orderDetailPageSearchResults'),
+        orderDetailPageGenerateLink: document.getElementById('orderDetailPageGenerateLink'),
+        orderDetailPagePendingTotal: document.getElementById('orderDetailPagePendingTotal'),
+        orderDetailPageLink: document.getElementById('orderDetailPageLink'),
+        orderDetailPageCopyLink: document.getElementById('orderDetailPageCopyLink'),
+        orderDetailPageDiscountWrap: document.getElementById('orderDetailPageDiscountWrap'),
+        orderDetailPageDiscountDesc: document.getElementById('orderDetailPageDiscountDesc'),
+        orderDetailPageDiscountAmount: document.getElementById('orderDetailPageDiscountAmount'),
+        orderDetailPageSave: document.getElementById('orderDetailPageSave'),
+        orderDetailPageClose: document.getElementById('orderDetailPageClose'),
+        createOrderModal: document.getElementById('createOrderModal'),
+        createOrderCloseBtn: document.getElementById('createOrderCloseBtn'),
+        createOrderNameInput: document.getElementById('createOrderNameInput'),
+        createOrderErrorText: document.getElementById('createOrderErrorText'),
+        createOrderSubmitBtn: document.getElementById('createOrderSubmitBtn'),
         editToggleBtn: document.getElementById('editToggleBtn'),
         editContainer: document.getElementById('editContainer'),
         editName: document.getElementById('editName'),
@@ -541,6 +799,7 @@
         if (success) {
           setAdminKey(key, { persist: true });
           hideLoginOverlay();
+          loadSiteSettings();
         } else {
           setAdminKey('', { persist: true });
           showLoginOverlay('Key rejected. Try again or update it in Settings.');
@@ -550,33 +809,12 @@
 
       async function apiFetch(endpoint, options = {}) {
         const normalizedEndpoint = endpoint.replace(/^\/+/, '');
-        const candidateBases = state.apiBase
-          ? [state.apiBase, ...API_BASE_CANDIDATES.filter(base => base !== state.apiBase)]
-          : API_BASE_CANDIDATES.slice();
-        let lastError = null;
-
-        for (const base of candidateBases) {
-          const url = `${base.replace(/\/$/, '')}/${normalizedEndpoint}`;
-          try {
-            const response = await fetch(url, options);
-            if (response.status === 404) {
-              lastError = new Error('Endpoint not found');
-              if (base === candidateBases[candidateBases.length - 1]) {
-                break;
-              }
-              continue;
-            }
-            state.apiBase = base;
-            return response;
-          } catch (error) {
-            lastError = error;
-            if (base === candidateBases[candidateBases.length - 1]) {
-              break;
-            }
-          }
+        const url = `${API_BASE.replace(/\/$/, '')}/${normalizedEndpoint}`;
+        const headers = { ...(options.headers || {}) };
+        if (state.adminKey) {
+          headers['x-admin-key'] = state.adminKey;
         }
-
-        throw lastError || new Error('Unable to reach API');
+        return fetch(url, { ...options, headers });
       }
 
       async function init() {
@@ -600,6 +838,8 @@
           els.loginKeyInput.value = '';
           showLoginOverlay('Enter the admin key to load orders once.');
         }
+        loadProducts();
+        loadSiteSettings();
       }
 
       function setAdminKey(value, { persist = true } = {}) {
@@ -687,21 +927,52 @@
           setAdminKey('', { persist: true });
           showLoginOverlay('Key cleared. Enter a new admin key to continue.');
         });
+        els.settingsSaveSiteBtn?.addEventListener('click', saveSiteSettings);
         els.defaultPrintModeSelect.addEventListener('change', (event) => setDefaultPrintMode(event.target.value));
         els.dismissError.addEventListener('click', clearError);
         els.ordersList.addEventListener('click', handleOrderCardClick);
         els.ordersList.addEventListener('change', handleOrderCheckboxChange);
-        els.drawerOverlay.addEventListener('click', closeDrawer);
-        els.drawerCloseBtn.addEventListener('click', closeDrawer);
+        els.openCreateOrderBtn?.addEventListener('click', openCreateOrderModal);
+        els.orderDetailClearBtn.addEventListener('click', clearOrderDetail);
         document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape' && state.drawerOrderId) {
-            closeDrawer();
+          if (event.key === 'Escape' && state.detailOrderId) {
+            clearOrderDetail();
           }
         });
-        els.drawerStatusBtn.addEventListener('click', handleDrawerStatusChange);
-        els.drawerPrintDefaultBtn.addEventListener('click', () => printCurrentOrder());
-        els.drawerPrintKitchenBtn.addEventListener('click', () => printCurrentOrder('kitchen'));
-        els.drawerPrintDeliveryBtn.addEventListener('click', () => printCurrentOrder('delivery'));
+        els.orderDetailStatusBtn.addEventListener('click', handleDetailStatusChange);
+        els.orderDetailPrintDefaultBtn.addEventListener('click', () => printCurrentOrder());
+        els.orderDetailPrintKitchenBtn.addEventListener('click', () => printCurrentOrder('kitchen'));
+        els.orderDetailPrintDeliveryBtn.addEventListener('click', () => printCurrentOrder('delivery'));
+        els.orderDetailDeleteBtn?.addEventListener('click', handleOrderDelete);
+        els.orderDetailPageClose?.addEventListener('click', closeOrderDetailPage);
+        els.createOrderCloseBtn?.addEventListener('click', closeCreateOrderModal);
+        els.createOrderSubmitBtn?.addEventListener('click', handleCreateOrderSubmit);
+        els.createOrderModal?.addEventListener('click', event => {
+          if (event.target === els.createOrderModal) {
+            closeCreateOrderModal();
+          }
+        });
+        els.createOrderNameInput?.addEventListener('keydown', event => {
+          if (event.key === 'Enter') {
+            handleCreateOrderSubmit();
+          }
+        });
+        els.orderDetailPage?.addEventListener('click', event => {
+          if (event.target === els.orderDetailPage) {
+            closeOrderDetailPage();
+          }
+        });
+        els.orderDetailPageSave?.addEventListener('click', () => {
+          if (state.detailOrderPageOrder) {
+            saveDraft();
+          }
+        });
+        document.addEventListener('keydown', event => {
+          if (event.key === 'Escape') {
+            closeCreateOrderModal();
+            closeOrderDetailPage();
+          }
+        });
         els.editToggleBtn.addEventListener('click', toggleEditor);
         [els.editName, els.editPhone, els.editEmail, els.editAddress, els.editAllergies, els.editStatus].forEach((input) => {
           input.addEventListener('input', handleDraftInput);
@@ -719,7 +990,41 @@
         els.cancelEditBtn.addEventListener('click', cancelDraft);
         els.itemsEditor.addEventListener('input', handleItemInput);
         els.itemsEditor.addEventListener('click', handleItemRemove);
-        els.drawerPanel.addEventListener('keydown', trapDrawerFocus);
+        els.createProductBtn?.addEventListener('click', () => openProductEditor());
+        els.productsList?.addEventListener('click', handleProductCardAction);
+        els.productSaveBtn?.addEventListener('click', handleProductSave);
+        els.productCancelBtn?.addEventListener('click', closeProductEditor);
+        els.productDeleteBtn?.addEventListener('click', handleProductDelete);
+        els.productImageUploadBtn?.addEventListener('click', handleProductImageUpload);
+        els.productImageFile?.addEventListener('change', () => {
+          setProductImageStatus('');
+        });
+        els.productImage?.addEventListener('input', () => {
+          setProductImagePreview(els.productImage.value.trim());
+        });
+        els.orderDetailPageSearch?.addEventListener('input', () => {
+          renderOrderDetailPageSearch(els.orderDetailPageSearch.value.trim());
+        });
+        els.orderDetailPageSearchResults?.addEventListener('click', event => {
+          const button = event.target.closest('[data-add-product-id]');
+          if (!button) return;
+          const productId = Number(button.dataset.addProductId);
+          const catalogItem = getCatalogProductById(productId);
+          if (!catalogItem) return;
+          const card = button.closest('[data-product-card]');
+          const qtyInput = card?.querySelector(`[data-add-product-qty="${productId}"]`);
+          const qtyRaw = Number(qtyInput?.value || 1);
+          const qty = Math.max(1, Math.floor(Number.isFinite(qtyRaw) ? qtyRaw : 1));
+          if (qtyInput) {
+            qtyInput.value = String(qty);
+          }
+          addItemToOrderDraft(catalogItem, qty);
+        });
+        els.orderDetailPageGenerateLink?.addEventListener('click', handleGeneratePaymentLink);
+        els.orderDetailPageCopyLink?.addEventListener('click', handleCopyPaymentLink);
+        els.orderDetailPageItems?.addEventListener('click', handleOrderDetailPageItemAction);
+        els.orderDetailPageDiscountDesc?.addEventListener('input', handleManualDiscountInput);
+        els.orderDetailPageDiscountAmount?.addEventListener('input', handleManualDiscountInput);
       }
 
       function setActiveTab(tab) {
@@ -734,30 +1039,14 @@
           }
         });
         tabSections.forEach(section => {
-          section.hidden = section.dataset.tabContent !== tab;
+          const isActive = section.dataset.tabContent === tab;
+          section.hidden = !isActive;
+          section.classList.toggle('hidden', !isActive);
         });
+        if (tab === 'products' && !state.productsLoaded) {
+          loadProducts();
+        }
         render();
-      }
-
-      function trapDrawerFocus(event) {
-        if (!state.drawerOrderId || event.key !== 'Tab') {
-          return;
-        }
-        const focusable = Array.from(els.drawerPanel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.hasAttribute('disabled'));
-        if (!focusable.length) {
-          return;
-        }
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (event.shiftKey) {
-          if (document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-          }
-        } else if (document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
       }
 
       async function loadOrders() {
@@ -769,7 +1058,7 @@
         els.lastUpdatedAt.textContent = 'Loading...';
         let success = true;
         try {
-          const response = await apiFetch(`orders?key=${encodeURIComponent(state.adminKey)}`);
+          const response = await apiFetch('orders');
           if (response.status === 401) {
             setAdminKey('', { persist: true });
             showLoginOverlay('Key rejected. Enter the correct admin key.');
@@ -840,10 +1129,13 @@
         if (state.activeTab === 'customers') {
           renderCustomers();
         }
+        if (state.activeTab === 'products') {
+          renderProductsList();
+        }
         if (state.activeTab === 'kitchen' || state.activeTab === 'delivery') {
           renderSelectionPreview();
         }
-        updateDrawerIfOpen();
+        updateDetailIfOpen();
       }
 
       function renderSummary() {
@@ -858,7 +1150,7 @@
           const label = order.shabbos_label || 'Unlabeled';
           labelCounts[label] = (labelCounts[label] || 0) + 1;
           const items = Array.isArray(order.items) ? order.items : [];
-          totalItems += items.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
+          totalItems += items.reduce((sum, item) => sum + (getItemQuantityNumber(item) || 1), 0);
           if (isSameDay(new Date(order.created_at), today)) {
             todayCount += 1;
           }
@@ -933,7 +1225,11 @@
             const items = Array.isArray(order.items) ? order.items : [];
             const itemsPreview = items
               .slice(0, 2)
-              .map(item => `<div class="flex justify-between text-sm text-slate-500"><span>${escapeHtml(item.item || 'Item')}</span><span>${escapeHtml(item.qty || '')} ${escapeHtml(item.soldBy || '')}</span></div>`)
+              .map(item => {
+                const label = getItemLabel(item) || 'Item';
+                const detail = [getItemQuantityDisplay(item), getItemSoldByLabel(item)].filter(Boolean).join(' · ');
+                return `<div class="flex justify-between text-sm text-slate-500"><span>${escapeHtml(label)}</span><span>${escapeHtml(detail)}</span></div>`;
+              })
               .join('');
             const moreItems = items.length > 2 ? `<span class="text-xs text-slate-500">+${items.length - 2} more</span>` : '';
             const deliveryType = getDeliveryType(order);
@@ -1019,6 +1315,418 @@
         els.deliverySelection.innerHTML = previewHtml;
       }
 
+      function findProductById(id) {
+        for (const category of state.products) {
+          for (const item of category.items) {
+            if (String(item.id) === String(id)) {
+              return { ...item, category: category.category };
+            }
+          }
+        }
+        return null;
+      }
+
+      async function loadProducts(force = false) {
+        if (state.productsLoaded && !force) {
+          renderProductsList();
+          return;
+        }
+        try {
+          const response = await apiFetch('products');
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to load products');
+          }
+          const data = await response.json();
+          state.products = data.categories || [];
+          state.productsLoaded = true;
+          renderProductsList();
+        } catch (error) {
+          showError(error.message || 'Failed to load products');
+          state.products = [];
+          state.productsLoaded = true;
+          renderProductsList();
+        }
+      }
+
+      function setSiteSettingsStatus(message = '', isError = false) {
+        if (!els.settingsSiteStatus) return;
+        els.settingsSiteStatus.textContent = message;
+        els.settingsSiteStatus.classList.toggle('text-rose-500', isError);
+        els.settingsSiteStatus.classList.toggle('text-slate-500', !isError);
+      }
+
+      async function loadSiteSettings() {
+        if (!els.settingsShabbosEnabled || !els.settingsPurimEnabled || !els.settingsDairyEnabled) return;
+        if (!state.adminKey) {
+          setSiteSettingsStatus('Enter the admin key to load settings.');
+          return;
+        }
+        setSiteSettingsStatus('Loading...');
+        try {
+          const response = await apiFetch('products?settings=1');
+          if (response.status === 401) {
+            setSiteSettingsStatus('Unauthorized. Update the admin key.', true);
+            return;
+          }
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to load settings');
+          }
+          const data = await response.json();
+          const settings = data.settings || {};
+          const shabbosEnabled = settings.shabbos_enabled !== false;
+          const purimEnabled = settings.purim_enabled !== false;
+          const dairyEnabled = settings.dairy_enabled !== false;
+          els.settingsShabbosEnabled.checked = shabbosEnabled;
+          els.settingsPurimEnabled.checked = purimEnabled;
+          els.settingsDairyEnabled.checked = dairyEnabled;
+          setSiteSettingsStatus('Settings loaded.');
+        } catch (error) {
+          setSiteSettingsStatus(error.message || 'Failed to load settings.', true);
+        }
+      }
+
+      async function saveSiteSettings() {
+        if (!state.adminKey) {
+          showToast('Enter the admin key to save settings.', { type: 'error' });
+          return;
+        }
+        if (!els.settingsShabbosEnabled || !els.settingsPurimEnabled || !els.settingsDairyEnabled) return;
+        setSiteSettingsStatus('Saving...');
+        try {
+          const response = await apiFetch('products?settings=1', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              settings: {
+                shabbos_enabled: Boolean(els.settingsShabbosEnabled.checked),
+                purim_enabled: Boolean(els.settingsPurimEnabled.checked),
+                dairy_enabled: Boolean(els.settingsDairyEnabled.checked)
+              },
+              key: state.adminKey
+            })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to save settings');
+          }
+          setSiteSettingsStatus('Saved.');
+        } catch (error) {
+          setSiteSettingsStatus(error.message || 'Save failed.', true);
+        }
+      }
+
+      function renderProductsList() {
+        if (!els.productsList) return;
+        if (!state.products.length) {
+          els.productsList.innerHTML = '<div class="rounded-2xl border border-slate-200 bg-white/70 p-6 text-sm text-slate-500">No products defined yet.</div>';
+          return;
+        }
+        els.productsList.innerHTML = state.products.map(category => {
+          const itemsHtml = category.items.map(item => `
+            <article class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2 shadow-sm">
+              <div>
+                <div class="flex items-center justify-between gap-3">
+                  <h3 class="text-lg font-semibold text-slate-900">${escapeHtml(item.title)}</h3>
+                  <span class="text-xs font-semibold text-slate-500">${item.active ? 'Active' : 'Inactive'}</span>
+                </div>
+                <p class="text-sm text-slate-500">${escapeHtml(item.description || 'No description')}</p>
+                <p class="mt-2 text-xs text-slate-400">Menus: ${escapeHtml((item.menuTags && item.menuTags.length ? item.menuTags : ['Shabbos']).join(', '))}</p>
+              </div>
+              <div class="flex items-center justify-between text-sm text-slate-600">
+                <span>${escapeHtml(item.soldBy || '—')}</span>
+                <span>${escapeHtml(item.qtyLabel || '—')}</span>
+              </div>
+              <div class="flex items-center justify-between text-base font-semibold text-slate-900">
+                <span>${formatProductPrice(item.price)}</span>
+                <div class="flex gap-2 text-xs">
+                  <button data-action="edit" data-id="${item.id}" class="rounded-full border border-slate-200 px-3 py-1 text-slate-600">Edit</button>
+                  <button data-action="delete" data-id="${item.id}" class="rounded-full border border-rose-200 px-3 py-1 text-rose-600">Delete</button>
+                </div>
+              </div>
+            </article>`).join('');
+          return `
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-slate-500">${escapeHtml(category.category)}</p>
+                  <h3 class="text-lg font-semibold text-slate-900">${category.items.length} item${category.items.length === 1 ? '' : 's'}</h3>
+                </div>
+                <div class="text-xs font-semibold text-slate-500">${category.items.every(item => item.active) ? 'All active' : `${category.items.filter(item => item.active).length} active`}</div>
+              </div>
+              <div class="grid gap-3 md:grid-cols-2">
+                ${itemsHtml}
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      function openProductEditor(product = null) {
+        state.productEditorOpen = true;
+        state.productEditorMode = product ? 'edit' : 'create';
+        state.productDraft = product ? { ...product } : null;
+        els.productEditor.classList.remove('hidden');
+        els.productDeleteBtn.classList.toggle('hidden', !product);
+        showProductEditorMessage('', false);
+        if (product) {
+          els.productCategory.value = product.category || '';
+          els.productTitle.value = product.title || '';
+          els.productDescription.value = product.description || '';
+          els.productPrice.value = product.price || '';
+          els.productSoldBy.value = product.soldBy || '';
+          els.productQtyLabel.value = product.qtyLabel || '';
+          els.productImage.value = product.image || '';
+          els.productActive.checked = Boolean(product.active);
+          const tags = Array.isArray(product.menuTags) ? product.menuTags.map(tag => tag.toLowerCase()) : [];
+          els.productMenuShabbos.checked = tags.length ? tags.includes('shabbos') : true;
+          els.productMenuPurim.checked = tags.includes('purim');
+          if (els.productMenuDairy) els.productMenuDairy.checked = tags.includes('dairy');
+        } else {
+          els.productCategory.value = '';
+          els.productTitle.value = '';
+          els.productDescription.value = '';
+          els.productPrice.value = '';
+          els.productSoldBy.value = '';
+          els.productQtyLabel.value = '';
+          els.productImage.value = '';
+          els.productActive.checked = true;
+          if (els.productMenuShabbos) els.productMenuShabbos.checked = true;
+          if (els.productMenuPurim) els.productMenuPurim.checked = false;
+          if (els.productMenuDairy) els.productMenuDairy.checked = false;
+        }
+        if (els.productImageFile) {
+          els.productImageFile.value = '';
+        }
+        setProductImagePreview(els.productImage.value.trim());
+        setProductImageStatus('');
+        els.productCategory.focus();
+      }
+
+      function closeProductEditor() {
+        state.productEditorOpen = false;
+        state.productEditorMode = 'create';
+        state.productDraft = null;
+        if (els.productEditor) {
+          els.productEditor.classList.add('hidden');
+        }
+        if (els.productImageFile) {
+          els.productImageFile.value = '';
+        }
+        setProductImagePreview('');
+        setProductImageStatus('');
+        showProductEditorMessage('', false);
+      }
+
+      function getProductFormData() {
+        const tags = [];
+        if (els.productMenuShabbos?.checked) tags.push('shabbos');
+        if (els.productMenuPurim?.checked) tags.push('purim');
+        if (els.productMenuDairy?.checked) tags.push('dairy');
+        return {
+          category: els.productCategory?.value.trim() || '',
+          title: els.productTitle?.value.trim() || '',
+          description: els.productDescription?.value.trim() || '',
+          price: Number(els.productPrice?.value || 0),
+          soldBy: els.productSoldBy?.value.trim() || '',
+          qtyLabel: els.productQtyLabel?.value.trim() || '',
+          imageUrl: els.productImage?.value.trim() || '',
+          menuTags: tags.length ? tags : ['shabbos'],
+          active: Boolean(els.productActive?.checked)
+        };
+      }
+
+      function showProductEditorMessage(message, isError = true) {
+        if (!els.productEditorMessage) return;
+        if (!message) {
+          els.productEditorMessage.classList.add('hidden');
+          els.productEditorMessage.textContent = '';
+          return;
+        }
+        els.productEditorMessage.textContent = message;
+        els.productEditorMessage.classList.toggle('text-rose-500', isError);
+        els.productEditorMessage.classList.toggle('text-emerald-600', !isError);
+        els.productEditorMessage.classList.remove('hidden');
+      }
+
+      function setProductImagePreview(url) {
+        if (!els.productImagePreview) return;
+        if (url) {
+          els.productImagePreview.src = url;
+          els.productImagePreview.classList.remove('hidden');
+        } else {
+          els.productImagePreview.src = '';
+          els.productImagePreview.classList.add('hidden');
+        }
+      }
+
+      function setProductImageStatus(message, isError = false) {
+        if (!els.productImageStatus) return;
+        els.productImageStatus.textContent = message || '';
+        els.productImageStatus.classList.toggle('text-rose-500', isError);
+        els.productImageStatus.classList.toggle('text-slate-500', !isError);
+      }
+
+      function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => reject(new Error('Unable to read file'));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function handleProductImageUpload() {
+        const file = els.productImageFile?.files?.[0];
+        if (!file) {
+          setProductImageStatus('Choose an image to upload.', true);
+          return;
+        }
+        if (!file.type.startsWith('image/')) {
+          setProductImageStatus('File must be an image.', true);
+          return;
+        }
+        const maxBytes = 6 * 1024 * 1024;
+        if (file.size > maxBytes) {
+          setProductImageStatus('Image must be 6MB or less.', true);
+          return;
+        }
+        if (!state.adminKey) {
+          showToast('Enter the admin key to upload images.', { type: 'error' });
+          return;
+        }
+        setProductImageStatus('Uploading...');
+        if (els.productImageUploadBtn) {
+          els.productImageUploadBtn.disabled = true;
+          els.productImageUploadBtn.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+        try {
+          const dataUrl = await readFileAsDataUrl(file);
+          const response = await apiFetch('product-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: state.adminKey, filename: file.name || '', dataUrl })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Upload failed');
+          }
+          const data = await response.json();
+          const imageUrl = data.url || data.secure_url || '';
+          if (!imageUrl) {
+            throw new Error('No image URL returned');
+          }
+          if (els.productImage) {
+            els.productImage.value = imageUrl;
+          }
+          setProductImagePreview(imageUrl);
+          setProductImageStatus('Upload complete');
+        } catch (error) {
+          setProductImageStatus(error.message || 'Upload failed', true);
+        } finally {
+          if (els.productImageUploadBtn) {
+            els.productImageUploadBtn.disabled = false;
+            els.productImageUploadBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+          }
+        }
+      }
+
+      async function handleProductSave() {
+        const data = getProductFormData();
+        if (!data.category || !data.title) {
+          showProductEditorMessage('Category and title are required.');
+          return;
+        }
+        if (!state.adminKey) {
+          showToast('Enter the admin key to save products.', { type: 'error' });
+          return;
+        }
+        const payload = {
+          category: data.category,
+          title: data.title,
+          description: data.description,
+          price: data.price,
+          soldBy: data.soldBy,
+          qtyLabel: data.qtyLabel,
+          imageUrl: data.imageUrl,
+          menuTags: data.menuTags,
+          active: data.active,
+          key: state.adminKey
+        };
+        const method = state.productEditorMode === 'edit' && state.productDraft && state.productDraft.id ? 'PUT' : 'POST';
+        if (method === 'PUT') {
+          payload.id = state.productDraft.id;
+        }
+        try {
+          const response = await apiFetch('products', {
+            method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to save product');
+          }
+          const action = method === 'POST' ? 'created' : 'updated';
+          showToast(`Product ${action}`);
+          closeProductEditor();
+          await loadProducts(true);
+        } catch (error) {
+          showProductEditorMessage(error.message || 'Save failed.');
+        }
+      }
+
+      function handleProductCardAction(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const id = button.dataset.id;
+        const product = findProductById(id);
+        if (!product) return;
+        if (button.dataset.action === 'delete') {
+          state.productDraft = product;
+          handleProductDelete();
+          return;
+        }
+        openProductEditor(product);
+      }
+
+      async function handleProductDelete() {
+        const target = state.productDraft;
+        if (!target || !target.id) return;
+        const confirmed = window.confirm('Remove this product from the menu?');
+        if (!confirmed) return;
+        if (!state.adminKey) {
+          showToast('Enter the admin key to delete products.', { type: 'error' });
+          return;
+        }
+        try {
+          const response = await apiFetch('products', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: target.id, key: state.adminKey })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to delete product');
+          }
+          showToast('Product removed', { type: 'info' });
+          closeProductEditor();
+          await loadProducts(true);
+        } catch (error) {
+          showProductEditorMessage(error.message || 'Delete failed.');
+        }
+      }
+
+      function formatProductPrice(value) {
+        const price = Number(value) || 0;
+        const formatted = price.toFixed(2);
+        return `₪${formatted.replace(/\\.00$/, '')}`;
+      }
+
       function handleSelectAllToggle(event) {
         if (event.target.checked) {
           state.filteredOrders.forEach(order => state.selected.add(order.id));
@@ -1059,7 +1767,7 @@
         }
         const card = event.target.closest('[data-order-card]');
         if (card) {
-          openDrawer(Number(card.dataset.orderId));
+          openOrderDetail(Number(card.dataset.orderId));
         }
       }
 
@@ -1075,70 +1783,552 @@
         updateSelectionUI();
       }
 
-      function openDrawer(orderId) {
+      function openOrderDetail(orderId) {
         const order = state.orders.find(o => o.id === Number(orderId));
         if (!order) return;
-        state.drawerOrderId = order.id;
-        state.drawer.classList.add('open');
-        state.drawer.setAttribute('aria-hidden', 'false');
-        els.drawerPanel.focus();
+        state.detailOrderId = order.id;
+        state.draft = null;
+        state.draftSavedAt = null;
+        showOrderDetailPage(order);
+        els.orderDetailPlaceholder.classList.add('hidden');
+        els.orderDetailContent.classList.remove('hidden');
         els.editContainer.classList.add('hidden');
-        updateDrawerContent(order);
+        updateOrderDetailContent(order);
         prepareDraftForOrder(order);
       }
 
-      function closeDrawer() {
-        if (!state.drawerOrderId) return;
-        state.drawerOrderId = null;
-        state.drawer.classList.remove('open');
-        state.drawer.setAttribute('aria-hidden', 'true');
+      function clearOrderDetail() {
+        if (!state.detailOrderId) return;
+        state.detailOrderId = null;
         state.draft = null;
         state.draftSavedAt = null;
         els.editContainer.classList.add('hidden');
+        els.orderDetailPlaceholder.classList.remove('hidden');
+        els.orderDetailContent.classList.add('hidden');
       }
 
-      function updateDrawerIfOpen() {
-        if (state.drawerOrderId) {
-          const order = state.orders.find(o => o.id === state.drawerOrderId);
+      function updateDetailIfOpen() {
+        if (state.detailOrderId) {
+          const order = state.orders.find(o => o.id === state.detailOrderId);
           if (order) {
-            updateDrawerContent(order);
+            updateOrderDetailContent(order);
           } else {
-            closeDrawer();
+            clearOrderDetail();
           }
         }
       }
 
-      function updateDrawerContent(order) {
+      function showOrderDetailPage(order) {
         if (!order) return;
-        els.drawerTitle.textContent = `Order #${order.order_number || order.id}`;
+        state.detailOrderPageOrder = order;
+        const items = Array.isArray(order.items) ? order.items : [];
+        const totalValue = Number(order.total);
+        const formattedTotal = Number.isFinite(totalValue) ? formatProductPrice(totalValue) : '—';
+        els.orderDetailPageNumber.textContent = `Order #${order.order_number || order.id}`;
+        els.orderDetailPageCustomer.textContent = [order.customer_name || 'Guest', order.customer_phone, order.customer_email]
+          .filter(Boolean).join(' · ');
+        els.orderDetailPageStatus.value = (order.status || 'new').toLowerCase();
+        els.orderDetailPageTotal.textContent = formattedTotal;
+        els.orderDetailPagePendingTotal.textContent = formattedTotal !== '—' ? formattedTotal : formatProductPrice(0);
+        els.orderDetailPagePendingBadge.textContent = capitalize(order.status || 'New');
+        renderOrderDetailPageItems(order);
+        renderOrderDetailPageSearch('');
+        updateOrderDetailPagePending();
+        if (els.orderDetailPageLink) {
+          els.orderDetailPageLink.classList.add('hidden');
+          els.orderDetailPageLink.href = '#';
+        }
+        if (els.orderDetailPageCopyLink) {
+          els.orderDetailPageCopyLink.classList.add('hidden');
+        }
+        syncManualOrderControls(order);
+        els.orderDetailPage.classList.remove('hidden');
+      }
+
+      function closeOrderDetailPage() {
+        state.detailOrderPageOrder = null;
+        if (!els.orderDetailPage) return;
+        els.orderDetailPage.classList.add('hidden');
+        els.orderDetailPageSearch.value = '';
+      }
+
+      function isManualPaymentRequestOrder(order) {
+        const label = (order?.shabbos_label || '').toString().trim().toLowerCase();
+        return label === 'manual payment request';
+      }
+
+      function getManualDiscountState() {
+        const order = state.detailOrderPageOrder;
+        if (!isManualPaymentRequestOrder(order)) {
+          return { description: '', amount: 0 };
+        }
+        const description = (state.draft?.manual_discount_description || '').toString().trim();
+        const parsed = Number(state.draft?.manual_discount_amount || 0);
+        const amount = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+        return { description, amount };
+      }
+
+      function syncManualOrderControls(order) {
+        const manual = isManualPaymentRequestOrder(order);
+        if (els.orderDetailPageDiscountWrap) {
+          els.orderDetailPageDiscountWrap.classList.toggle('hidden', !manual);
+        }
+        if (!manual) {
+          if (els.orderDetailPageDiscountDesc) {
+            els.orderDetailPageDiscountDesc.value = '';
+          }
+          if (els.orderDetailPageDiscountAmount) {
+            els.orderDetailPageDiscountAmount.value = '';
+          }
+          return;
+        }
+        if (els.orderDetailPageDiscountDesc) {
+          els.orderDetailPageDiscountDesc.value = state.draft?.manual_discount_description || '';
+        }
+        if (els.orderDetailPageDiscountAmount) {
+          els.orderDetailPageDiscountAmount.value = state.draft?.manual_discount_amount || '';
+        }
+      }
+
+      function openCreateOrderModal() {
+        if (!els.createOrderModal) return;
+        if (!state.adminKey) {
+          showToast('Enter the admin key before creating a new order.', { type: 'error' });
+          return;
+        }
+        state.createOrderPending = false;
+        if (els.createOrderNameInput) {
+          els.createOrderNameInput.value = '';
+        }
+        if (els.createOrderErrorText) {
+          els.createOrderErrorText.textContent = '';
+        }
+        if (els.createOrderSubmitBtn) {
+          els.createOrderSubmitBtn.disabled = false;
+          els.createOrderSubmitBtn.textContent = 'Create order';
+        }
+        els.createOrderModal.classList.remove('hidden');
+        setTimeout(() => els.createOrderNameInput?.focus(), 50);
+      }
+
+      function closeCreateOrderModal() {
+        if (!els.createOrderModal || state.createOrderPending) return;
+        els.createOrderModal.classList.add('hidden');
+        if (els.createOrderErrorText) {
+          els.createOrderErrorText.textContent = '';
+        }
+      }
+
+      async function handleCreateOrderSubmit() {
+        if (state.createOrderPending) return;
+        if (!state.adminKey) {
+          if (els.createOrderErrorText) {
+            els.createOrderErrorText.textContent = 'Admin key required.';
+          }
+          return;
+        }
+        const customerName = (els.createOrderNameInput?.value || '').trim();
+        if (!customerName) {
+          if (els.createOrderErrorText) {
+            els.createOrderErrorText.textContent = 'Customer name is required.';
+          }
+          els.createOrderNameInput?.focus();
+          return;
+        }
+        state.createOrderPending = true;
+        if (els.createOrderSubmitBtn) {
+          els.createOrderSubmitBtn.disabled = true;
+          els.createOrderSubmitBtn.textContent = 'Creating...';
+        }
+        if (els.createOrderErrorText) {
+          els.createOrderErrorText.textContent = '';
+        }
+        try {
+          const response = await apiFetch('order-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ create: true, customerName })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to create order');
+          }
+          const data = await response.json();
+          const order = data?.order;
+          if (!order?.id) {
+            throw new Error('Order creation response was incomplete');
+          }
+          state.orders.unshift(order);
+          applyFilters();
+          render();
+          els.createOrderModal?.classList.add('hidden');
+          openOrderDetail(order.id);
+          showToast(`New order #${order.order_number || order.id} created`, { type: 'info' });
+        } catch (error) {
+          if (els.createOrderErrorText) {
+            els.createOrderErrorText.textContent = error.message || 'Unable to create order';
+          }
+        } finally {
+          state.createOrderPending = false;
+          if (els.createOrderSubmitBtn) {
+            els.createOrderSubmitBtn.disabled = false;
+            els.createOrderSubmitBtn.textContent = 'Create order';
+          }
+        }
+      }
+
+      function getCatalogProducts() {
+        return (state.products || []).flatMap(category => {
+          const items = Array.isArray(category.items) ? category.items : [];
+          return items.map(item => ({
+            ...item,
+            category: category.category || 'Uncategorized'
+          }));
+        });
+      }
+
+      function getCatalogProductById(id) {
+        return getCatalogProducts().find(product => Number(product.id) === Number(id));
+      }
+
+      function renderOrderDetailPageSearch(term = '') {
+        if (!els.orderDetailPageSearchResults) return;
+        const normalized = (term || '').trim().toLowerCase();
+        const results = getCatalogProducts().filter(product => {
+          if (!normalized) return true;
+          return (product.title || '').toLowerCase().includes(normalized)
+            || (product.category || '').toLowerCase().includes(normalized)
+            || (product.description || '').toLowerCase().includes(normalized);
+        });
+        if (!results.length) {
+          els.orderDetailPageSearchResults.innerHTML = '<p class="text-xs text-slate-500">No matching products.</p>';
+          return;
+        }
+        els.orderDetailPageSearchResults.innerHTML = results.slice(0, 12).map(product => `
+          <div data-product-card class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-sm text-slate-700">
+            <div class="space-y-1">
+              <p class="font-semibold text-slate-900">${escapeHtml(product.title)}</p>
+              <p class="text-xs text-slate-500">${escapeHtml(product.category)} · ${product.soldBy || '—'}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-semibold text-slate-900">${formatProductPrice(product.price)}</p>
+              <div class="mt-2 flex items-center justify-end gap-2">
+                <input type="number" min="1" step="1" value="1" data-add-product-qty="${product.id}" class="w-16 rounded-xl border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700" />
+                <button type="button" data-add-product-id="${product.id}" class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[0.65rem] font-semibold tracking-[0.2em] text-amber-600">Add</button>
+              </div>
+            </div>
+          </div>`).join('');
+      }
+
+      function renderOrderDetailPageItems(order) {
+        const target = order || state.detailOrderPageOrder;
+        if (!els.orderDetailPageItems) return;
+        if (!target) {
+          els.orderDetailPageItems.innerHTML = '<p class="text-xs text-slate-500">No items recorded yet.</p>';
+          return;
+        }
+        const items = getDisplayItems(target);
+        const manualOrder = isManualPaymentRequestOrder(target);
+        if (!items.length) {
+          els.orderDetailPageItems.innerHTML = '<p class="text-xs text-slate-500">No items recorded yet.</p>';
+          return;
+        }
+        els.orderDetailPageItems.innerHTML = items.map((item, index) => {
+          const badge = item.isNew ? '<span class="text-[0.55rem] uppercase tracking-[0.3em] text-amber-500">Pending</span>' : '';
+          const label = getItemLabel(item) || 'Item';
+          const detailText = [getItemQuantityDisplay(item), getItemSoldByLabel(item)].filter(Boolean).join(' · ');
+          const removeButton = manualOrder
+            ? `<button type="button" data-detail-remove-item="${index}" class="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-600 hover:text-rose-500">Delete</button>`
+            : '';
+          return `
+            <div class="space-y-0.5 border-b border-slate-200/70 py-2">
+              <div class="flex items-center justify-between gap-3 text-sm text-slate-700">
+                <span>${escapeHtml(label)}</span>
+                <span class="text-xs text-slate-500 text-right">${escapeHtml(detailText)}</span>
+              </div>
+              ${removeButton}
+              ${badge}
+            </div>`;
+        }).join('');
+      }
+
+      function getDraftItems() {
+        return Array.isArray(state.draft?.items) ? state.draft.items : [];
+      }
+
+      function getPendingItems() {
+        if (isManualPaymentRequestOrder(state.detailOrderPageOrder)) {
+          if (state.draft && Array.isArray(state.draft.items)) {
+            return state.draft.items;
+          }
+          return Array.isArray(state.detailOrderPageOrder?.items) ? state.detailOrderPageOrder.items : [];
+        }
+        return getDraftItems().filter(item => item.isNew);
+      }
+
+      function computePendingTotal() {
+        return getPendingItems().reduce((sum, item) => {
+          const price = Number(item.price) || 0;
+          const qty = Number(item.qty) || 1;
+          return sum + price * qty;
+        }, 0);
+      }
+
+      function updateOrderDetailPagePending() {
+        if (!els.orderDetailPagePendingTotal) return;
+        const subtotal = computePendingTotal();
+        const manualDiscount = getManualDiscountState();
+        const discountAmount = Math.min(subtotal, manualDiscount.amount);
+        const total = Math.max(0, subtotal - discountAmount);
+        els.orderDetailPagePendingTotal.textContent = formatProductPrice(total);
+        if (els.orderDetailPagePendingBadge) {
+          if (total > 0) {
+            els.orderDetailPagePendingBadge.textContent = 'Pending items';
+            els.orderDetailPagePendingBadge.classList.add('text-amber-600');
+          } else {
+            els.orderDetailPagePendingBadge.textContent = 'No new items';
+            els.orderDetailPagePendingBadge.classList.remove('text-amber-600');
+          }
+        }
+        if (els.orderDetailPageGenerateLink) {
+          els.orderDetailPageGenerateLink.disabled = total <= 0;
+        }
+        syncManualOrderControls(state.detailOrderPageOrder);
+        if (els.orderDetailPageLink) {
+          const pendingUrl = state.detailOrderPageOrder?.pending_payment_url || '';
+          if (pendingUrl) {
+            els.orderDetailPageLink.href = pendingUrl;
+            els.orderDetailPageLink.classList.remove('hidden');
+            els.orderDetailPageLink.innerHTML = `<span class="font-semibold">Payment link</span><span class="ml-2 text-xs font-mono text-slate-600 break-all">${pendingUrl}</span>`;
+            els.orderDetailPageLink.setAttribute('title', `Open or copy this payment link for ${formatProductPrice(total)}`);
+            if (els.orderDetailPageCopyLink) {
+              els.orderDetailPageCopyLink.classList.remove('hidden');
+            }
+          } else {
+            els.orderDetailPageLink.classList.add('hidden');
+            els.orderDetailPageLink.href = '#';
+            els.orderDetailPageLink.textContent = 'Open payment link';
+            if (els.orderDetailPageCopyLink) {
+              els.orderDetailPageCopyLink.classList.add('hidden');
+            }
+          }
+        }
+      }
+
+      async function handleCopyPaymentLink() {
+        const pendingUrl = state.detailOrderPageOrder?.pending_payment_url || '';
+        if (!pendingUrl) {
+          showToast('No payment link to copy yet.', { type: 'info' });
+          return;
+        }
+        try {
+          if (navigator?.clipboard?.writeText) {
+            await navigator.clipboard.writeText(pendingUrl);
+          } else {
+            const fallback = document.createElement('textarea');
+            fallback.value = pendingUrl;
+            fallback.setAttribute('readonly', '');
+            fallback.style.position = 'absolute';
+            fallback.style.left = '-9999px';
+            document.body.appendChild(fallback);
+            fallback.select();
+            document.execCommand('copy');
+            fallback.remove();
+          }
+          showToast('Payment link copied to clipboard.', { type: 'info' });
+        } catch (error) {
+          showToast('Could not copy link. Copy it manually from the URL shown.', { type: 'error' });
+        }
+      }
+
+      function handleOrderDetailPageItemAction(event) {
+        const removeButton = event.target.closest('[data-detail-remove-item]');
+        if (!removeButton) return;
+        const order = state.detailOrderPageOrder;
+        if (!isManualPaymentRequestOrder(order)) {
+          showToast('Use the main editor to remove items on non-manual orders.', { type: 'info' });
+          return;
+        }
+        if (!state.draft || !Array.isArray(state.draft.items)) {
+          state.draft = {
+            customer_name: order.customer_name || '',
+            customer_phone: order.customer_phone || '',
+            customer_email: order.customer_email || '',
+            customer_address: order.customer_address || '',
+            allergies: order.allergies || '',
+            items: Array.isArray(order.items) ? order.items.map(item => ({ ...item })) : [],
+            status: order.status || 'new',
+            manual_discount_description: '',
+            manual_discount_amount: ''
+          };
+        }
+        const index = Number(removeButton.dataset.detailRemoveItem);
+        if (!Number.isInteger(index) || index < 0 || index >= state.draft.items.length) return;
+        state.draft.items.splice(index, 1);
+        persistDraft();
+        renderOrderDetailPageItems(order);
+        updateOrderDetailPagePending();
+        const currentOrder = getCurrentOrder();
+        if (currentOrder) {
+          updateOrderDetailContent(currentOrder);
+        }
+      }
+
+      function handleManualDiscountInput() {
+        if (!state.draft || !isManualPaymentRequestOrder(state.detailOrderPageOrder)) {
+          return;
+        }
+        state.draft.manual_discount_description = (els.orderDetailPageDiscountDesc?.value || '').trim();
+        state.draft.manual_discount_amount = (els.orderDetailPageDiscountAmount?.value || '').trim();
+        persistDraft();
+        updateOrderDetailPagePending();
+      }
+
+      async function handleGeneratePaymentLink() {
+        const order = state.detailOrderPageOrder;
+        if (!order) return;
+        const subtotal = computePendingTotal();
+        const manualOrder = isManualPaymentRequestOrder(order);
+        const manualDiscount = getManualDiscountState();
+        const discountAmount = Math.min(subtotal, manualDiscount.amount);
+        const total = Math.max(0, subtotal - discountAmount);
+        if (total <= 0) {
+          showToast('Add new items before generating a payment link.', { type: 'info' });
+          return;
+        }
+        if (manualOrder && discountAmount > 0 && !manualDiscount.description) {
+          showToast('Add a discount description before generating the link.', { type: 'error' });
+          return;
+        }
+        if (!state.adminKey) {
+          showToast('Enter the admin key to generate payment links.', { type: 'error' });
+          return;
+        }
+        const pendingItems = getPendingItems().map(item => {
+          const { isNew, ...rest } = item;
+          return {
+            ...rest,
+            title: rest.title || rest.item || 'Item'
+          };
+        });
+        try {
+          const response = await apiFetch('stripe/additional-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: order.id,
+              items: pendingItems,
+              discountDescription: manualOrder ? manualDiscount.description : '',
+              discountAmount: manualOrder ? discountAmount : 0
+            })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to generate link');
+          }
+          const data = await response.json();
+          const updatedUrl = data.url || '';
+          const updatedLink = data.id || '';
+          if (updatedUrl) {
+            order.pending_payment_url = updatedUrl;
+            order.pending_payment_link = updatedLink;
+            const index = state.orders.findIndex(o => o.id === order.id);
+            if (index !== -1) {
+              state.orders[index] = { ...order };
+            }
+            state.detailOrderPageOrder = { ...order };
+            updateOrderDetailPagePending();
+          }
+          showToast(`Pending payment link ready for ${formatProductPrice(total)}`, { type: 'info' });
+        } catch (error) {
+          showToast(error.message || 'Unable to create payment link', { type: 'error' });
+        }
+      }
+
+      function addItemToOrderDraft(product, qty = 1) {
+        if (!state.draft) {
+          state.draft = { items: [] };
+        }
+        const quantity = Math.max(1, Math.floor(Number(qty) || 1));
+        const productTitle = product.title || 'Item';
+        const productSoldBy = product.soldBy || '';
+        const productPrice = Number(product.price) || 0;
+        state.draft.items = Array.isArray(state.draft.items) ? [...state.draft.items] : [];
+        const existingIndex = state.draft.items.findIndex(item => {
+          return item?.isNew
+            && (getItemLabel(item) || '') === productTitle
+            && (getItemSoldByLabel(item) || '') === productSoldBy
+            && Number(item?.price || 0) === productPrice;
+        });
+        if (existingIndex !== -1) {
+          const existingQty = Number(state.draft.items[existingIndex]?.qty || 0) || 0;
+          state.draft.items[existingIndex].qty = String(existingQty + quantity);
+        } else {
+          state.draft.items.push({
+            item: productTitle,
+            qty: String(quantity),
+            soldBy: productSoldBy,
+            price: productPrice,
+            isNew: true
+          });
+        }
+        renderItemsEditor();
+        persistDraft();
+        showToast(`${productTitle} x${quantity} added to draft`, { type: 'info' });
+        renderOrderDetailPageSearch(els.orderDetailPageSearch?.value.trim() || '');
+        updateOrderDetailPagePending();
+        const currentOrder = getCurrentOrder();
+        if (currentOrder) {
+          updateOrderDetailContent(currentOrder);
+          renderOrderDetailPageItems(currentOrder);
+        }
+      }
+
+      function updateOrderDetailContent(order) {
+        if (!order) return;
+        els.orderDetailTitle.textContent = `Order #${order.order_number || order.id}`;
         const status = (order.status || 'new').toLowerCase();
-        els.drawerBadge.textContent = status;
-        els.drawerBadge.className = getStatusChipClass(status);
-        els.drawerLabel.textContent = order.shabbos_label || 'No label';
-        els.drawerCustomer.textContent = order.customer_name || 'Guest';
-        els.drawerContact.textContent = [order.customer_phone, order.customer_email].filter(Boolean).join(' · ') || 'No contact info';
-        els.drawerAddress.textContent = order.customer_address || 'Pickup / no address';
-        els.drawerAllergies.textContent = order.allergies || 'None';
+        els.orderDetailBadge.textContent = status;
+        els.orderDetailBadge.className = getStatusChipClass(status);
+        els.orderDetailLabel.textContent = order.shabbos_label || 'No label';
+        els.orderDetailCustomer.textContent = order.customer_name || 'Guest';
+        els.orderDetailContact.textContent = [order.customer_phone, order.customer_email].filter(Boolean).join(' · ') || 'No contact info';
+        els.orderDetailAddress.textContent = order.customer_address || 'Pickup / no address';
+        els.orderDetailAllergies.textContent = order.allergies || 'None';
         const timelineEntries = [
           { label: 'Placed', value: formatDate(order.created_at) },
           { label: 'Status', value: status }
         ];
-        els.drawerTimeline.innerHTML = timelineEntries
+        els.orderDetailTimeline.innerHTML = timelineEntries
           .map(entry => `<div class="flex items-center justify-between text-xs text-slate-500"><span>${entry.label}</span><span class="text-slate-500">${entry.value}</span></div>`)
           .join('');
-        renderDrawerItems(order);
-        els.drawerStatusSelect.value = status;
+        renderDetailItems(order);
+        els.orderDetailStatusSelect.value = status;
+        if (state.detailOrderPageOrder?.id === order.id) {
+          renderOrderDetailPageItems(order);
+        }
       }
 
-      function renderDrawerItems(order) {
-        const items = Array.isArray(order.items) ? order.items : [];
+      function renderDetailItems(order) {
+        const items = getDisplayItems(order);
         if (!items.length) {
-          els.drawerItemsList.innerHTML = '<p class="text-xs text-slate-500">No items recorded.</p>';
+          els.orderDetailItemsList.innerHTML = '<p class="text-xs text-slate-500">No items recorded.</p>';
           return;
         }
-        els.drawerItemsList.innerHTML = items
-          .map(item => `<div class="flex justify-between text-sm text-slate-700 border-b border-slate-200/70 pb-1"><span>${escapeHtml(item.item || 'Item')}</span><span class="text-slate-500">${item.qty || ''} ${item.soldBy ? '· ' + escapeHtml(item.soldBy) : ''}</span></div>`)
+        els.orderDetailItemsList.innerHTML = items
+          .map(item => {
+            const label = getItemLabel(item) || 'Item';
+            const detailText = [getItemQuantityDisplay(item), getItemSoldByLabel(item)].filter(Boolean).join(' · ');
+            return `<div class="flex justify-between text-sm text-slate-700 border-b border-slate-200/70 pb-1"><span>${escapeHtml(label)}</span><span class="text-slate-500">${escapeHtml(detailText)}</span></div>`;
+          })
           .join('');
+      }
+
+      function getDisplayItems(order) {
+        if (state.detailOrderId && order?.id === state.detailOrderId && Array.isArray(state.draft?.items)) {
+          return state.draft.items;
+        }
+        return Array.isArray(order.items) ? order.items : [];
       }
 
       function prepareDraftForOrder(order) {
@@ -1151,9 +2341,13 @@
           customer_address: order.customer_address || '',
           allergies: order.allergies || '',
           items: Array.isArray(order.items) ? order.items.map(item => ({ ...item })) : [],
-          status: order.status || 'new'
+          status: order.status || 'new',
+          manual_discount_description: '',
+          manual_discount_amount: ''
         };
         state.draft = stored ? JSON.parse(stored) : base;
+        state.draft.manual_discount_description = (state.draft.manual_discount_description || '').toString();
+        state.draft.manual_discount_amount = (state.draft.manual_discount_amount || '').toString();
         state.draftSavedAt = stored ? new Date().toISOString() : null;
         fillEditFields();
       }
@@ -1166,6 +2360,7 @@
         els.editAddress.value = state.draft.customer_address || '';
         els.editAllergies.value = state.draft.allergies || '';
         els.editStatus.value = state.draft.status || 'new';
+        syncManualOrderControls(state.detailOrderPageOrder);
         renderItemsEditor();
         updateAutosaveMessage();
       }
@@ -1173,20 +2368,26 @@
       function renderItemsEditor() {
         if (!state.draft || !Array.isArray(state.draft.items) || !state.draft.items.length) {
           els.itemsEditor.innerHTML = '<p class="text-xs text-slate-500">No items yet. Add one.</p>';
+          updateOrderDetailPagePending();
           return;
         }
         els.itemsEditor.innerHTML = '';
         state.draft.items.forEach((item, index) => {
           const row = document.createElement('div');
-        row.className = 'grid gap-2 sm:grid-cols-4 rounded-2xl border border-slate-200/70 bg-white/80 p-3';
+          const labelValue = getItemLabel(item);
+          const qtyValue = getItemQuantityDisplay(item);
+          const soldByValue = getItemSoldByLabel(item);
+          row.className = 'grid gap-2 sm:grid-cols-5 rounded-2xl border border-slate-200/70 bg-white/80 p-3';
           row.innerHTML = `
-          <input data-draft-item-field="item" data-index="${index}" class="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-900" placeholder="Item" value="${escapeAttribute(item.item)}" />
-          <input data-draft-item-field="qty" data-index="${index}" class="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-900" placeholder="Qty" value="${escapeAttribute(item.qty)}" />
-          <input data-draft-item-field="soldBy" data-index="${index}" class="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-900" placeholder="Category" value="${escapeAttribute(item.soldBy)}" />
+            <input data-draft-item-field="item" data-index="${index}" class="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-900" placeholder="Item" value="${escapeAttribute(labelValue)}" />
+            <input data-draft-item-field="qty" data-index="${index}" class="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-900" placeholder="Qty" value="${escapeAttribute(qtyValue)}" />
+            <input data-draft-item-field="soldBy" data-index="${index}" class="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-900" placeholder="Category" value="${escapeAttribute(soldByValue)}" />
+            <input data-draft-item-field="price" data-index="${index}" class="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-900" placeholder="Price" value="${escapeAttribute(item.price || '')}" />
             <button data-draft-item-remove="${index}" type="button" class="text-xs font-semibold text-amber-600 hover:text-amber-500">Remove</button>
           `;
           els.itemsEditor.appendChild(row);
         });
+        updateOrderDetailPagePending();
       }
 
       function handleDraftInput(event) {
@@ -1206,8 +2407,13 @@
         if (!state.draft.items[index]) {
           state.draft.items[index] = { item: '', qty: '', soldBy: '' };
         }
-        state.draft.items[index][field] = input.value;
+        let newValue = input.value;
+        if (field === 'price') {
+          newValue = newValue === '' ? '' : Number(newValue) || 0;
+        }
+        state.draft.items[index][field] = newValue;
         persistDraft();
+        updateOrderDetailPagePending();
       }
 
       function handleItemRemove(event) {
@@ -1218,11 +2424,12 @@
         state.draft.items.splice(index, 1);
         renderItemsEditor();
         persistDraft();
+        updateOrderDetailPagePending();
       }
 
       function persistDraft() {
-        if (!state.draft || !state.drawerOrderId) return;
-        sessionStorage.setItem(`order-draft-${state.drawerOrderId}`, JSON.stringify(state.draft));
+        if (!state.draft || !state.detailOrderId) return;
+        sessionStorage.setItem(`order-draft-${state.detailOrderId}`, JSON.stringify(state.draft));
         state.draftSavedAt = new Date().toISOString();
         updateAutosaveMessage();
       }
@@ -1255,10 +2462,14 @@
           showToast('No changes to save', { type: 'info' });
           return;
         }
+        if (!state.adminKey) {
+          showToast('Admin key required', { type: 'error' });
+          return;
+        }
         apiFetch('order-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key: state.adminKey, id: order.id, patch })
+          body: JSON.stringify({ id: order.id, patch, key: state.adminKey })
         }).then(async (response) => {
           if (!response.ok) {
             const text = await response.text();
@@ -1274,12 +2485,14 @@
             state.orders.unshift(updated);
           }
           sessionStorage.removeItem(`order-draft-${order.id}`);
-          state.draft = null;
-          state.draftSavedAt = null;
+          state.detailOrderPageOrder = updated;
+          prepareDraftForOrder(updated);
           els.autosaveMessage.textContent = 'Saved.';
           els.editContainer.classList.add('hidden');
           render();
-          updateDrawerContent(updated);
+          updateOrderDetailContent(updated);
+          renderOrderDetailPageItems(updated);
+          updateOrderDetailPagePending();
           showToast('Order saved');
         }).catch((error) => {
           showToast(error.message || 'Order update failed', { type: 'error' });
@@ -1287,8 +2500,8 @@
       }
 
       function cancelDraft() {
-        if (!state.drawerOrderId) return;
-        sessionStorage.removeItem(`order-draft-${state.drawerOrderId}`);
+        if (!state.detailOrderId) return;
+        sessionStorage.removeItem(`order-draft-${state.detailOrderId}`);
         state.draft = null;
         state.draftSavedAt = null;
         els.editContainer.classList.add('hidden');
@@ -1303,7 +2516,10 @@
             patch[field] = state.draft[field];
           }
         });
-        const draftItems = state.draft.items || [];
+        const draftItems = (state.draft.items || []).map(item => {
+          const { isNew, ...rest } = item;
+          return { ...rest };
+        });
         const actualItems = Array.isArray(order.items) ? order.items : [];
         if (JSON.stringify(draftItems) !== JSON.stringify(actualItems)) {
           patch.items = draftItems;
@@ -1311,11 +2527,40 @@
         return patch;
       }
 
-      function handleDrawerStatusChange() {
+      function handleDetailStatusChange() {
         const order = getCurrentOrder();
         if (!order) return;
-        const newStatus = els.drawerStatusSelect.value;
+        const newStatus = els.orderDetailStatusSelect.value;
         updateStatus(order.id, newStatus);
+      }
+
+      async function handleOrderDelete() {
+        const order = getCurrentOrder();
+        if (!order) return;
+        const confirmed = window.confirm('Delete this order permanently? This cannot be undone.');
+        if (!confirmed) return;
+        if (!state.adminKey) {
+          showToast('Admin key required', { type: 'error' });
+          return;
+        }
+        try {
+          const response = await apiFetch('order-delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: order.id, key: state.adminKey })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to delete order');
+          }
+          showToast('Order removed', { type: 'info' });
+          clearOrderDetail();
+          await loadOrders();
+        } catch (err) {
+          showError(err.message || 'Failed to delete order');
+        }
       }
 
       function updateStatus(orderId, newStatus, options = {}) {
@@ -1382,7 +2627,7 @@
         openPrintWindow(`${printModes[mode]?.label || 'Print'}`, html);
       }
 
-++      function buildPrintDocument(orders, mode) {
+      function buildPrintDocument(orders, mode) {
         const sections = orders.map(order => createPrintSection(order, mode)).join('<div class="page-break"></div>');
         const styles = `
           body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 24px; background: #fff; color: #111827; }
@@ -1427,6 +2672,11 @@
           }
           .receipt-summary strong {
             font-size: 1rem;
+          }
+          .receipt-custom {
+            margin-top: 0.75rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e5e7eb;
           }
           .delivery-item {
             display: flex;
@@ -1480,14 +2730,18 @@
         }
         const columnCount = columns.length;
         const headerHtml = columns.map(col => `<th>${col}</th>`).join('');
-        const rows = items.map(item => `
-          <tr>
-            <td>${escapeHtml(item.item || 'Item')}</td>
-            <td>${escapeHtml(item.qty || '')}</td>
-            <td>${escapeHtml(item.soldBy || '')}</td>
-            ${includePrice ? `<td>${formatItemPrice(item)}</td>` : ''}
-          </tr>
-        `).join('');
+        const rows = items.map(item => {
+          const label = getItemLabel(item) || 'Item';
+          const qtyValue = getItemQuantityDisplay(item);
+          const soldByValue = getItemSoldByLabel(item);
+          return `
+            <tr>
+              <td>${escapeHtml(label)}</td>
+              <td>${escapeHtml(qtyValue)}</td>
+              <td>${escapeHtml(soldByValue)}</td>
+              ${includePrice ? `<td>${formatItemPrice(item)}</td>` : ''}
+            </tr>`;
+        }).join('');
         const fallback = `<tr><td colspan="${columnCount}" class="notes">No items recorded.</td></tr>`;
         const tableClass = includePrice ? 'receipt-table receipt-table--price' : 'receipt-table kitchen-table';
         return `
@@ -1506,10 +2760,10 @@
       }
 
       function generateReceiptHtml(order) {
-        if (order.html_body && order.html_body.trim()) {
-          return `<section class="section">${order.html_body}</section>`;
-        }
         const items = Array.isArray(order.items) ? order.items : [];
+        const customHtml = order.html_body && order.html_body.trim()
+          ? `<div class="section receipt-custom">${order.html_body}</div>`
+          : '';
         return `
           <section class="section receipt">
             <div class="receipt-header">
@@ -1527,6 +2781,7 @@
             <div class="section">
               ${buildItemTable(items, true)}
             </div>
+            ${customHtml}
             <div class="section receipt-summary">
               <p><strong>Allergies / notes:</strong> ${escapeHtml(order.allergies || 'None')}</p>
               <p><strong>Total:</strong> ${escapeHtml(order.total || '—')}</p>
@@ -1557,11 +2812,14 @@
       function generateDeliveryHtml(order) {
         const items = Array.isArray(order.items) ? order.items : [];
         const itemsHtml = items.length
-          ? items.map(item => `
+          ? items.map(item => {
+            const label = getItemLabel(item) || 'Item';
+            return `
             <div class="delivery-item">
-              <span>${escapeHtml(item.item || 'Item')}</span>
+              <span>${escapeHtml(label)}</span>
               <span><input type="checkbox" checked disabled /></span>
-            </div>`).join('')
+            </div>`;
+          }).join('')
           : '<p class="notes">No items recorded.</p>';
         return `
           <section class="section">
@@ -1633,7 +2891,7 @@
       }
 
       function getCurrentOrder() {
-        return state.orders.find(order => order.id === state.drawerOrderId);
+        return state.orders.find(order => order.id === state.detailOrderId);
       }
 
       function renderCustomers() {
@@ -1694,6 +2952,37 @@
 
       function isSameDay(a, b) {
         return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      }
+
+      function getOrderItemField(item, keys) {
+        if (!item || typeof item !== 'object') return '';
+        for (const key of keys) {
+          if (Object.prototype.hasOwnProperty.call(item, key)) {
+            const value = item[key];
+            if (value !== undefined && value !== null && value !== '') {
+              return value;
+            }
+          }
+        }
+        return '';
+      }
+
+      function getItemLabel(item) {
+        return getOrderItemField(item, ['item', 'title', 'label', 'name']);
+      }
+
+      function getItemQuantityDisplay(item) {
+        return getOrderItemField(item, ['qty', 'quantity', 'amount', 'size']);
+      }
+
+      function getItemQuantityNumber(item) {
+        const value = getItemQuantityDisplay(item);
+        const num = Number(value);
+        return Number.isFinite(num) ? num : 0;
+      }
+
+      function getItemSoldByLabel(item) {
+        return getOrderItemField(item, ['soldBy', 'sold_by', 'sold_by_label']);
       }
 
       function getStatusChipClass(status) {

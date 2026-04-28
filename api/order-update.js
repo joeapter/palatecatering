@@ -17,8 +17,16 @@ async function ensureOrdersTable() {
       total text,
       items jsonb,
       email_body text,
-      html_body text
+      html_body text,
+      is_deleted boolean DEFAULT false,
+      deleted_at timestamptz
     );
+  `;
+  await sql`
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS pending_payment_link text;
+  `;
+  await sql`
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS pending_payment_url text;
   `;
   await sql`ALTER TABLE orders ALTER COLUMN order_number SET DEFAULT nextval('order_number_seq')`;
 }
@@ -36,16 +44,61 @@ module.exports = async (req, res) => {
   }
 
   const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+  const createCustomerName = (body.customerName || body.customer_name || '').toString().trim();
+  const createMode = body.create === true || (!body.id && !!createCustomerName);
+
+  try {
+    await ensureOrdersTable();
+
+    if (createMode) {
+      if (!createCustomerName) {
+        res.status(400).send('Customer name is required');
+        return;
+      }
+
+      const { rows: createdRows } = await sql`
+        INSERT INTO orders (
+          customer_name,
+          customer_email,
+          customer_phone,
+          customer_address,
+          shabbos_label,
+          allergies,
+          total,
+          items,
+          status
+        ) VALUES (
+          ${createCustomerName},
+          '',
+          '',
+          '',
+          'Manual payment request',
+          '',
+          '0',
+          ${JSON.stringify([])}::jsonb,
+          'new'
+        )
+        RETURNING id, order_number, created_at, status, customer_name, customer_email, customer_phone, customer_address,
+          shabbos_label, allergies, total, items, html_body, email_body, pending_payment_link, pending_payment_url
+      `;
+
+      if (!createdRows.length) {
+        res.status(500).send('Unable to create order');
+        return;
+      }
+
+      res.status(200).json({ order: createdRows[0] });
+      return;
+    }
+
   const { id, patch } = body;
   if (!id || !patch || typeof patch !== 'object') {
     res.status(400).send('Missing id or patch');
     return;
   }
 
-  const stringFields = ['customer_name', 'customer_phone', 'customer_email', 'customer_address', 'allergies', 'status'];
+  const stringFields = ['customer_name', 'customer_phone', 'customer_email', 'customer_address', 'allergies', 'status', 'pending_payment_link', 'pending_payment_url'];
 
-  try {
-    await ensureOrdersTable();
     for (const field of stringFields) {
       if (Object.prototype.hasOwnProperty.call(patch, field)) {
         const value = patch[field] || '';
@@ -65,6 +118,10 @@ module.exports = async (req, res) => {
           await sql`UPDATE orders SET allergies = ${value} WHERE id = ${id}`;
         } else if (field === 'status') {
           await sql`UPDATE orders SET status = ${value} WHERE id = ${id}`;
+        } else if (field === 'pending_payment_link') {
+          await sql`UPDATE orders SET pending_payment_link = ${value} WHERE id = ${id}`;
+        } else if (field === 'pending_payment_url') {
+          await sql`UPDATE orders SET pending_payment_url = ${value} WHERE id = ${id}`;
         }
       }
     }
@@ -74,12 +131,17 @@ module.exports = async (req, res) => {
         res.status(400).send('Items must be an array');
         return;
       }
-      await sql`UPDATE orders SET items = ${patch.items} WHERE id = ${id}`;
+      const sanitizedItems = patch.items.map(item => JSON.parse(JSON.stringify(item || {})));
+      await sql`
+        UPDATE orders
+        SET items = ${JSON.stringify(sanitizedItems)}::jsonb
+        WHERE id = ${id}
+      `;
     }
 
     const { rows } = await sql`
       SELECT id, order_number, created_at, status, customer_name, customer_email, customer_phone, customer_address,
-        shabbos_label, allergies, total, items, html_body, email_body
+        shabbos_label, allergies, total, items, html_body, email_body, pending_payment_link, pending_payment_url
       FROM orders
       WHERE id = ${id}
     `;
@@ -92,6 +154,7 @@ module.exports = async (req, res) => {
     res.status(200).json({ order: rows[0] });
   } catch (error) {
     console.error('Order update error', error);
-    res.status(500).send('Server Error');
+    const message = error && error.message ? error.message : 'Server Error';
+    res.status(500).send(message);
   }
 };

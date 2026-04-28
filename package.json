@@ -6,6 +6,9 @@
     "@vercel/postgres": "^0.10.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^6.9.8"
+    "nodemailer": "^6.9.8",
+    "pdfkit": "^0.17.2",
+    "raw-body": "^3.0.2",
+    "stripe": "^20.2.0"
   }
 }

@@ -3,18 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Shabbos Orders | Palate Catering</title>
+    <title>Dairy Menu | Palate Catering</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- hebcal data already included via parshaCache map -->
     <script src="https://js.stripe.com/v3/"></script>
     <script defer src="/scripts/stripe-client.js"></script>
-    <script defer src="/data/shabbos-menu.js"></script>
     <script>
       window.palateStripePublishableKey = "pk_live_51SsV1AHvQR9vTlcaRVOQfV9PT3fcd3AqGxJkTD0eowEeFM4810GYsKMz5UlxMv6c8Kqk2pNaQ8SEhBwUTszRFATy00Xlb9uhD3";
       window.palateOrderApiKey = "Hashem613!";
     </script>
-  <style>
+    <style>
       .grain { background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0); background-size: 18px 18px; }
       .bg-shape { filter: blur(60px); opacity: 0.3; }
       .card-surface { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.04); box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
@@ -39,13 +37,26 @@
         object-fit: cover;
         display: block;
       }
-    .menu-card-body {
-      padding: 1.2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-      flex: 1;
-    }
+      .menu-card-placeholder {
+        width: 100%;
+        height: 230px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        text-align: center;
+        background: linear-gradient(135deg, #f8fafc, #fef3c7);
+        color: #9ca3af;
+      }
+      .menu-card-body {
+        padding: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        flex: 1;
+      }
       .menu-card-footer {
         display: flex;
         justify-content: center;
@@ -56,34 +67,34 @@
       .menu-card-footer.footer-row {
         min-height: 70px;
       }
-    .menu-card-footer input[type="number"] {
-      width: 90px;
-      border-radius: 999px;
-      border: 1px solid rgba(15, 23, 42, 0.1);
-      font-weight: 600;
-      padding: 0.55rem 0.75rem;
-      text-align: center;
-    }
-    .menu-card-footer .price-block {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.95rem;
-      color: #111827;
-      font-weight: 600;
-    }
-    .menu-card-footer .price-block .sold-by {
-      font-size: 0.75rem;
-      color: rgba(15, 23, 42, 0.6);
-      margin-left: 0.25rem;
-    }
-    .menu-card-footer .qty-group {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      align-items: center;
-    }
+      .menu-card-footer input[type="number"] {
+        width: 90px;
+        border-radius: 999px;
+        border: 1px solid rgba(15, 23, 42, 0.1);
+        font-weight: 600;
+        padding: 0.55rem 0.75rem;
+        text-align: center;
+      }
+      .menu-card-footer .price-block {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.95rem;
+        color: #111827;
+        font-weight: 600;
+      }
+      .menu-card-footer .price-block .sold-by {
+        font-size: 0.75rem;
+        color: rgba(15, 23, 42, 0.6);
+        margin-left: 0.25rem;
+      }
+      .menu-card-footer .qty-group {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: center;
+      }
       .menu-card-footer .qty-group span {
         font-size: 0.65rem;
         letter-spacing: 0.25em;
@@ -145,7 +156,6 @@
   </head>
 
   <body class="bg-neutral-50 text-neutral-900 grain">
-    <!-- Header -->
     <header class="bg-white/80 backdrop-blur border-b border-neutral-200 sticky top-0 z-40">
       <div class="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
         <a href="/" class="flex items-center gap-3">
@@ -153,7 +163,6 @@
           <span class="font-serif text-xl">Palate Catering</span>
         </a>
 
-        <!-- Desktop Nav -->
         <nav class="hidden md:flex gap-6 text-sm">
           <a href="/#about" class="hover:opacity-70">About</a>
           <a href="/#events" class="hover:opacity-70">Events</a>
@@ -163,12 +172,11 @@
           <a href="/#services" class="hover:opacity-70">Services</a>
           <a href="/#contact" class="hover:opacity-70">Contact</a>
           <a href="/kashrus.html" class="hover:opacity-70">Kashrus</a>
-          <a href="/shabbos.html" class="font-semibold">Shabbos</a>
+          <a href="/shabbos.html" class="hover:opacity-70">Shabbos</a>
           <a href="/purim.html" class="hover:opacity-70">Purim</a>
-          <a href="/dairy.html" class="hover:opacity-70">Dairy</a>
+          <a href="/dairy.html" class="font-semibold">Dairy</a>
         </nav>
 
-        <!-- Mobile Menu Button -->
         <button id="menuBtn" class="md:hidden p-2 rounded focus:outline-none">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -177,7 +185,6 @@
         </button>
       </div>
 
-      <!-- Mobile Nav -->
       <div id="mobileNav" class="hidden md:hidden bg-white border-t border-neutral-200">
         <nav class="flex flex-col text-center p-4 space-y-3">
           <a href="/#about" class="block">About</a>
@@ -188,14 +195,13 @@
           <a href="/#services" class="block">Services</a>
           <a href="/#contact" class="block">Contact</a>
           <a href="/kashrus.html" class="block">Kashrus</a>
-          <a href="/shabbos.html" class="block font-semibold">Shabbos</a>
+          <a href="/shabbos.html" class="block">Shabbos</a>
           <a href="/purim.html" class="block">Purim</a>
-          <a href="/dairy.html" class="block">Dairy</a>
+          <a href="/dairy.html" class="block font-semibold">Dairy</a>
         </nav>
       </div>
     </header>
 
-    <!-- Main -->
     <main class="relative overflow-hidden">
       <div class="absolute inset-0 pointer-events-none select-none" aria-hidden="true">
         <div class="bg-shape absolute -top-10 -left-10 w-80 h-80 rounded-full bg-amber-200"></div>
@@ -205,10 +211,10 @@
       <div class="max-w-6xl mx-auto px-6 py-12 relative z-10 space-y-10">
         <section class="flex flex-col lg:flex-row gap-8 lg:items-center">
           <div class="flex-1">
-            <p class="uppercase text-xs tracking-[0.32em] text-amber-700 mb-3">Weekly Menu</p>
-            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Shabbos Menu</h1>
+            <p class="uppercase text-xs tracking-[0.32em] text-amber-700 mb-3">Breakfast & Brunch</p>
+            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Dairy Menu</h1>
             <p class="text-neutral-600 text-lg max-w-2xl">
-              Build your full menu, confirm your details, and we'll take care of the rest.
+              Build your dairy order, confirm your details, and complete payment with the same Stripe checkout flow.
             </p>
             <p class="text-neutral-600 text-lg max-w-2xl mt-2">
               Tap quantities to move items into the cart.
@@ -224,104 +230,103 @@
           </div>
           <div class="card-surface rounded-3xl p-6 lg:w-[420px]">
             <div class="flex items-start gap-3 mb-4">
-              <span class="inline-flex h-10 w-10 rounded-full bg-amber-100 text-amber-800 items-center justify-center font-semibold">⏳</span>
+              <span class="inline-flex h-10 w-10 rounded-full bg-amber-100 text-amber-800 items-center justify-center font-semibold">✓</span>
               <div>
-                <p class="text-sm text-neutral-600">Cutoff</p>
-                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Wednesday 23:59 Israel time for this Shabbos.</p>
-                <p class="text-sm text-neutral-600 mt-1" id="orderStatusText"></p>
+                <p class="text-sm text-neutral-600">Availability</p>
+                <p class="font-semibold text-neutral-900" id="orderCutoffText">Dairy ordering is open while this menu is enabled.</p>
+                <p class="text-sm text-neutral-600 mt-1 hidden" id="orderStatusText"></p>
               </div>
             </div>
             <div class="text-sm text-neutral-600 leading-relaxed hidden" id="orderShabbosLabel"></div>
           </div>
         </section>
 
-        <form name="shabbos-order" method="GET" action="/thank-you.html" id="orderForm" class="space-y-12 card-surface rounded-3xl p-6 md:p-8">
-          <input type="hidden" name="form-name" value="shabbos-order" />
+        <form name="dairy-order" method="GET" action="/thank-you.html" id="orderForm" class="space-y-12 card-surface rounded-3xl p-6 md:p-8">
+          <input type="hidden" name="form-name" value="dairy-order" />
           <input type="hidden" name="bot-field" />
+          <input type="hidden" id="orderSummaryField" name="Order Summary" />
+          <input type="hidden" id="orderSummaryTextField" name="Order Summary (Text)" />
+          <input type="hidden" id="orderTotalField" name="Order Total" />
+          <input type="hidden" id="orderEmailBodyField" name="Order Email Body" />
+          <input type="hidden" id="orderItemsField" />
 
-        <!-- Hidden order fields -->
-        <input type="hidden" id="orderSummaryField" name="Order Summary" />
-        <input type="hidden" id="orderSummaryTextField" name="Order Summary (Text)" />
-        <input type="hidden" id="orderTotalField" name="Order Total" />
-        <input type="hidden" id="orderEmailBodyField" name="Order Email Body" />
-        <input type="hidden" id="orderItemsField" />
-
-        <div class="relative">
-          <div id="menuLoadingOverlay" class="menu-loading-overlay pointer-events-none fixed inset-0 z-50 flex items-center justify-center text-sm font-semibold text-amber-900 transition-opacity opacity-0">
-            <div class="flex flex-col items-center gap-3">
-              <div class="menu-spinner" aria-hidden="true"></div>
-              <div class="menu-loading-text text-xs uppercase">Loading menu</div>
+          <div class="relative">
+            <div id="menuLoadingOverlay" class="menu-loading-overlay pointer-events-none fixed inset-0 z-50 flex items-center justify-center text-sm font-semibold text-amber-900 transition-opacity opacity-0">
+              <div class="flex flex-col items-center gap-3">
+                <div class="menu-spinner" aria-hidden="true"></div>
+                <div class="menu-loading-text text-xs uppercase">Loading menu</div>
+              </div>
             </div>
+            <div id="menuContainer" class="space-y-12 relative"></div>
           </div>
-          <div id="menuContainer" class="space-y-12 relative"></div>
-        </div>
 
-        <div class="grid gap-8 lg:grid-cols-[1.2fr_minmax(320px,0.8fr)]">
-          <section class="space-y-6">
-            <div class="p-6 rounded-3xl bg-white border border-neutral-200 shadow-sm space-y-5">
-              <div>
-                <h2 class="text-2xl font-serif">Delivery & contact</h2>
-                <p class="text-sm text-neutral-600 mt-1">Add your details once—you can edit them before checkout.</p>
-              </div>
-              <div class="grid gap-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" id="deliveryName" name="Name" placeholder="Full name (optional)" class="border rounded-xl px-3 py-2" />
-                  <input type="tel" id="deliveryPhone" name="Phone" placeholder="Phone (optional)" class="border rounded-xl px-3 py-2" />
+          <div class="grid gap-8 lg:grid-cols-[1.2fr_minmax(320px,0.8fr)]">
+            <section class="space-y-6">
+              <div class="p-6 rounded-3xl bg-white border border-neutral-200 shadow-sm space-y-5 delivery-panel">
+                <div>
+                  <h2 class="text-2xl font-serif">Delivery & contact</h2>
+                  <p class="text-sm text-neutral-600 mt-1">Add your details once. You can choose a preferred date before checkout.</p>
                 </div>
-                <input type="email" id="deliveryEmail" name="Email" placeholder="Email *" class="border rounded-xl px-3 py-2 input-required" />
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" id="deliveryStreet" placeholder="Street address (optional)" class="border rounded-xl px-3 py-2" />
-                  <input type="text" id="deliveryCity" placeholder="City (optional)" class="border rounded-xl px-3 py-2" />
+                <div class="grid gap-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="deliveryName" name="Name" placeholder="Full name (optional)" class="border rounded-xl px-3 py-2" />
+                    <input type="tel" id="deliveryPhone" name="Phone" placeholder="Phone (optional)" class="border rounded-xl px-3 py-2" />
+                  </div>
+                  <input type="email" id="deliveryEmail" name="Email" placeholder="Email *" class="border rounded-xl px-3 py-2 input-required" />
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="deliveryStreet" placeholder="Street address (optional)" class="border rounded-xl px-3 py-2" />
+                    <input type="text" id="deliveryCity" placeholder="City (optional)" class="border rounded-xl px-3 py-2" />
+                  </div>
+                  <div id="deliveryPolicy" class="policy-message hidden"></div>
+                  <select id="deliveryType" class="border rounded-xl px-3 py-2">
+                    <option value="beit_shemesh">Beit Shemesh</option>
+                    <option value="beit_shemesh_pickup">Beit Shemesh pickup</option>
+                    <option value="jerusalem">Jerusalem</option>
+                    <option value="modiin">Modiin</option>
+                    <option value="delivery_quote" selected>Give me a delivery quote</option>
+                  </select>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="date" id="requestedDate" name="Requested Date" class="border rounded-xl px-3 py-2" />
+                    <input type="text" id="occasionInput" name="Occasion" placeholder="Occasion or event name (optional)" class="border rounded-xl px-3 py-2" />
+                  </div>
+                  <p id="menuNote" class="text-xs text-amber-700">Choose a preferred delivery or pickup date if you know it.</p>
+                  <textarea id="deliveryAllergies" rows="2" placeholder="Allergies or dietary needs" class="border rounded-xl px-3 py-2"></textarea>
+                  <textarea id="deliveryNotes" rows="2" placeholder="Additional notes" class="border rounded-xl px-3 py-2"></textarea>
                 </div>
-                <div id="deliveryPolicy" class="policy-message hidden"></div>
-                <select id="deliveryType" class="border rounded-xl px-3 py-2">
-                  <option value="beit_shemesh">Beit Shemesh</option>
-                  <option value="beit_shemesh_pickup">Beit Shemesh pickup</option>
-                  <option value="jerusalem">Jerusalem</option>
-                  <option value="modiin">Modiin</option>
-                  <option value="delivery_quote" selected>Give me a delivery quote</option>
-                </select>
-                <select id="shabbosSelect" name="Shabbos Date" class="border rounded-xl px-3 py-2">
-                  <option>Loading weeks…</option>
-                </select>
-                <p id="shabbosNote" class="text-xs text-amber-700"></p>
-                <textarea id="deliveryAllergies" rows="2" placeholder="Allergies or dietary needs" class="border rounded-xl px-3 py-2"></textarea>
-                <textarea id="deliveryNotes" rows="2" placeholder="Additional notes" class="border rounded-xl px-3 py-2"></textarea>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <aside id="cartPanel" class="p-6 rounded-3xl bg-gradient-to-b from-white to-amber-50 border border-amber-200 shadow-lg sticky top-8">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-serif">Cart</h2>
-              <span id="cartCount" class="text-sm text-neutral-600">0 items</span>
-            </div>
-            <div id="cartItems" class="space-y-4 min-h-[180px] text-sm text-slate-700">
-              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">No items yet</p>
-            </div>
-            <div class="border-t border-dashed border-amber-200 mt-5 pt-4 space-y-3">
-              <div class="flex justify-between text-sm">
-                <span>Subtotal</span>
-                <span id="cartSubtotal">₪0</span>
+            <aside id="cartPanel" class="p-6 rounded-3xl bg-gradient-to-b from-white to-amber-50 border border-amber-200 shadow-lg sticky top-8">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-serif">Cart</h2>
+                <span id="cartCount" class="text-sm text-neutral-600">0 items</span>
               </div>
-              <div class="flex justify-between text-sm">
-                <span>Delivery</span>
-                <span id="cartDelivery">Calculated at checkout</span>
+              <div id="cartItems" class="space-y-4 min-h-[180px] text-sm text-slate-700">
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">No items yet</p>
               </div>
-              <div class="flex justify-between text-lg font-semibold">
-                <span>Total</span>
-                <span id="orderTotal">₪0</span>
+              <div class="border-t border-dashed border-amber-200 mt-5 pt-4 space-y-3">
+                <div class="flex justify-between text-sm">
+                  <span>Subtotal</span>
+                  <span id="cartSubtotal">₪0</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span>Delivery</span>
+                  <span id="cartDelivery">Calculated at checkout</span>
+                </div>
+                <div class="flex justify-between text-lg font-semibold">
+                  <span>Total</span>
+                  <span id="orderTotal">₪0</span>
+                </div>
               </div>
-            </div>
-            <button id="checkoutButton" type="button" class="mt-4 w-full rounded-full bg-neutral-900 text-white px-4 py-3 disabled:opacity-40" disabled>Submit Order for Payment</button>
-            <p class="text-xs text-neutral-600 mt-3">We’ll request payment via Stripe after your cart is ready.</p>
-            <div id="checkoutHint" class="text-xs text-rose-600 mt-2 hidden">Add at least one item and your email to continue.</div>
-            <div id="stripeContainer" class="mt-5 hidden">
-              <div id="paymentElement" class="bg-white border border-slate-200 rounded-2xl p-4"></div>
-              <button id="stripePayButton" class="mt-3 w-full rounded-full bg-amber-500 text-neutral-900 px-4 py-3">Pay with Stripe</button>
-            </div>
-          </aside>
-        </div>
+              <button id="checkoutButton" type="button" class="mt-4 w-full rounded-full bg-neutral-900 text-white px-4 py-3 disabled:opacity-40" disabled>Submit Order for Payment</button>
+              <p class="text-xs text-neutral-600 mt-3">We’ll request payment via Stripe after your cart is ready.</p>
+              <div id="checkoutHint" class="text-xs text-rose-600 mt-2 hidden">Add at least one item and your email to continue.</div>
+              <div id="stripeContainer" class="mt-5 hidden">
+                <div id="paymentElement" class="bg-white border border-slate-200 rounded-2xl p-4"></div>
+                <button id="stripePayButton" class="mt-3 w-full rounded-full bg-amber-500 text-neutral-900 px-4 py-3">Pay with Stripe</button>
+              </div>
+            </aside>
+          </div>
         </form>
 
         <section class="card-surface rounded-3xl p-6 md:p-8">
@@ -337,125 +342,27 @@
       © <span id="year"></span> Palate Catering. All rights reserved.
     </footer>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay"
-         class="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-[9999] hidden pointer-events-none">
-      <div class="w-12 h-12 border-4 border-[#b8860b]/30 border-t-[#b8860b] rounded-full animate-spin mb-6"></div>
-      <p id="loadingMessage" class="text-neutral-700 font-medium">Loading, please wait...</p>
-    </div>
-
-    <!-- Scripts -->
     <script>
       document.getElementById("year").textContent = new Date().getFullYear();
 
       function nowInIsrael() {
         return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jerusalem" }));
       }
-      function shabbosDate(weeksAhead = 0) {
-        const now = nowInIsrael();
-        const day = now.getDay();
-        const daysToSat = (6 - day + 7) % 7;
-        const d = new Date(now);
-        d.setHours(12, 0, 0, 0);
-        d.setDate(d.getDate() + daysToSat + weeksAhead * 7);
-        return d;
+      function formatCurrency(value) {
+        return `₪${value.toFixed(2)}`.replace(".00", "");
       }
-      function formatDate(d) {
-        return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      function formatOrderDate(value) {
+        if (!value) return "";
+        const date = new Date(`${value}T12:00:00`);
+        return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
       }
-      function labelShabbos(d, parshaName) {
-        return parshaName ? `Shabbos Parshas ${parshaName} — ${formatDate(d)}` : `Shabbos — ${formatDate(d)}`;
-      }
-      function getCloseAndDropTimes(date) {
-        const close = new Date(date);
-        close.setDate(close.getDate() - 2);
-        close.setHours(0, 0, 0, 0);
-        const drop = new Date(date);
-        drop.setHours(23, 59, 59, 999);
-        return { close, drop };
-      }
-      const parshaCache = {
-        "2025-01-04": "Vayigash", "2025-01-11": "Vayechi", "2025-01-18": "Shemot", "2025-01-25": "Vaera",
-        "2025-02-01": "Bo", "2025-02-08": "Beshalach", "2025-02-15": "Yitro", "2025-02-22": "Mishpatim",
-        "2025-03-01": "Terumah", "2025-03-08": "Tetzaveh", "2025-03-15": "Ki Tisa", "2025-03-22": "Vayakhel",
-        "2025-03-29": "Pekudei", "2025-04-05": "Vayikra", "2025-04-12": "Tzav", "2025-04-26": "Shmini",
-        "2025-05-03": "Tazria-Metzora", "2025-05-10": "Achrei Mot-Kedoshim", "2025-05-17": "Emor", "2025-05-24": "Behar-Bechukotai",
-        "2025-05-31": "Bamidbar", "2025-06-07": "Nasso", "2025-06-14": "Beha’alotcha", "2025-06-21": "Sh’lach",
-        "2025-06-28": "Korach", "2025-07-05": "Chukat", "2025-07-12": "Balak", "2025-07-19": "Pinchas",
-        "2025-07-26": "Matot-Masei", "2025-08-02": "Devarim", "2025-08-09": "Vaetchanan", "2025-08-16": "Eikev",
-        "2025-08-23": "Re’eh", "2025-08-30": "Shoftim", "2025-09-06": "Ki Teitzei", "2025-09-13": "Ki Tavo",
-        "2025-09-20": "Nitzavim", "2025-09-27": "Vayeilech", "2025-10-04": "Ha’azinu", "2025-10-18": "Bereshit",
-        "2025-10-25": "Noach", "2025-11-01": "Lech-Lecha", "2025-11-08": "Vayera", "2025-11-15": "Chayei Sara",
-        "2025-11-22": "Toldot", "2025-11-29": "Vayetzei", "2025-12-06": "Vayishlach", "2025-12-13": "Vayeshev",
-        "2025-12-20": "Miketz", "2025-12-27": "Vayigash",
-        "2026-01-03": "Vayechi", "2026-01-10": "Shemot", "2026-01-17": "Vaera", "2026-01-24": "Bo",
-        "2026-01-31": "Beshalach", "2026-02-07": "Yitro", "2026-02-14": "Mishpatim", "2026-02-21": "Terumah",
-        "2026-02-28": "Tetzaveh", "2026-03-07": "Ki Tisa", "2026-03-14": "Vayakhel-Pekudei", "2026-03-21": "Vayikra",
-        "2026-03-28": "Tzav", "2026-04-11": "Shmini", "2026-04-18": "Tazria-Metzora", "2026-04-25": "Achrei Mot-Kedoshim",
-        "2026-05-02": "Emor", "2026-05-09": "Behar-Bechukotai", "2026-05-16": "Bamidbar", "2026-05-23": "Nasso",
-        "2026-05-30": "Beha’alotcha", "2026-06-06": "Sh’lach", "2026-06-13": "Korach", "2026-06-20": "Chukat",
-        "2026-06-27": "Balak", "2026-07-04": "Pinchas", "2026-07-11": "Matot-Masei", "2026-07-18": "Devarim",
-        "2026-07-25": "Vaetchanan", "2026-08-01": "Eikev", "2026-08-08": "Re’eh", "2026-08-15": "Shoftim",
-        "2026-08-22": "Ki Teitzei", "2026-08-29": "Ki Tavo", "2026-09-05": "Nitzavim-Vayeilech", "2026-09-19": "Ha’azinu",
-        "2026-10-10": "Bereshit", "2026-10-17": "Noach", "2026-10-24": "Lech-Lecha", "2026-10-31": "Vayera",
-        "2026-11-07": "Chayei Sara", "2026-11-14": "Toldot", "2026-11-21": "Vayetzei", "2026-11-28": "Vayishlach",
-        "2026-12-05": "Vayeshev", "2026-12-12": "Miketz", "2026-12-19": "Vayigash", "2026-12-26": "Vayechi",
-        "2027-01-02": "Shemot", "2027-01-09": "Vaera", "2027-01-16": "Bo", "2027-01-23": "Beshalach",
-        "2027-01-30": "Yitro", "2027-02-06": "Mishpatim", "2027-02-13": "Terumah", "2027-02-20": "Tetzaveh",
-        "2027-02-27": "Ki Tisa", "2027-03-06": "Vayakhel", "2027-03-13": "Pekudei", "2027-03-20": "Vayikra",
-        "2027-03-27": "Tzav", "2027-04-03": "Shmini", "2027-04-10": "Tazria", "2027-04-17": "Metzora",
-        "2027-05-01": "Achrei Mot", "2027-05-08": "Kedoshim", "2027-05-15": "Emor", "2027-05-22": "Behar",
-        "2027-05-29": "Bechukotai", "2027-06-05": "Bamidbar", "2027-06-12": "Nasso", "2027-06-19": "Beha’alotcha",
-        "2027-06-26": "Sh’lach", "2027-07-03": "Korach", "2027-07-10": "Chukat", "2027-07-17": "Balak",
-        "2027-07-24": "Pinchas", "2027-07-31": "Matot-Masei", "2027-08-07": "Devarim", "2027-08-14": "Vaetchanan",
-        "2027-08-21": "Eikev", "2027-08-28": "Re’eh", "2027-09-04": "Shoftim", "2027-09-11": "Ki Teitzei",
-        "2027-09-18": "Ki Tavo", "2027-09-25": "Nitzavim-Vayeilech", "2027-10-09": "Ha’azinu",
-        "2027-10-30": "Bereshit", "2027-11-06": "Noach", "2027-11-13": "Lech-Lecha", "2027-11-20": "Vayera",
-        "2027-11-27": "Chayei Sara", "2027-12-04": "Toldot", "2027-12-11": "Vayetzei", "2027-12-18": "Vayishlach",
-        "2027-12-25": "Vayeshev"
-      };
-      function parshaForDate(dateObj) {
-        const iso = dateObj.toISOString().slice(0, 10);
-        return parshaCache[iso] || "";
-      }
-      function populateShabbosOptions() {
-        const select = document.getElementById("shabbosSelect");
-        const note = document.getElementById("shabbosNote");
-        if (!select) return;
-        const options = [];
-        const today = nowInIsrael();
-        for (let weeks = 0; weeks <= 104; weeks++) {
-          const d = shabbosDate(weeks);
-          const parsha = parshaForDate(d);
-          const { close, drop } = getCloseAndDropTimes(d);
-          if (today > drop) continue;
-          const closed = today >= close;
-          options.push({
-            value: labelShabbos(d, parsha),
-            text: labelShabbos(d, parsha) + (closed ? " (closed)" : ""),
-            closed
-          });
-        }
-        select.innerHTML = "";
-        options.forEach((o) => {
-          const opt = document.createElement("option");
-          opt.value = o.value;
-          opt.textContent = o.text;
-          opt.disabled = o.closed;
-          if (!o.closed && select.selectedIndex === -1) opt.selected = true;
-          select.appendChild(opt);
-        });
-        if (note) note.textContent = "Orders close Wednesday 23:59 Israel time for that week.";
-        const cutoffText = document.getElementById("orderCutoffText");
-        if (cutoffText) cutoffText.textContent = "Orders close Wednesday 23:59 Israel time for this Shabbos.";
+      function slugify(value) {
+        return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       }
 
       const cartEntries = new Map();
       const menuContainer = document.getElementById("menuContainer");
       const menuLoadingOverlay = document.getElementById("menuLoadingOverlay");
-      let menuData = [];
-      let apiMenuLoaded = false;
-      let orderingEnabled = true;
       const cartItemsEl = document.getElementById("cartItems");
       const cartSubtotalEl = document.getElementById("cartSubtotal");
       const cartCountEl = document.getElementById("cartCount");
@@ -468,7 +375,7 @@
       const summaryField = document.getElementById("orderSummaryField");
       const summaryTextField = document.getElementById("orderSummaryTextField");
       const itemsField = document.getElementById("orderItemsField");
-      const shabbosSelect = document.getElementById("shabbosSelect");
+      const orderLabelEl = document.getElementById("orderShabbosLabel");
       const deliveryNameInput = document.getElementById("deliveryName");
       const deliveryPhoneInput = document.getElementById("deliveryPhone");
       const deliveryEmailInput = document.getElementById("deliveryEmail");
@@ -476,17 +383,27 @@
       const deliveryCityInput = document.getElementById("deliveryCity");
       const deliveryTypeInput = document.getElementById("deliveryType");
       const deliveryPolicyEl = document.getElementById("deliveryPolicy");
+      const requestedDateInput = document.getElementById("requestedDate");
+      const occasionInput = document.getElementById("occasionInput");
+      const allergiesInput = document.getElementById("deliveryAllergies");
+      const notesInput = document.getElementById("deliveryNotes");
+      const stripePublishableKey = window.palateStripePublishableKey || "";
+      const orderApiKey = window.palateOrderApiKey || "";
+      const stripePayButton = document.getElementById("stripePayButton");
+      const paymentElementDiv = document.getElementById("paymentElement");
+      const defaultDeliveryText = cartDeliveryEl ? cartDeliveryEl.textContent : "Calculated at checkout";
+      const pendingOrderStorageKey = "palate_pending_dairy_order";
+      const requiredDeliveryFields = [{ el: deliveryEmailInput, label: "Email" }];
       const deliveryInputs = [
         deliveryNameInput,
         deliveryPhoneInput,
         deliveryEmailInput,
         deliveryStreetInput,
         deliveryCityInput,
-        deliveryTypeInput
+        deliveryTypeInput,
+        requestedDateInput,
+        occasionInput
       ];
-      const allergiesInput = document.getElementById("deliveryAllergies");
-      const notesInput = document.getElementById("deliveryNotes");
-
       const deliveryPolicies = {
         beit_shemesh: {
           label: "Beit Shemesh / RBS",
@@ -516,13 +433,9 @@
         modiin: "Modiin",
         delivery_quote: "Delivery quote requested"
       };
-      const stripePublishableKey = window.palateStripePublishableKey || "";
-      const orderApiKey = window.palateOrderApiKey || "";
-      const stripePayButton = document.getElementById("stripePayButton");
-      const paymentElementDiv = document.getElementById("paymentElement");
-      if (stripePayButton) {
-        stripePayButton.disabled = true;
-      }
+
+      let menuData = [];
+      let orderingEnabled = true;
       let stripeInstance = null;
       let elements = null;
       let paymentElement = null;
@@ -530,20 +443,16 @@
       let lastSubtotal = 0;
       let paymentReady = false;
       let preparingPayment = false;
-      const pendingOrderStorageKey = "palate_pending_order";
-      const requiredDeliveryFields = [{ el: deliveryEmailInput, label: "Email" }];
 
-      function formatCurrency(value) {
-        return `₪${value.toFixed(2)}`.replace(".00", "");
+      if (stripePayButton) {
+        stripePayButton.disabled = true;
       }
+
       function setMenuLoading(active) {
         if (!menuLoadingOverlay) return;
         menuLoadingOverlay.classList.toggle("opacity-100", active);
         menuLoadingOverlay.classList.toggle("opacity-0", !active);
         menuLoadingOverlay.classList.toggle("pointer-events-none", !active);
-      }
-      function slugify(value) {
-        return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       }
       function setFieldError(field, active) {
         if (!field) return;
@@ -554,8 +463,7 @@
         let messageSet = false;
         requiredDeliveryFields.forEach(({ el, label }) => {
           if (!el) return;
-          const value = (el.value || "").trim();
-          const ok = Boolean(value);
+          const ok = Boolean((el.value || "").trim());
           if (!ok) {
             valid = false;
             if (showErrors && !messageSet) {
@@ -568,55 +476,70 @@
         });
         return valid;
       }
-      function resetStripeSession() {
-        paymentReady = false;
-        currentClientSecret = "";
-        if (paymentElement) {
-          paymentElement.unmount();
-          paymentElement = null;
-        }
-        stripeContainer?.classList.add("hidden");
-        stripePayButton.disabled = true;
+      function buildOrderLabel() {
+        const parts = ["Dairy Menu"];
+        const requestedDate = formatOrderDate(requestedDateInput?.value || "");
+        const occasion = (occasionInput?.value || "").trim();
+        if (requestedDate) parts.push(requestedDate);
+        if (occasion) parts.push(occasion);
+        return parts.join(" — ");
+      }
+      function updateOrderLabelDisplay() {
+        if (!orderLabelEl) return;
+        orderLabelEl.textContent = `Order label: ${buildOrderLabel()}`;
+        orderLabelEl.classList.remove("hidden");
+      }
+      function normalizeMenuData(categories) {
+        return (categories || []).map((category) => ({
+          category: category.category || "Uncategorized",
+          items: Array.isArray(category.items)
+            ? category.items.map((item) => ({
+                ...item,
+                price: Number(item.price) || 0,
+                soldBy: item.soldBy || "",
+                qtyLabel: item.qtyLabel || "Order Qty",
+                image: item.image || ""
+              }))
+            : []
+        }));
       }
       function renderMenu() {
         if (!menuContainer) return;
         if (!menuData.length) {
-          menuContainer.innerHTML = '';
-          setMenuLoading(true);
+          menuContainer.innerHTML = '<div class="rounded-3xl border border-neutral-200 bg-white p-8 text-sm text-neutral-500">Menu items are being prepared.</div>';
+          setMenuLoading(false);
           return;
         }
         setMenuLoading(false);
         menuContainer.innerHTML = "";
-        menuData.forEach(category => {
+        menuData.forEach((category) => {
           const section = document.createElement("section");
           section.className = "space-y-4";
-          const header = document.createElement("div");
-          header.className = "flex items-center justify-between";
-          header.innerHTML = `<h3 class="text-xl font-semibold">${category.category}</h3>`;
-          section.appendChild(header);
+          section.innerHTML = `<div class="flex items-center justify-between"><h3 class="text-xl font-semibold">${category.category}</h3></div>`;
           const grid = document.createElement("div");
           grid.className = "grid gap-6 sm:grid-cols-2 lg:grid-cols-3";
-          category.items.forEach(item => {
+          category.items.forEach((item) => {
             const key = `${category.category}-${item.title}`;
             const normalizedKey = slugify(key);
             const card = document.createElement("article");
             card.className = "menu-card";
+            const media = item.image
+              ? `<div class="bg-neutral-100"><img src="${item.image}" alt="${item.title}" loading="lazy" /></div>`
+              : `<div class="menu-card-placeholder"><span class="text-xs uppercase tracking-[0.35em] text-amber-700">Palate Catering</span><span class="text-sm font-medium text-neutral-500">Dairy Collection</span></div>`;
             card.innerHTML = `
-              <div class="bg-neutral-100">
-                <img src="${item.image}" alt="${item.title}" loading="lazy" />
-              </div>
+              ${media}
               <div class="menu-card-body">
                 <div>
                   <h4 class="text-lg font-semibold">${item.title}</h4>
-                  <p class="text-sm text-neutral-600 mt-2">${item.description}</p>
+                  <p class="text-sm text-neutral-600 mt-2">${item.description || ""}</p>
                 </div>
                 <div class="menu-card-footer footer-row">
                   <div class="price-block">
                     ${formatCurrency(item.price)}
-                    <span class="sold-by">/ ${item.soldBy}</span>
+                    <span class="sold-by">/ ${item.soldBy || "Each"}</span>
                   </div>
                   <div class="qty-group">
-                    <span class="text-neutral-500 uppercase tracking-[0.3em] font-bold">${item.qtyLabel}</span>
+                    <span class="text-neutral-500 uppercase tracking-[0.3em] font-bold">${item.qtyLabel || "Order Qty"}</span>
                     <input min="0" step="1" type="number" value="0" data-item-key="${normalizedKey}"
                       class="tracking-wide text-center font-semibold text-sm text-neutral-900 bg-white/80 px-3 py-2 focus:outline-none" />
                   </div>
@@ -630,39 +553,51 @@
             });
             grid.appendChild(card);
           });
-        section.appendChild(grid);
-        menuContainer.appendChild(section);
-      });
-    }
-
-      async function loadMenuFromApi() {
-        setMenuLoading(true);
+          section.appendChild(grid);
+          menuContainer.appendChild(section);
+        });
+      }
+      async function loadMenuFromFallback() {
         try {
-          const response = await fetch("/api/products?menu=shabbos");
+          const response = await fetch("/data/dairy-menu.json", { cache: "no-store" });
+          if (!response.ok) return;
+          const data = await response.json();
+          if (Array.isArray(data) && !menuData.length) {
+            menuData = normalizeMenuData(data);
+            renderMenu();
+          }
+        } catch (err) {
+          console.warn("Fallback menu error", err);
+        }
+      }
+      async function loadMenuFromApi() {
+        try {
+          const response = await fetch("/api/products?menu=dairy");
           if (!response.ok) {
             throw new Error("Unable to load menu");
           }
           const data = await response.json();
           if (Array.isArray(data.categories)) {
-            menuData = data.categories.map(cat => ({
-              category: cat.category,
-              items: Array.isArray(cat.items)
-                ? cat.items.map(item => ({
-                    ...item,
-                    price: Number(item.price) || 0
-                  }))
-                : []
-            }));
-            apiMenuLoaded = true;
-            setMenuLoading(false);
+            menuData = normalizeMenuData(data.categories);
             renderMenu();
           }
         } catch (err) {
           console.warn("Menu API error", err);
+        } finally {
           setMenuLoading(false);
         }
       }
-
+      function resetStripeSession() {
+        paymentReady = false;
+        currentClientSecret = "";
+        elements = null;
+        if (paymentElement) {
+          paymentElement.unmount();
+          paymentElement = null;
+        }
+        stripeContainer?.classList.add("hidden");
+        if (stripePayButton) stripePayButton.disabled = true;
+      }
       function updateCartLine(key, item, quantity) {
         if (quantity <= 0) {
           cartEntries.delete(key);
@@ -671,7 +606,6 @@
         }
         renderCart();
       }
-
       function renderCart() {
         resetStripeSession();
         cartItemsEl.innerHTML = "";
@@ -679,22 +613,24 @@
         if (!lines.length) {
           cartItemsEl.innerHTML = `<p class="text-xs uppercase tracking-[0.3em] text-slate-400">No items yet</p>`;
         } else {
-          lines.forEach(line => {
+          lines.forEach((line) => {
             const row = document.createElement("div");
             row.className = "flex items-start justify-between gap-3";
-            const left = document.createElement("div");
-            left.innerHTML = `<p class="font-semibold text-sm">${line.title}</p><p class="text-xs text-neutral-500">${line.soldBy}</p>`;
-            const right = document.createElement("div");
-            right.innerHTML = `<p class="text-sm font-semibold">${formatCurrency(line.price * line.quantity)}</p>
-              <div class="flex items-center gap-2 mt-1">
-                <span class="text-xs uppercase tracking-[0.3em] text-neutral-500">x${line.quantity}</span>
-                <button type="button" data-remove="${line.key}" class="text-xs text-rose-500 hover:underline">Remove</button>
+            row.innerHTML = `
+              <div>
+                <p class="font-semibold text-sm">${line.title}</p>
+                <p class="text-xs text-neutral-500">${line.soldBy || ""}</p>
+              </div>
+              <div>
+                <p class="text-sm font-semibold">${formatCurrency(line.price * line.quantity)}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-xs uppercase tracking-[0.3em] text-neutral-500">x${line.quantity}</span>
+                  <button type="button" data-remove="${line.key}" class="text-xs text-rose-500 hover:underline">Remove</button>
+                </div>
               </div>`;
-            row.appendChild(left);
-            row.appendChild(right);
             cartItemsEl.appendChild(row);
           });
-          cartItemsEl.querySelectorAll("[data-remove]").forEach(btn => {
+          cartItemsEl.querySelectorAll("[data-remove]").forEach((btn) => {
             btn.addEventListener("click", () => {
               const key = btn.dataset.remove;
               cartEntries.delete(key);
@@ -711,27 +647,22 @@
         lastSubtotal = subtotal;
         if (hiddenTotal) hiddenTotal.value = subtotal.toFixed(2);
         if (summaryField) summaryField.value = JSON.stringify(lines);
-        if (summaryTextField) summaryTextField.value = lines.map(item => `${item.quantity}x ${item.title}`).join(", ");
+        if (summaryTextField) summaryTextField.value = lines.map((item) => `${item.quantity}x ${item.title}`).join(", ");
         if (itemsField) itemsField.value = JSON.stringify(lines);
         updateCheckoutAvailability();
       }
-
       function hasDeliveryInfo() {
         return requiredDeliveryFields.every(({ el }) => (el?.value || "").trim());
       }
-
       function updateCheckoutAvailability() {
         const hasItems = cartEntries.size > 0;
         const ready = hasItems && hasDeliveryInfo() && orderingEnabled;
         checkoutButton.disabled = !ready || preparingPayment;
         if (!ready) {
-          if (!orderingEnabled) {
-            checkoutHint.textContent = "Ordering is currently closed.";
-            checkoutHint.classList.remove("hidden");
-          } else {
-            checkoutHint.textContent = "Add at least one item and your email to continue.";
-            checkoutHint.classList.remove("hidden");
-          }
+          checkoutHint.textContent = orderingEnabled
+            ? "Add at least one item and your email to continue."
+            : "Ordering is currently closed.";
+          checkoutHint.classList.remove("hidden");
         } else if (!paymentReady) {
           checkoutHint.classList.add("hidden");
         }
@@ -740,11 +671,7 @@
         } else {
           stripeContainer?.classList.remove("hidden");
         }
-        if (!paymentReady) {
-          checkoutButton.textContent = "Submit Order for Payment";
-        }
       }
-
       function setOrderingEnabled(enabled, message = "Ordering is currently closed.") {
         orderingEnabled = Boolean(enabled);
         menuContainer?.querySelectorAll('input[type="number"]').forEach((input) => {
@@ -767,35 +694,19 @@
         }
         updateCheckoutAvailability();
       }
-
       async function loadSiteAvailability() {
         try {
           const response = await fetch("/api/products?settings=1&public=1");
           if (!response.ok) return;
           const data = await response.json();
-          const enabled = data?.settings?.shabbos_enabled !== false;
+          const enabled = data?.settings?.dairy_enabled !== false;
           if (!enabled) {
-            setOrderingEnabled(false, "Shabbos ordering is currently closed.");
+            setOrderingEnabled(false, "Dairy ordering is currently closed.");
           }
         } catch (err) {
           console.warn("Site settings fetch failed", err);
         }
       }
-
-      async function handleCheckoutClick() {
-        if (checkoutButton.disabled || preparingPayment) return;
-        const valid = validateDeliveryFields(true);
-        if (!valid) {
-          checkoutHint.classList.remove("hidden");
-          return;
-        }
-        checkoutHint.textContent = "Preparing payment details...";
-        checkoutHint.classList.remove("hidden");
-        await prepareStripePayment();
-      }
-
-      const defaultDeliveryText = cartDeliveryEl ? cartDeliveryEl.textContent : "Calculated at checkout";
-
       function updateDeliveryPolicy() {
         if (!deliveryPolicyEl) return;
         const deliveryValue = deliveryTypeInput?.value || "";
@@ -815,7 +726,6 @@
         }
         deliveryPolicyEl.classList.remove("hidden");
       }
-
       function storePendingOrder(payload) {
         try {
           sessionStorage.setItem(pendingOrderStorageKey, JSON.stringify(payload));
@@ -823,7 +733,6 @@
           console.warn("Unable to store pending order", err);
         }
       }
-
       function getPendingOrder() {
         try {
           const raw = sessionStorage.getItem(pendingOrderStorageKey);
@@ -833,11 +742,9 @@
           return null;
         }
       }
-
       function clearPendingOrder() {
         sessionStorage.removeItem(pendingOrderStorageKey);
       }
-
       function getCartLines() {
         return Array.from(cartEntries.values()).map((item) => {
           const quantity = item.quantity;
@@ -851,7 +758,6 @@
           };
         });
       }
-
       function buildOrderPayload() {
         const items = getCartLines();
         const deliveryType = deliveryTypeInput?.value || "";
@@ -859,61 +765,61 @@
         const deliveryStreet = (deliveryStreetInput?.value || "").trim();
         const deliveryCity = (deliveryCityInput?.value || "").trim() || deliveryArea;
         const address = [deliveryStreet, deliveryCity].filter(Boolean).join(", ");
-        const customer = {
-          name: (deliveryNameInput?.value || "").trim(),
-          phone: (deliveryPhoneInput?.value || "").trim(),
-          email: (deliveryEmailInput?.value || "").trim(),
-          address,
-          deliveryStreet,
-          deliveryCity,
-          deliveryType
-        };
         return {
-          customer,
+          customer: {
+            name: (deliveryNameInput?.value || "").trim(),
+            phone: (deliveryPhoneInput?.value || "").trim(),
+            email: (deliveryEmailInput?.value || "").trim(),
+            address,
+            deliveryStreet,
+            deliveryCity,
+            deliveryType
+          },
           items,
           total: lastSubtotal,
-          shabbosLabel: shabbosSelect?.value || "",
+          shabbosLabel: buildOrderLabel(),
           allergies: (allergiesInput?.value || "").trim(),
           notes: (notesInput?.value || "").trim(),
           deliveryNotes: (notesInput?.value || "").trim()
         };
       }
-
       async function createStripeIntent(payload) {
+        const response = await fetch("/api/stripe/intent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-order-key": orderApiKey
+          },
+          body: JSON.stringify(payload)
+        });
+        const text = await response.text();
+        let data = {};
         try {
-          const response = await fetch("/api/stripe/intent", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-order-key": orderApiKey
-            },
-            body: JSON.stringify(payload)
-          });
-          const text = await response.text();
-          let data = {};
-          try {
-            data = text ? JSON.parse(text) : {};
-          } catch (_err) {
-            data = {};
-          }
-          if (!response.ok) {
-            throw new Error(data?.body || data?.error || text || "Unable to create payment intent");
-          }
-          return data?.clientSecret;
-        } catch (err) {
-          console.error("Stripe intent failed", err);
-          throw err;
+          data = text ? JSON.parse(text) : {};
+        } catch (_err) {
+          data = {};
         }
+        if (!response.ok) {
+          throw new Error(data?.body || data?.error || text || "Unable to create payment intent");
+        }
+        return data?.clientSecret;
       }
-
       async function prepareStripePayment() {
         if (preparingPayment) return;
         if (!stripePublishableKey) {
           checkoutHint.textContent = "Stripe publishable key missing. Please configure it before checkout.";
           checkoutHint.classList.remove("hidden");
+          updateCheckoutAvailability();
           return;
         }
         if (!cartEntries.size) return;
+        if (paymentReady && paymentElement) {
+          checkoutHint.textContent = "Enter your card details below to complete payment.";
+          checkoutHint.classList.remove("hidden");
+          stripeContainer?.classList.remove("hidden");
+          updateCheckoutAvailability();
+          return;
+        }
         preparingPayment = true;
         checkoutButton.disabled = true;
         checkoutHint.textContent = "Preparing payment details...";
@@ -926,22 +832,25 @@
             checkoutHint.textContent = "Stripe failed to initialize.";
             checkoutHint.classList.remove("hidden");
             preparingPayment = false;
+            updateCheckoutAvailability();
             return;
           }
         }
-        let clientSecret;
+        let clientSecret = "";
         try {
           clientSecret = await createStripeIntent(payload);
         } catch (err) {
           checkoutHint.textContent = err.message || "Stripe payment could not be prepared.";
           checkoutHint.classList.remove("hidden");
           preparingPayment = false;
+          updateCheckoutAvailability();
           return;
         }
         if (!clientSecret) {
           checkoutHint.textContent = "Stripe client secret missing.";
           checkoutHint.classList.remove("hidden");
           preparingPayment = false;
+          updateCheckoutAvailability();
           return;
         }
         currentClientSecret = clientSecret;
@@ -956,14 +865,13 @@
         checkoutHint.textContent = "Enter your card details below to complete payment.";
         checkoutHint.classList.remove("hidden");
         stripeContainer?.classList.remove("hidden");
-        stripePayButton.disabled = false;
+        if (stripePayButton) stripePayButton.disabled = false;
         preparingPayment = false;
         updateCheckoutAvailability();
       }
-
       async function submitOrder(payload) {
         try {
-        const response = await fetch("/api/send-order-email", {
+          const response = await fetch("/api/send-order-email", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -975,21 +883,31 @@
           console.error("Order submission error", err);
         }
       }
-
+      async function handleCheckoutClick() {
+        if (checkoutButton.disabled || preparingPayment) return;
+        const valid = validateDeliveryFields(true);
+        if (!valid) {
+          checkoutHint.classList.remove("hidden");
+          return;
+        }
+        checkoutHint.textContent = "Preparing payment details...";
+        checkoutHint.classList.remove("hidden");
+        await prepareStripePayment();
+      }
       async function handleStripePayment() {
         if (!stripeInstance || !elements || !paymentElement || !cartEntries.size) return;
-        stripePayButton.disabled = true;
+        if (stripePayButton) stripePayButton.disabled = true;
         const result = await stripeInstance.confirmPayment({
           elements,
           confirmParams: {
-            return_url: `${window.location.origin}/shabbos.html?stripe_return=1`
+            return_url: `${window.location.origin}/dairy.html?stripe_return=1`
           },
           redirect: "if_required"
         });
         if (result.error) {
           checkoutHint.textContent = result.error.message || "Payment failed.";
           checkoutHint.classList.remove("hidden");
-          stripePayButton.disabled = false;
+          if (stripePayButton) stripePayButton.disabled = false;
           return;
         }
         if (result.paymentIntent && result.paymentIntent.status === "succeeded") {
@@ -1002,11 +920,10 @@
             clearPendingOrder();
           }
           window.location.href = "/thank-you.html";
-        } else {
+        } else if (stripePayButton) {
           stripePayButton.disabled = false;
         }
       }
-
       async function processPendingOrderFromReturn() {
         const params = new URLSearchParams(window.location.search);
         if (!params.get("stripe_return")) return;
@@ -1026,32 +943,30 @@
         if (!field) return;
         field.addEventListener("input", () => {
           setFieldError(field, false);
-          if (paymentReady) {
-            resetStripeSession();
-          }
+          if (paymentReady) resetStripeSession();
+          updateOrderLabelDisplay();
           updateCheckoutAvailability();
         });
       });
-
-      checkoutButton.addEventListener("click", handleCheckoutClick);
-      stripePayButton?.addEventListener("click", handleStripePayment);
       deliveryTypeInput?.addEventListener("change", () => {
-        setFieldError(deliveryTypeInput, false);
-        if (paymentReady) {
-          resetStripeSession();
-        }
+        if (paymentReady) resetStripeSession();
         updateDeliveryPolicy();
+        updateOrderLabelDisplay();
         updateCheckoutAvailability();
       });
-
+      checkoutButton.addEventListener("click", handleCheckoutClick);
+      stripePayButton?.addEventListener("click", handleStripePayment);
       document.getElementById("menuBtn").addEventListener("click", () => {
         document.getElementById("mobileNav").classList.toggle("hidden");
       });
-
-      document.addEventListener("DOMContentLoaded", () => {
-        populateShabbosOptions();
-        renderMenu();
-        loadMenuFromApi();
+      document.addEventListener("DOMContentLoaded", async () => {
+        const today = nowInIsrael();
+        const isoToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+        if (requestedDateInput) requestedDateInput.min = isoToday;
+        updateOrderLabelDisplay();
+        setMenuLoading(true);
+        await loadMenuFromFallback();
+        await loadMenuFromApi();
         loadSiteAvailability();
         updateCheckoutAvailability();
         updateDeliveryPolicy();

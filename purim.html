@@ -3,13 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Shabbos Orders | Palate Catering</title>
+    <title>Purim Orders | Palate Catering</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- hebcal data already included via parshaCache map -->
     <script src="https://js.stripe.com/v3/"></script>
     <script defer src="/scripts/stripe-client.js"></script>
-    <script defer src="/data/shabbos-menu.js"></script>
     <script>
       window.palateStripePublishableKey = "pk_live_51SsV1AHvQR9vTlcaRVOQfV9PT3fcd3AqGxJkTD0eowEeFM4810GYsKMz5UlxMv6c8Kqk2pNaQ8SEhBwUTszRFATy00Xlb9uhD3";
       window.palateOrderApiKey = "Hashem613!";
@@ -163,8 +162,8 @@
           <a href="/#services" class="hover:opacity-70">Services</a>
           <a href="/#contact" class="hover:opacity-70">Contact</a>
           <a href="/kashrus.html" class="hover:opacity-70">Kashrus</a>
-          <a href="/shabbos.html" class="font-semibold">Shabbos</a>
-          <a href="/purim.html" class="hover:opacity-70">Purim</a>
+          <a href="/shabbos.html" class="hover:opacity-70">Shabbos</a>
+          <a href="/purim.html" class="font-semibold">Purim</a>
           <a href="/dairy.html" class="hover:opacity-70">Dairy</a>
         </nav>
 
@@ -188,8 +187,8 @@
           <a href="/#services" class="block">Services</a>
           <a href="/#contact" class="block">Contact</a>
           <a href="/kashrus.html" class="block">Kashrus</a>
-          <a href="/shabbos.html" class="block font-semibold">Shabbos</a>
-          <a href="/purim.html" class="block">Purim</a>
+          <a href="/shabbos.html" class="block">Shabbos</a>
+          <a href="/purim.html" class="block font-semibold">Purim</a>
           <a href="/dairy.html" class="block">Dairy</a>
         </nav>
       </div>
@@ -206,7 +205,7 @@
         <section class="flex flex-col lg:flex-row gap-8 lg:items-center">
           <div class="flex-1">
             <p class="uppercase text-xs tracking-[0.32em] text-amber-700 mb-3">Weekly Menu</p>
-            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Shabbos Menu</h1>
+            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Purim Menu</h1>
             <p class="text-neutral-600 text-lg max-w-2xl">
               Build your full menu, confirm your details, and we'll take care of the rest.
             </p>
@@ -227,7 +226,7 @@
               <span class="inline-flex h-10 w-10 rounded-full bg-amber-100 text-amber-800 items-center justify-center font-semibold">⏳</span>
               <div>
                 <p class="text-sm text-neutral-600">Cutoff</p>
-                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Wednesday 23:59 Israel time for this Shabbos.</p>
+                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Wednesday, February 25, 2026 at 11:59 PM Israel time.</p>
                 <p class="text-sm text-neutral-600 mt-1" id="orderStatusText"></p>
               </div>
             </div>
@@ -281,7 +280,7 @@
                   <option value="modiin">Modiin</option>
                   <option value="delivery_quote" selected>Give me a delivery quote</option>
                 </select>
-                <select id="shabbosSelect" name="Shabbos Date" class="border rounded-xl px-3 py-2">
+                <select id="shabbosSelect" name="Purim Date" class="border rounded-xl px-3 py-2">
                   <option>Loading weeks…</option>
                 </select>
                 <p id="shabbosNote" class="text-xs text-amber-700"></p>
@@ -363,8 +362,8 @@
       function formatDate(d) {
         return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
       }
-      function labelShabbos(d, parshaName) {
-        return parshaName ? `Shabbos Parshas ${parshaName} — ${formatDate(d)}` : `Shabbos — ${formatDate(d)}`;
+      function labelShabbos() {
+        return "Purim 2026 — Feb 24, 2026";
       }
       function getCloseAndDropTimes(date) {
         const close = new Date(date);
@@ -422,32 +421,16 @@
         const select = document.getElementById("shabbosSelect");
         const note = document.getElementById("shabbosNote");
         if (!select) return;
-        const options = [];
-        const today = nowInIsrael();
-        for (let weeks = 0; weeks <= 104; weeks++) {
-          const d = shabbosDate(weeks);
-          const parsha = parshaForDate(d);
-          const { close, drop } = getCloseAndDropTimes(d);
-          if (today > drop) continue;
-          const closed = today >= close;
-          options.push({
-            value: labelShabbos(d, parsha),
-            text: labelShabbos(d, parsha) + (closed ? " (closed)" : ""),
-            closed
-          });
-        }
         select.innerHTML = "";
-        options.forEach((o) => {
-          const opt = document.createElement("option");
-          opt.value = o.value;
-          opt.textContent = o.text;
-          opt.disabled = o.closed;
-          if (!o.closed && select.selectedIndex === -1) opt.selected = true;
-          select.appendChild(opt);
-        });
-        if (note) note.textContent = "Orders close Wednesday 23:59 Israel time for that week.";
+        const label = labelShabbos();
+        const opt = document.createElement("option");
+        opt.value = label;
+        opt.textContent = label;
+        opt.selected = true;
+        select.appendChild(opt);
+        if (note) note.textContent = "Orders close Wednesday, February 25, 2026 at 11:59 PM Israel time.";
         const cutoffText = document.getElementById("orderCutoffText");
-        if (cutoffText) cutoffText.textContent = "Orders close Wednesday 23:59 Israel time for this Shabbos.";
+        if (cutoffText) cutoffText.textContent = "Orders close Wednesday, February 25, 2026 at 11:59 PM Israel time.";
       }
 
       const cartEntries = new Map();
@@ -638,7 +621,7 @@
       async function loadMenuFromApi() {
         setMenuLoading(true);
         try {
-          const response = await fetch("/api/products?menu=shabbos");
+          const response = await fetch("/api/products?menu=purim");
           if (!response.ok) {
             throw new Error("Unable to load menu");
           }
@@ -773,12 +756,20 @@
           const response = await fetch("/api/products?settings=1&public=1");
           if (!response.ok) return;
           const data = await response.json();
-          const enabled = data?.settings?.shabbos_enabled !== false;
+          const enabled = data?.settings?.purim_enabled !== false;
           if (!enabled) {
-            setOrderingEnabled(false, "Shabbos ordering is currently closed.");
+            setOrderingEnabled(false, "Purim ordering is currently closed.");
           }
         } catch (err) {
           console.warn("Site settings fetch failed", err);
+        }
+      }
+
+      function applyPurimCutoff() {
+        const cutoff = new Date("2026-02-26T00:00:00+02:00");
+        const now = nowInIsrael();
+        if (now >= cutoff) {
+          setOrderingEnabled(false, "Purim orders closed Wednesday, February 25, 2026 at 11:59 PM Israel time.");
         }
       }
 
@@ -982,7 +973,7 @@
         const result = await stripeInstance.confirmPayment({
           elements,
           confirmParams: {
-            return_url: `${window.location.origin}/shabbos.html?stripe_return=1`
+            return_url: `${window.location.origin}/purim.html?stripe_return=1`
           },
           redirect: "if_required"
         });
@@ -1053,6 +1044,7 @@
         renderMenu();
         loadMenuFromApi();
         loadSiteAvailability();
+        applyPurimCutoff();
         updateCheckoutAvailability();
         updateDeliveryPolicy();
         processPendingOrderFromReturn();
