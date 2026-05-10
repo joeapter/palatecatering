@@ -86,7 +86,9 @@ function normalizeProductVariants(value) {
 async function removeLegacyShavuosSauceVariantRows() {
   await sql`
     UPDATE products
-    SET menu_tags = COALESCE(array_remove(menu_tags, 'shavuos'), ARRAY[]::text[])
+    SET
+      active = false,
+      menu_tags = COALESCE(array_remove(menu_tags, 'shavuos'), ARRAY[]::text[])
     WHERE category = 'Sauces'
       AND title = ANY(${legacyShavuosSauceVariantTitles});
   `;
@@ -175,18 +177,20 @@ async function seedShavuosMenu() {
       const updated = await sql`
         UPDATE products
         SET
-          description = ${item.description || ''},
-          price = ${Number(item.price) || 0},
-          sold_by = ${item.soldBy || ''},
-          qty_label = ${item.qtyLabel || 'Order Qty'},
-          image_url = ${item.image || ''},
-          variants = ${JSON.stringify(variants)}::jsonb,
+          description = CASE WHEN COALESCE(description, '') = '' THEN ${item.description || ''} ELSE description END,
+          price = CASE WHEN COALESCE(price, 0) = 0 THEN ${Number(item.price) || 0} ELSE price END,
+          sold_by = CASE WHEN COALESCE(sold_by, '') = '' THEN ${item.soldBy || ''} ELSE sold_by END,
+          qty_label = CASE WHEN COALESCE(qty_label, '') = '' THEN ${item.qtyLabel || 'Order Qty'} ELSE qty_label END,
+          image_url = CASE WHEN COALESCE(image_url, '') = '' THEN ${item.image || ''} ELSE image_url END,
+          variants = CASE
+            WHEN variants IS NULL OR variants = '[]'::jsonb THEN ${JSON.stringify(variants)}::jsonb
+            ELSE variants
+          END,
           menu_tags = CASE
             WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['shavuos']::text[]
             WHEN NOT ('shavuos' = ANY(menu_tags)) THEN array_append(menu_tags, 'shavuos')
             ELSE menu_tags
-          END,
-          active = true
+          END
         WHERE category = ${categoryName}
           AND title = ${title};
       `;
@@ -423,7 +427,13 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'DELETE') {
-    const { id } = body;
+    let deleteUrl;
+    try {
+      deleteUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    } catch (_err) {
+      deleteUrl = null;
+    }
+    const id = body.id || deleteUrl?.searchParams.get('id');
     if (!id) {
       res.status(400).send('Product id required');
       return;

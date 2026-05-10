@@ -1747,7 +1747,29 @@
             els.productImage.value = imageUrl;
           }
           setProductImagePreview(imageUrl);
-          setProductImageStatus('Upload complete');
+          if (state.productEditorMode === 'edit' && state.productDraft?.id) {
+            setProductImageStatus('Saving image...');
+            const saveResponse = await apiFetch('products', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                id: state.productDraft.id,
+                imageUrl,
+                key: state.adminKey
+              })
+            });
+            if (!saveResponse.ok) {
+              const text = await saveResponse.text();
+              throw new Error(text || 'Image uploaded, but product save failed');
+            }
+            state.productDraft = { ...state.productDraft, image: imageUrl };
+            setProductImageStatus('Image saved');
+            await loadProducts(true);
+          } else {
+            setProductImageStatus('Upload complete. Save the product to keep it.');
+          }
         } catch (error) {
           setProductImageStatus(error.message || 'Upload failed', true);
         } finally {
@@ -1869,7 +1891,7 @@
           return;
         }
         try {
-          const response = await apiFetch('products', {
+          const response = await apiFetch(`products?id=${encodeURIComponent(target.id)}`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json'
@@ -1884,7 +1906,9 @@
           closeProductEditor();
           await loadProducts(true);
         } catch (error) {
-          showProductEditorMessage(error.message || 'Delete failed.');
+          const message = error.message || 'Delete failed.';
+          showProductEditorMessage(message);
+          showToast(message, { type: 'error' });
         }
       }
 
