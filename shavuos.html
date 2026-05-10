@@ -56,6 +56,28 @@
       .price-block .sold-by { font-size: 0.75rem; color: rgba(15,23,42,0.6); margin-left: 0.25rem; }
       .qty-group { text-align: center; display: flex; flex-direction: column; gap: 0.25rem; align-items: center; }
       .qty-group span { font-size: 0.65rem; letter-spacing: 0.25em; font-weight: 700; }
+      .variant-list { display: flex; flex-direction: column; gap: 0.65rem; }
+      .variant-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.85rem;
+        border: 1px solid rgba(15,23,42,0.08);
+        border-radius: 1rem;
+        padding: 0.75rem;
+        background: rgba(248,250,252,0.8);
+      }
+      .variant-meta { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+      .variant-label { font-size: 0.9rem; font-weight: 700; color: #111827; }
+      .variant-price { font-size: 0.8rem; color: rgba(15,23,42,0.68); }
+      .variant-row input[type="number"] {
+        width: 86px;
+        border-radius: 999px;
+        border: 1px solid rgba(15,23,42,0.12);
+        font-weight: 600;
+        padding: 0.55rem 0.75rem;
+        text-align: center;
+      }
       .input-error { border-color: #dc2626 !important; background: #fff1f2; }
       .delivery-panel input,
       .delivery-panel select,
@@ -365,6 +387,16 @@
       function formatCurrency(value) {
         return `₪${(Number(value) || 0).toFixed(2)}`.replace(".00", "");
       }
+      function normalizeVariantOptions(item) {
+        const variants = Array.isArray(item?.variants) ? item.variants : [];
+        return variants
+          .map((variant) => ({
+            label: String(variant?.label || variant?.soldBy || "").trim(),
+            soldBy: String(variant?.soldBy || variant?.label || "").trim(),
+            price: Number(variant?.price) || 0
+          }))
+          .filter((variant) => variant.label && variant.price > 0);
+      }
       function formatOrderDate(value) {
         if (!value) return "";
         const date = new Date(`${value}T12:00:00`);
@@ -425,13 +457,17 @@
         return (categories || []).map((category) => ({
           category: category.category || "Uncategorized",
           items: Array.isArray(category.items)
-            ? category.items.map((item) => ({
-                ...item,
-                price: Number(item.price) || 0,
-                soldBy: item.soldBy || "",
-                qtyLabel: item.qtyLabel || "Order Qty",
-                image: item.image || ""
-              }))
+            ? category.items.map((item) => {
+                const variants = normalizeVariantOptions(item);
+                return {
+                  ...item,
+                  price: Number(item.price) || 0,
+                  soldBy: item.soldBy || "",
+                  qtyLabel: item.qtyLabel || "Order Qty",
+                  image: item.image || "",
+                  variants
+                };
+              })
             : []
         })).filter((category) => category.items.length);
       }
@@ -453,11 +489,39 @@
           category.items.forEach((item) => {
             const key = `${category.category}-${item.title}`;
             const normalizedKey = slugify(key);
+            const variants = Array.isArray(item.variants) ? item.variants : [];
             const card = document.createElement("article");
             card.className = "menu-card";
             const media = item.image
               ? `<div class="bg-neutral-100"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" /></div>`
               : '<div class="menu-card-placeholder"><span class="text-xs uppercase tracking-[0.35em] text-teal-700">Palate Catering</span><span class="text-sm font-medium text-neutral-500">Shavuos Collection</span></div>';
+            const orderControls = variants.length
+              ? `<div class="variant-list">
+                  ${variants.map((variant, index) => {
+                    const variantKey = slugify(`${key}-${variant.label}`);
+                    return `
+                      <div class="variant-row">
+                        <div class="variant-meta">
+                          <span class="variant-label">${escapeHtml(variant.label)}</span>
+                          <span class="variant-price">${formatCurrency(variant.price)}</span>
+                        </div>
+                        <div class="qty-group">
+                          <span class="text-neutral-500 uppercase font-bold">${escapeHtml(item.qtyLabel || "Order Qty")}</span>
+                          <input min="0" step="1" type="number" value="0" data-item-key="${escapeHtml(variantKey)}" data-variant-index="${index}" class="tracking-wide text-center font-semibold text-sm text-neutral-900 bg-white/80 px-3 py-2 focus:outline-none" />
+                        </div>
+                      </div>`;
+                  }).join("")}
+                </div>`
+              : `<div class="menu-card-footer">
+                  <div class="price-block">
+                    ${formatCurrency(item.price)}
+                    <span class="sold-by">/ ${escapeHtml(item.soldBy || "Each")}</span>
+                  </div>
+                  <div class="qty-group">
+                    <span class="text-neutral-500 uppercase font-bold">${escapeHtml(item.qtyLabel || "Order Qty")}</span>
+                    <input min="0" step="1" type="number" value="0" data-item-key="${escapeHtml(normalizedKey)}" class="tracking-wide text-center font-semibold text-sm text-neutral-900 bg-white/80 px-3 py-2 focus:outline-none" />
+                  </div>
+                </div>`;
             card.innerHTML = `
               ${media}
               <div class="menu-card-body">
@@ -465,23 +529,23 @@
                   <h4 class="text-lg font-semibold">${escapeHtml(item.title)}</h4>
                   <p class="text-sm text-neutral-600 mt-2">${escapeHtml(item.description || "")}</p>
                 </div>
-                <div class="menu-card-footer">
-                  <div class="price-block">
-                    ${formatCurrency(item.price)}
-                    <span class="sold-by">/ ${escapeHtml(item.soldBy || "Each")}</span>
-                  </div>
-                  <div class="qty-group">
-                    <span class="text-neutral-500 uppercase font-bold">${escapeHtml(item.qtyLabel || "Order Qty")}</span>
-                    <input min="0" step="1" type="number" value="0" data-item-key="${normalizedKey}" class="tracking-wide text-center font-semibold text-sm text-neutral-900 bg-white/80 px-3 py-2 focus:outline-none" />
-                  </div>
-                </div>
+                ${orderControls}
               </div>`;
-            const input = card.querySelector("input");
-            input.disabled = !orderingEnabled;
-            input.addEventListener("input", () => {
-              const quantity = Math.max(0, Math.floor(Number(input.value) || 0));
-              input.value = quantity;
-              updateCartLine(normalizedKey, { ...item, key: normalizedKey }, quantity);
+            card.querySelectorAll("input[data-item-key]").forEach((input) => {
+              input.disabled = !orderingEnabled;
+              input.addEventListener("input", () => {
+                const quantity = Math.max(0, Math.floor(Number(input.value) || 0));
+                const variant = variants[Number(input.dataset.variantIndex)];
+                const itemKey = input.dataset.itemKey || normalizedKey;
+                input.value = quantity;
+                updateCartLine(itemKey, {
+                  ...item,
+                  key: itemKey,
+                  price: variant ? variant.price : item.price,
+                  soldBy: variant ? (variant.soldBy || variant.label) : item.soldBy,
+                  variantLabel: variant ? variant.label : ""
+                }, quantity);
+              });
             });
             grid.appendChild(card);
           });
@@ -578,7 +642,7 @@
         lastSubtotal = subtotal;
         if (hiddenTotal) hiddenTotal.value = subtotal.toFixed(2);
         if (summaryField) summaryField.value = JSON.stringify(lines);
-        if (summaryTextField) summaryTextField.value = lines.map((item) => `${item.quantity}x ${item.title}`).join(", ");
+        if (summaryTextField) summaryTextField.value = lines.map((item) => `${item.quantity}x ${item.title}${item.soldBy ? ` (${item.soldBy})` : ""}`).join(", ");
         if (itemsField) itemsField.value = JSON.stringify(lines);
         updateCheckoutAvailability();
       }

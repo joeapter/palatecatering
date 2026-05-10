@@ -132,52 +132,64 @@
     "category": "Sauces",
     "items": [
       {
-        "title": "Penne Alla Vodka Sauce - 1 Litre",
+        "title": "Penne Alla Vodka Sauce",
         "description": "",
         "price": 100,
         "soldBy": "1 Litre",
         "qtyLabel": "Order Qty",
-        "image": ""
+        "image": "",
+        "variants": [
+          {
+            "label": "1 Litre",
+            "price": 100,
+            "soldBy": "1 Litre"
+          },
+          {
+            "label": "500 ml",
+            "price": 60,
+            "soldBy": "500 ml"
+          }
+        ]
       },
       {
-        "title": "Penne Alla Vodka Sauce - 500 ml",
-        "description": "",
-        "price": 60,
-        "soldBy": "500 ml",
-        "qtyLabel": "Order Qty",
-        "image": ""
-      },
-      {
-        "title": "Fettuccine Sauce - 1 Litre",
-        "description": "",
-        "price": 95,
-        "soldBy": "1 Litre",
-        "qtyLabel": "Order Qty",
-        "image": ""
-      },
-      {
-        "title": "Fettuccine Sauce - 500 ml",
-        "description": "",
-        "price": 55,
-        "soldBy": "500 ml",
-        "qtyLabel": "Order Qty",
-        "image": ""
-      },
-      {
-        "title": "Mushroom Cream Sauce - 1 Litre",
+        "title": "Fettuccine Sauce",
         "description": "",
         "price": 95,
         "soldBy": "1 Litre",
         "qtyLabel": "Order Qty",
-        "image": ""
+        "image": "",
+        "variants": [
+          {
+            "label": "1 Litre",
+            "price": 95,
+            "soldBy": "1 Litre"
+          },
+          {
+            "label": "500 ml",
+            "price": 55,
+            "soldBy": "500 ml"
+          }
+        ]
       },
       {
-        "title": "Mushroom Cream Sauce - 500 ml",
+        "title": "Mushroom Cream Sauce",
         "description": "",
-        "price": 55,
-        "soldBy": "500 ml",
+        "price": 95,
+        "soldBy": "1 Litre",
         "qtyLabel": "Order Qty",
-        "image": ""
+        "image": "",
+        "variants": [
+          {
+            "label": "1 Litre",
+            "price": 95,
+            "soldBy": "1 Litre"
+          },
+          {
+            "label": "500 ml",
+            "price": 55,
+            "soldBy": "500 ml"
+          }
+        ]
       }
     ]
   }

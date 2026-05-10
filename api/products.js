@@ -10,12 +10,14 @@ async function ensureProductsTable() {
       sold_by text,
       qty_label text,
       image_url text,
+      variants jsonb DEFAULT '[]'::jsonb,
       menu_tags text[],
       active boolean DEFAULT true,
       created_at timestamptz DEFAULT now()
     );
   `;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS menu_tags text[]`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS variants jsonb DEFAULT '[]'::jsonb`;
 }
 
 async function ensureSettingsTable() {
@@ -53,6 +55,42 @@ async function readSettings(keys) {
 const legacyMenu = require('../data/shabbos-menu.json');
 const dairyMenu = require('../data/dairy-menu.json');
 const shavuosMenu = require('../data/shavuos-menu.json');
+const legacyShavuosSauceVariantTitles = [
+  'Penne Alla Vodka Sauce - 1 Litre',
+  'Penne Alla Vodka Sauce - 500 ml',
+  'Fettuccine Sauce - 1 Litre',
+  'Fettuccine Sauce - 500 ml',
+  'Mushroom Cream Sauce - 1 Litre',
+  'Mushroom Cream Sauce - 500 ml'
+];
+
+function normalizeProductVariants(value) {
+  let variants = value;
+  if (typeof variants === 'string') {
+    try {
+      variants = JSON.parse(variants);
+    } catch (_err) {
+      variants = [];
+    }
+  }
+  if (!Array.isArray(variants)) return [];
+  return variants
+    .map((variant) => ({
+      label: String(variant?.label || variant?.soldBy || '').trim(),
+      price: Number(variant?.price) || 0,
+      soldBy: String(variant?.soldBy || variant?.label || '').trim()
+    }))
+    .filter((variant) => variant.label && variant.price > 0);
+}
+
+async function removeLegacyShavuosSauceVariantRows() {
+  await sql`
+    UPDATE products
+    SET menu_tags = COALESCE(array_remove(menu_tags, 'shavuos'), ARRAY[]::text[])
+    WHERE category = 'Sauces'
+      AND title = ANY(${legacyShavuosSauceVariantTitles});
+  `;
+}
 
 async function seedLegacyMenu() {
   const { rows } = await sql`SELECT COUNT(*)::int AS count FROM products;`;
@@ -133,6 +171,7 @@ async function seedShavuosMenu() {
     for (const item of items) {
       const title = item?.title || '';
       if (!title) continue;
+      const variants = normalizeProductVariants(item?.variants);
       const updated = await sql`
         UPDATE products
         SET
@@ -141,6 +180,7 @@ async function seedShavuosMenu() {
           sold_by = ${item.soldBy || ''},
           qty_label = ${item.qtyLabel || 'Order Qty'},
           image_url = ${item.image || ''},
+          variants = ${JSON.stringify(variants)}::jsonb,
           menu_tags = CASE
             WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['shavuos']::text[]
             WHEN NOT ('shavuos' = ANY(menu_tags)) THEN array_append(menu_tags, 'shavuos')
@@ -152,7 +192,7 @@ async function seedShavuosMenu() {
       `;
       if ((updated.rowCount || 0) > 0) continue;
       await sql`
-        INSERT INTO products (category, title, description, price, sold_by, qty_label, image_url, menu_tags, active)
+        INSERT INTO products (category, title, description, price, sold_by, qty_label, image_url, variants, menu_tags, active)
         VALUES (
           ${categoryName},
           ${title},
@@ -161,12 +201,14 @@ async function seedShavuosMenu() {
           ${item.soldBy || ''},
           ${item.qtyLabel || 'Order Qty'},
           ${item.image || ''},
+          ${JSON.stringify(variants)}::jsonb,
           ${sql`ARRAY['shavuos']::text[]`},
           true
         );
       `;
     }
   }
+  await removeLegacyShavuosSauceVariantRows();
 }
 
 function formatPublicSettings(settings) {
@@ -225,7 +267,7 @@ module.exports = async (req, res) => {
       if (menu) {
         if (menu === 'shabbos') {
           const result = await sql`
-            SELECT id, category, title, description, price, sold_by, qty_label, image_url, active, menu_tags
+            SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags
             FROM products
             WHERE active AND (menu_tags @> ARRAY['shabbos']::text[] OR menu_tags IS NULL)
             ORDER BY id;
@@ -233,7 +275,7 @@ module.exports = async (req, res) => {
           rows = result.rows;
         } else {
           const result = await sql`
-            SELECT id, category, title, description, price, sold_by, qty_label, image_url, active, menu_tags
+            SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags
             FROM products
             WHERE active AND menu_tags @> ARRAY[${menu}]::text[]
             ORDER BY id;
@@ -242,7 +284,7 @@ module.exports = async (req, res) => {
         }
       } else {
         const result = await sql`
-          SELECT id, category, title, description, price, sold_by, qty_label, image_url, active, menu_tags
+          SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags
           FROM products
           WHERE active
           ORDER BY id;
@@ -265,6 +307,7 @@ module.exports = async (req, res) => {
           soldBy: row.sold_by || '',
           qtyLabel: row.qty_label || '',
           image: row.image_url || '',
+          variants: normalizeProductVariants(row.variants),
           menuTags: row.menu_tags || [],
           active: row.active
         });
@@ -313,17 +356,18 @@ module.exports = async (req, res) => {
       }
       return;
     }
-    const { category, title, description = '', price = 0, soldBy = '', qtyLabel = '', imageUrl = '', menuTags = null, active = true } = body;
+    const { category, title, description = '', price = 0, soldBy = '', qtyLabel = '', imageUrl = '', variants = null, menuTags = null, active = true } = body;
     if (!category || !title) {
       res.status(400).send('Category and title are required');
       return;
     }
     const tags = Array.isArray(menuTags) && menuTags.length ? menuTags : ['shabbos'];
+    const productVariants = normalizeProductVariants(variants);
     try {
       const result = await sql`
-        INSERT INTO products (category, title, description, price, sold_by, qty_label, image_url, menu_tags, active)
-        VALUES (${category}, ${title}, ${description}, ${Number(price) || 0}, ${soldBy}, ${qtyLabel}, ${imageUrl}, ${tags}, ${Boolean(active)})
-        RETURNING id, category, title, description, price, sold_by, qty_label, image_url, menu_tags, active;
+        INSERT INTO products (category, title, description, price, sold_by, qty_label, image_url, variants, menu_tags, active)
+        VALUES (${category}, ${title}, ${description}, ${Number(price) || 0}, ${soldBy}, ${qtyLabel}, ${imageUrl}, ${JSON.stringify(productVariants)}::jsonb, ${tags}, ${Boolean(active)})
+        RETURNING id, category, title, description, price, sold_by, qty_label, image_url, variants, menu_tags, active;
       `;
       res.status(201).json({ product: result.rows[0] });
     } catch (error) {
@@ -334,7 +378,7 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'PUT') {
-    const { id, category, title, description, price, soldBy, qtyLabel, imageUrl, menuTags, active } = body;
+    const { id, category, title, description, price, soldBy, qtyLabel, imageUrl, variants, menuTags, active } = body;
     if (!id) {
       res.status(400).send('Product id required');
       return;
@@ -347,6 +391,7 @@ module.exports = async (req, res) => {
     if (soldBy !== undefined) updates.push(sql`UPDATE products SET sold_by = ${soldBy} WHERE id = ${id}`);
     if (qtyLabel !== undefined) updates.push(sql`UPDATE products SET qty_label = ${qtyLabel} WHERE id = ${id}`);
     if (imageUrl !== undefined) updates.push(sql`UPDATE products SET image_url = ${imageUrl} WHERE id = ${id}`);
+    if (variants !== undefined) updates.push(sql`UPDATE products SET variants = ${JSON.stringify(normalizeProductVariants(variants))}::jsonb WHERE id = ${id}`);
     if (menuTags !== undefined) updates.push(sql`UPDATE products SET menu_tags = ${Array.isArray(menuTags) ? menuTags : []} WHERE id = ${id}`);
     if (active !== undefined) updates.push(sql`UPDATE products SET active = ${Boolean(active)} WHERE id = ${id}`);
 
@@ -360,7 +405,7 @@ module.exports = async (req, res) => {
         await query;
       }
       const result = await sql`
-        SELECT id, category, title, description, price, sold_by, qty_label, image_url, menu_tags, active
+        SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, menu_tags, active
         FROM products
         WHERE id = ${id};
       `;
