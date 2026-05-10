@@ -424,6 +424,10 @@
                       <input id="productMenuDairy" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
                       Dairy
                     </label>
+                    <label class="flex items-center gap-2">
+                      <input id="productMenuShavuos" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                      Shavuos
+                    </label>
                   </div>
                 </label>
                 <label class="text-xs uppercase tracking-[0.2em] text-slate-500 sm:col-span-2">
@@ -498,6 +502,10 @@
                 <label class="flex items-center gap-2">
                   <input id="settingsDairyEnabled" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
                   Dairy page enabled
+                </label>
+                <label class="flex items-center gap-2">
+                  <input id="settingsShavuosEnabled" type="checkbox" class="h-4 w-4 rounded border-slate-200 text-amber-500" />
+                  Shavuos page enabled
                 </label>
               </div>
               <div class="flex items-center gap-3">
@@ -684,6 +692,7 @@
         productMenuShabbos: document.getElementById('productMenuShabbos'),
         productMenuPurim: document.getElementById('productMenuPurim'),
         productMenuDairy: document.getElementById('productMenuDairy'),
+        productMenuShavuos: document.getElementById('productMenuShavuos'),
         productImageFile: document.getElementById('productImageFile'),
         productImageUploadBtn: document.getElementById('productImageUploadBtn'),
         productImageStatus: document.getElementById('productImageStatus'),
@@ -701,6 +710,7 @@
         settingsShabbosEnabled: document.getElementById('settingsShabbosEnabled'),
         settingsPurimEnabled: document.getElementById('settingsPurimEnabled'),
         settingsDairyEnabled: document.getElementById('settingsDairyEnabled'),
+        settingsShavuosEnabled: document.getElementById('settingsShavuosEnabled'),
         settingsSaveSiteBtn: document.getElementById('settingsSaveSiteBtn'),
         settingsSiteStatus: document.getElementById('settingsSiteStatus'),
         clearSelectionBtn: document.getElementById('clearSelectionBtn'),
@@ -770,7 +780,8 @@
         all: { label: 'All Menus', buttonLabel: 'Add item', emptyLabel: 'No products defined yet.' },
         shabbos: { label: 'Shabbos', buttonLabel: 'Add Shabbos item', emptyLabel: 'No Shabbos items defined yet.' },
         purim: { label: 'Purim', buttonLabel: 'Add Purim item', emptyLabel: 'No Purim items defined yet.' },
-        dairy: { label: 'Dairy', buttonLabel: 'Add Dairy item', emptyLabel: 'No Dairy items defined yet.' }
+        dairy: { label: 'Dairy', buttonLabel: 'Add Dairy item', emptyLabel: 'No Dairy items defined yet.' },
+        shavuos: { label: 'Shavuos', buttonLabel: 'Add Shavuos item', emptyLabel: 'No Shavuos items defined yet.' }
       };
       let loginPending = false;
 
@@ -1371,7 +1382,7 @@
       }
 
       async function loadSiteSettings() {
-        if (!els.settingsShabbosEnabled || !els.settingsPurimEnabled || !els.settingsDairyEnabled) return;
+        if (!els.settingsShabbosEnabled || !els.settingsPurimEnabled || !els.settingsDairyEnabled || !els.settingsShavuosEnabled) return;
         if (!state.adminKey) {
           setSiteSettingsStatus('Enter the admin key to load settings.');
           return;
@@ -1392,9 +1403,11 @@
           const shabbosEnabled = settings.shabbos_enabled !== false;
           const purimEnabled = settings.purim_enabled !== false;
           const dairyEnabled = settings.dairy_enabled !== false;
+          const shavuosEnabled = settings.shavuos_enabled !== false;
           els.settingsShabbosEnabled.checked = shabbosEnabled;
           els.settingsPurimEnabled.checked = purimEnabled;
           els.settingsDairyEnabled.checked = dairyEnabled;
+          els.settingsShavuosEnabled.checked = shavuosEnabled;
           setSiteSettingsStatus('Settings loaded.');
         } catch (error) {
           setSiteSettingsStatus(error.message || 'Failed to load settings.', true);
@@ -1406,7 +1419,7 @@
           showToast('Enter the admin key to save settings.', { type: 'error' });
           return;
         }
-        if (!els.settingsShabbosEnabled || !els.settingsPurimEnabled || !els.settingsDairyEnabled) return;
+        if (!els.settingsShabbosEnabled || !els.settingsPurimEnabled || !els.settingsDairyEnabled || !els.settingsShavuosEnabled) return;
         setSiteSettingsStatus('Saving...');
         try {
           const response = await apiFetch('products?settings=1', {
@@ -1416,7 +1429,8 @@
               settings: {
                 shabbos_enabled: Boolean(els.settingsShabbosEnabled.checked),
                 purim_enabled: Boolean(els.settingsPurimEnabled.checked),
-                dairy_enabled: Boolean(els.settingsDairyEnabled.checked)
+                dairy_enabled: Boolean(els.settingsDairyEnabled.checked),
+                shavuos_enabled: Boolean(els.settingsShavuosEnabled.checked)
               },
               key: state.adminKey
             })
@@ -1444,7 +1458,7 @@
       }
 
       function getProductMenuCounts() {
-        const counts = { all: 0, shabbos: 0, purim: 0, dairy: 0 };
+        const counts = { all: 0, shabbos: 0, purim: 0, dairy: 0, shavuos: 0 };
         for (const category of state.products || []) {
           const items = Array.isArray(category.items) ? category.items : [];
           for (const item of items) {
@@ -1453,6 +1467,7 @@
             if (tags.has('shabbos')) counts.shabbos += 1;
             if (tags.has('purim')) counts.purim += 1;
             if (tags.has('dairy')) counts.dairy += 1;
+            if (tags.has('shavuos')) counts.shavuos += 1;
           }
         }
         return counts;
@@ -1518,6 +1533,7 @@
         if (els.productMenuShabbos) els.productMenuShabbos.checked = activeMenu === 'all' || activeMenu === 'shabbos';
         if (els.productMenuPurim) els.productMenuPurim.checked = activeMenu === 'purim';
         if (els.productMenuDairy) els.productMenuDairy.checked = activeMenu === 'dairy';
+        if (els.productMenuShavuos) els.productMenuShavuos.checked = activeMenu === 'shavuos';
       }
 
       function renderProductsList() {
@@ -1530,7 +1546,10 @@
           return;
         }
         els.productsList.innerHTML = filteredCategories.map(category => {
-          const itemsHtml = category.items.map(item => `
+          const itemsHtml = category.items.map(item => {
+            const tags = getProductMenuTags(item);
+            const isShavuosItem = tags.includes('shavuos');
+            return `
             <article class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2 shadow-sm">
               <div>
                 <div class="flex items-center justify-between gap-3">
@@ -1538,7 +1557,7 @@
                   <span class="text-xs font-semibold text-slate-500">${item.active ? 'Active' : 'Inactive'}</span>
                 </div>
                 <p class="text-sm text-slate-500">${escapeHtml(item.description || 'No description')}</p>
-                <p class="mt-2 text-xs text-slate-400">Menus: ${escapeHtml(getProductMenuTags(item).join(', '))}</p>
+                <p class="mt-2 text-xs text-slate-400">Menus: ${escapeHtml(tags.join(', '))}</p>
               </div>
               <div class="flex items-center justify-between text-sm text-slate-600">
                 <span>${escapeHtml(item.soldBy || '—')}</span>
@@ -1546,12 +1565,14 @@
               </div>
               <div class="flex items-center justify-between text-base font-semibold text-slate-900">
                 <span>${formatProductPrice(item.price)}</span>
-                <div class="flex gap-2 text-xs">
+                <div class="flex flex-wrap justify-end gap-2 text-xs">
+                  <button data-action="toggle-shavuos" data-id="${item.id}" class="rounded-full border ${isShavuosItem ? 'border-teal-300 bg-teal-50 text-teal-700' : 'border-slate-200 text-slate-600'} px-3 py-1">${isShavuosItem ? 'Remove Shavuos' : 'Add to Shavuos'}</button>
                   <button data-action="edit" data-id="${item.id}" class="rounded-full border border-slate-200 px-3 py-1 text-slate-600">Edit</button>
                   <button data-action="delete" data-id="${item.id}" class="rounded-full border border-rose-200 px-3 py-1 text-rose-600">Delete</button>
                 </div>
               </div>
-            </article>`).join('');
+            </article>`;
+          }).join('');
           return `
             <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
               <div class="flex items-center justify-between flex-wrap gap-2">
@@ -1588,6 +1609,7 @@
           els.productMenuShabbos.checked = tags.length ? tags.includes('shabbos') : true;
           els.productMenuPurim.checked = tags.includes('purim');
           if (els.productMenuDairy) els.productMenuDairy.checked = tags.includes('dairy');
+          if (els.productMenuShavuos) els.productMenuShavuos.checked = tags.includes('shavuos');
         } else {
           els.productCategory.value = '';
           els.productTitle.value = '';
@@ -1627,6 +1649,7 @@
         if (els.productMenuShabbos?.checked) tags.push('shabbos');
         if (els.productMenuPurim?.checked) tags.push('purim');
         if (els.productMenuDairy?.checked) tags.push('dairy');
+        if (els.productMenuShavuos?.checked) tags.push('shavuos');
         return {
           category: els.productCategory?.value.trim() || '',
           title: els.productTitle?.value.trim() || '',
@@ -1788,12 +1811,52 @@
         const id = button.dataset.id;
         const product = findProductById(id);
         if (!product) return;
+        if (button.dataset.action === 'toggle-shavuos') {
+          toggleProductShavuos(product);
+          return;
+        }
         if (button.dataset.action === 'delete') {
           state.productDraft = product;
           handleProductDelete();
           return;
         }
         openProductEditor(product);
+      }
+
+      async function toggleProductShavuos(product) {
+        if (!product || !product.id) return;
+        if (!state.adminKey) {
+          showToast('Enter the admin key to update Shavuos items.', { type: 'error' });
+          return;
+        }
+        const tags = new Set(getProductMenuTags(product));
+        const adding = !tags.has('shavuos');
+        if (adding) {
+          tags.add('shavuos');
+        } else {
+          tags.delete('shavuos');
+        }
+        try {
+          const response = await apiFetch('products', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              id: product.id,
+              menuTags: Array.from(tags),
+              key: state.adminKey
+            })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to update Shavuos menu');
+          }
+          showToast(adding ? 'Added to Shavuos' : 'Removed from Shavuos');
+          await loadProducts(true);
+        } catch (error) {
+          showToast(error.message || 'Shavuos update failed.', { type: 'error' });
+        }
       }
 
       async function handleProductDelete() {

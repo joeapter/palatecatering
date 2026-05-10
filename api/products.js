@@ -28,7 +28,7 @@ async function ensureSettingsTable() {
   `;
 }
 
-const PUBLIC_SETTING_KEYS = new Set(['shabbos_enabled', 'purim_enabled', 'dairy_enabled']);
+const PUBLIC_SETTING_KEYS = new Set(['shabbos_enabled', 'purim_enabled', 'dairy_enabled', 'shavuos_enabled']);
 
 function normalizeSettingValue(value) {
   if (typeof value === 'boolean') return value ? 'true' : 'false';
@@ -52,6 +52,7 @@ async function readSettings(keys) {
 
 const legacyMenu = require('../data/shabbos-menu.json');
 const dairyMenu = require('../data/dairy-menu.json');
+const shavuosMenu = require('../data/shavuos-menu.json');
 
 async function seedLegacyMenu() {
   const { rows } = await sql`SELECT COUNT(*)::int AS count FROM products;`;
@@ -124,11 +125,56 @@ async function seedDairyMenu() {
   }
 }
 
+async function seedShavuosMenu() {
+  if (!Array.isArray(shavuosMenu)) return;
+  for (const category of shavuosMenu) {
+    const categoryName = category?.category || 'Uncategorized';
+    const items = Array.isArray(category?.items) ? category.items : [];
+    for (const item of items) {
+      const title = item?.title || '';
+      if (!title) continue;
+      const updated = await sql`
+        UPDATE products
+        SET
+          description = ${item.description || ''},
+          price = ${Number(item.price) || 0},
+          sold_by = ${item.soldBy || ''},
+          qty_label = ${item.qtyLabel || 'Order Qty'},
+          image_url = ${item.image || ''},
+          menu_tags = CASE
+            WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['shavuos']::text[]
+            WHEN NOT ('shavuos' = ANY(menu_tags)) THEN array_append(menu_tags, 'shavuos')
+            ELSE menu_tags
+          END,
+          active = true
+        WHERE category = ${categoryName}
+          AND title = ${title};
+      `;
+      if ((updated.rowCount || 0) > 0) continue;
+      await sql`
+        INSERT INTO products (category, title, description, price, sold_by, qty_label, image_url, menu_tags, active)
+        VALUES (
+          ${categoryName},
+          ${title},
+          ${item.description || ''},
+          ${Number(item.price) || 0},
+          ${item.soldBy || ''},
+          ${item.qtyLabel || 'Order Qty'},
+          ${item.image || ''},
+          ${sql`ARRAY['shavuos']::text[]`},
+          true
+        );
+      `;
+    }
+  }
+}
+
 function formatPublicSettings(settings) {
   return {
     shabbos_enabled: settings.shabbos_enabled !== false,
     purim_enabled: settings.purim_enabled !== false,
-    dairy_enabled: settings.dairy_enabled !== false
+    dairy_enabled: settings.dairy_enabled !== false,
+    shavuos_enabled: settings.shavuos_enabled !== false
   };
 }
 
@@ -170,6 +216,7 @@ module.exports = async (req, res) => {
 
       await seedLegacyMenu();
       await seedDairyMenu();
+      await seedShavuosMenu();
       let menu = '';
       if (url) {
         menu = (url.searchParams.get('menu') || '').trim().toLowerCase();

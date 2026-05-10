@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dairy Menu | Palate Catering</title>
+    <title>Shavuos Menu | Palate Catering</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
@@ -14,29 +14,21 @@
     </script>
     <style>
       .grain { background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0); background-size: 18px 18px; }
-      .bg-shape { filter: blur(60px); opacity: 0.3; }
-      .card-surface { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.04); box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+      .bg-shape { filter: blur(60px); opacity: 0.28; }
+      .card-surface { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 20px 50px rgba(15,23,42,0.08); }
       .menu-card {
         background: #fff;
-        border: 1px solid rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(15,23,42,0.08);
         border-radius: 1.25rem;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
         min-height: 400px;
+        box-shadow: 0 18px 35px rgba(15,23,42,0.08);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
       }
-      .menu-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 25px 45px rgba(15, 23, 42, 0.12);
-      }
-      .menu-card img {
-        width: 100%;
-        height: 230px;
-        object-fit: cover;
-        display: block;
-      }
+      .menu-card:hover { transform: translateY(-3px); box-shadow: 0 25px 45px rgba(15,23,42,0.12); }
+      .menu-card img { width: 100%; height: 230px; object-fit: cover; display: block; }
       .menu-card-placeholder {
         width: 100%;
         height: 230px;
@@ -47,114 +39,56 @@
         gap: 0.5rem;
         padding: 1.5rem;
         text-align: center;
-        background: linear-gradient(135deg, #f8fafc, #fef3c7);
-        color: #9ca3af;
+        background: linear-gradient(135deg, #f8fafc, #ecfeff);
+        color: #64748b;
       }
-      .menu-card-body {
-        padding: 1.2rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.85rem;
-        flex: 1;
-      }
-      .menu-card-footer {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 1.2rem;
-        min-height: 70px;
-      }
-      .menu-card-footer.footer-row {
-        min-height: 70px;
-      }
+      .menu-card-body { padding: 1.2rem; display: flex; flex-direction: column; gap: 0.85rem; flex: 1; }
+      .menu-card-footer { display: flex; justify-content: center; align-items: center; gap: 1.2rem; min-height: 70px; }
       .menu-card-footer input[type="number"] {
         width: 90px;
         border-radius: 999px;
-        border: 1px solid rgba(15, 23, 42, 0.1);
+        border: 1px solid rgba(15,23,42,0.12);
         font-weight: 600;
         padding: 0.55rem 0.75rem;
         text-align: center;
       }
-      .menu-card-footer .price-block {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 0.95rem;
-        color: #111827;
-        font-weight: 600;
-      }
-      .menu-card-footer .price-block .sold-by {
-        font-size: 0.75rem;
-        color: rgba(15, 23, 42, 0.6);
-        margin-left: 0.25rem;
-      }
-      .menu-card-footer .qty-group {
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        align-items: center;
-      }
-      .menu-card-footer .qty-group span {
-        font-size: 0.65rem;
-        letter-spacing: 0.25em;
-        font-weight: 700;
-      }
-      .input-error {
-        border-color: #dc2626;
-        background: #fff1f2;
-      }
+      .price-block { display: flex; align-items: center; gap: 0.25rem; font-size: 0.95rem; color: #111827; font-weight: 600; }
+      .price-block .sold-by { font-size: 0.75rem; color: rgba(15,23,42,0.6); margin-left: 0.25rem; }
+      .qty-group { text-align: center; display: flex; flex-direction: column; gap: 0.25rem; align-items: center; }
+      .qty-group span { font-size: 0.65rem; letter-spacing: 0.25em; font-weight: 700; }
+      .input-error { border-color: #dc2626 !important; background: #fff1f2; }
       .delivery-panel input,
       .delivery-panel select,
-      .delivery-panel textarea {
-        border: 1px solid rgba(15, 23, 42, 0.15);
-        border-radius: 0.8rem;
-      }
+      .delivery-panel textarea { border: 1px solid rgba(15,23,42,0.15); border-radius: 0.8rem; }
       .policy-message {
         border-radius: 0.75rem;
         padding: 0.8rem 1rem;
         background: #fef3c7;
         color: #92400e;
-        border: 1px solid rgba(234, 179, 8, 0.3);
+        border: 1px solid rgba(234,179,8,0.3);
         font-size: 0.9rem;
-      }
-      #stripeContainer {
-        transition: opacity 0.2s ease;
       }
       #paymentElement {
         margin-top: 0.75rem;
         min-height: 80px;
         padding: 0.6rem;
         border-radius: 1rem;
-        border: 1px solid rgba(15, 23, 42, 0.2);
+        border: 1px solid rgba(15,23,42,0.2);
         background: #fff;
       }
-      #paymentElement iframe {
-        min-height: 60px;
-      }
-      .menu-loading-overlay {
-        background: rgba(248, 241, 229, 0.95);
-        box-shadow: inset 0 0 0 1px rgba(148, 116, 64, 0.08);
-      }
+      .menu-loading-overlay { background: rgba(248,250,252,0.94); box-shadow: inset 0 0 0 1px rgba(15,23,42,0.08); }
       .menu-spinner {
         width: 52px;
         height: 52px;
         border-radius: 999px;
-        border: 4px solid rgba(180, 138, 57, 0.2);
-        border-top-color: #b8893b;
+        border: 4px solid rgba(20,184,166,0.18);
+        border-top-color: #0f766e;
         animation: menu-spin 0.9s linear infinite;
       }
-      .menu-loading-text {
-        letter-spacing: 0.25em;
-      }
-      @keyframes menu-spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+      .menu-loading-text { letter-spacing: 0.25em; }
+      @keyframes menu-spin { to { transform: rotate(360deg); } }
     </style>
   </head>
-
   <body class="bg-neutral-50 text-neutral-900 grain">
     <header class="bg-white/80 backdrop-blur border-b border-neutral-200 sticky top-0 z-40">
       <div class="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
@@ -174,14 +108,13 @@
           <a href="/kashrus.html" class="hover:opacity-70">Kashrus</a>
           <a href="/shabbos.html" class="hover:opacity-70">Shabbos</a>
           <a href="/purim.html" class="hover:opacity-70">Purim</a>
-          <a href="/dairy.html" class="font-semibold">Dairy</a>
-          <a href="/shavuos.html" class="hover:opacity-70">Shavuos</a>
+          <a href="/dairy.html" class="hover:opacity-70">Dairy</a>
+          <a href="/shavuos.html" class="font-semibold">Shavuos</a>
         </nav>
 
-        <button id="menuBtn" class="md:hidden p-2 rounded focus:outline-none">
+        <button id="menuBtn" class="md:hidden p-2 rounded focus:outline-none" type="button" aria-label="Open menu">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 6h16M4 12h16M4 18h16"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
       </div>
@@ -198,29 +131,25 @@
           <a href="/kashrus.html" class="block">Kashrus</a>
           <a href="/shabbos.html" class="block">Shabbos</a>
           <a href="/purim.html" class="block">Purim</a>
-          <a href="/dairy.html" class="block font-semibold">Dairy</a>
-          <a href="/shavuos.html" class="block">Shavuos</a>
+          <a href="/dairy.html" class="block">Dairy</a>
+          <a href="/shavuos.html" class="block font-semibold">Shavuos</a>
         </nav>
       </div>
     </header>
 
     <main class="relative overflow-hidden">
       <div class="absolute inset-0 pointer-events-none select-none" aria-hidden="true">
-        <div class="bg-shape absolute -top-10 -left-10 w-80 h-80 rounded-full bg-amber-200"></div>
-        <div class="bg-shape absolute top-20 right-0 w-96 h-96 rounded-full bg-amber-500/40"></div>
+        <div class="bg-shape absolute -top-10 -left-10 w-80 h-80 rounded-full bg-teal-100"></div>
+        <div class="bg-shape absolute top-20 right-0 w-96 h-96 rounded-full bg-amber-300"></div>
       </div>
 
       <div class="max-w-6xl mx-auto px-6 py-12 relative z-10 space-y-10">
         <section class="flex flex-col lg:flex-row gap-8 lg:items-center">
           <div class="flex-1">
-            <p class="uppercase text-xs tracking-[0.32em] text-amber-700 mb-3">Breakfast & Brunch</p>
-            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Dairy Menu</h1>
-            <p class="text-neutral-600 text-lg max-w-2xl">
-              Build your dairy order, confirm your details, and complete payment with the same Stripe checkout flow.
-            </p>
-            <p class="text-neutral-600 text-lg max-w-2xl mt-2">
-              Tap quantities to move items into the cart.
-            </p>
+            <p class="uppercase text-xs tracking-[0.32em] text-teal-700 mb-3">Yom Tov Menu</p>
+            <h1 class="text-4xl md:text-5xl font-serif leading-tight mb-4">Shavuos Menu</h1>
+            <p class="text-neutral-600 text-lg max-w-2xl">Build your Shavuos order, confirm your details, and complete payment with Stripe.</p>
+            <p class="text-neutral-600 text-lg max-w-2xl mt-2">Tap quantities to move items into the cart.</p>
           </div>
           <div class="w-24 lg:w-28 relative group">
             <a href="/kashrus.html" class="block">
@@ -231,29 +160,28 @@
             </div>
           </div>
           <div class="card-surface rounded-3xl p-6 lg:w-[420px]">
-            <div class="flex items-start gap-3 mb-4">
-              <span class="inline-flex h-10 w-10 rounded-full bg-amber-100 text-amber-800 items-center justify-center font-semibold">✓</span>
+            <div class="flex items-start gap-3">
+              <span class="inline-flex h-10 w-10 rounded-full bg-teal-100 text-teal-800 items-center justify-center font-semibold">✓</span>
               <div>
                 <p class="text-sm text-neutral-600">Availability</p>
-                <p class="font-semibold text-neutral-900" id="orderCutoffText">Dairy ordering is open while this menu is enabled.</p>
+                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Monday, May 18, 2026 at 12:00 AM Israel time.</p>
                 <p class="text-sm text-neutral-600 mt-1 hidden" id="orderStatusText"></p>
               </div>
             </div>
-            <div class="text-sm text-neutral-600 leading-relaxed hidden" id="orderShabbosLabel"></div>
+            <div class="text-sm text-neutral-600 leading-relaxed hidden mt-4" id="orderShabbosLabel"></div>
           </div>
         </section>
 
-        <form name="dairy-order" method="GET" action="/thank-you.html" id="orderForm" class="space-y-12 card-surface rounded-3xl p-6 md:p-8">
-          <input type="hidden" name="form-name" value="dairy-order" />
+        <form name="shavuos-order" method="GET" action="/thank-you.html" id="orderForm" class="space-y-12 card-surface rounded-3xl p-6 md:p-8">
+          <input type="hidden" name="form-name" value="shavuos-order" />
           <input type="hidden" name="bot-field" />
           <input type="hidden" id="orderSummaryField" name="Order Summary" />
           <input type="hidden" id="orderSummaryTextField" name="Order Summary (Text)" />
           <input type="hidden" id="orderTotalField" name="Order Total" />
-          <input type="hidden" id="orderEmailBodyField" name="Order Email Body" />
           <input type="hidden" id="orderItemsField" />
 
           <div class="relative">
-            <div id="menuLoadingOverlay" class="menu-loading-overlay pointer-events-none fixed inset-0 z-50 flex items-center justify-center text-sm font-semibold text-amber-900 transition-opacity opacity-0">
+            <div id="menuLoadingOverlay" class="menu-loading-overlay pointer-events-none fixed inset-0 z-50 flex items-center justify-center text-sm font-semibold text-teal-900 transition-opacity opacity-0">
               <div class="flex flex-col items-center gap-3">
                 <div class="menu-spinner" aria-hidden="true"></div>
                 <div class="menu-loading-text text-xs uppercase">Loading menu</div>
@@ -291,14 +219,14 @@
                     <input type="date" id="requestedDate" name="Requested Date" class="border rounded-xl px-3 py-2" />
                     <input type="text" id="occasionInput" name="Occasion" placeholder="Occasion or event name (optional)" class="border rounded-xl px-3 py-2" />
                   </div>
-                  <p id="menuNote" class="text-xs text-amber-700">Choose a preferred delivery or pickup date if you know it.</p>
+                  <p id="menuNote" class="text-xs text-teal-700">Choose a preferred delivery or pickup date if you know it.</p>
                   <textarea id="deliveryAllergies" rows="2" placeholder="Allergies or dietary needs" class="border rounded-xl px-3 py-2"></textarea>
                   <textarea id="deliveryNotes" rows="2" placeholder="Additional notes" class="border rounded-xl px-3 py-2"></textarea>
                 </div>
               </div>
             </section>
 
-            <aside id="cartPanel" class="p-6 rounded-3xl bg-gradient-to-b from-white to-amber-50 border border-amber-200 shadow-lg sticky top-8">
+            <aside id="cartPanel" class="p-6 rounded-3xl bg-gradient-to-b from-white to-teal-50 border border-teal-200 shadow-lg sticky top-8">
               <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-serif">Cart</h2>
                 <span id="cartCount" class="text-sm text-neutral-600">0 items</span>
@@ -306,7 +234,7 @@
               <div id="cartItems" class="space-y-4 min-h-[180px] text-sm text-slate-700">
                 <p class="text-xs uppercase tracking-[0.3em] text-slate-400">No items yet</p>
               </div>
-              <div class="border-t border-dashed border-amber-200 mt-5 pt-4 space-y-3">
+              <div class="border-t border-dashed border-teal-200 mt-5 pt-4 space-y-3">
                 <div class="flex justify-between text-sm">
                   <span>Subtotal</span>
                   <span id="cartSubtotal">₪0</span>
@@ -321,11 +249,11 @@
                 </div>
               </div>
               <button id="checkoutButton" type="button" class="mt-4 w-full rounded-full bg-neutral-900 text-white px-4 py-3 disabled:opacity-40" disabled>Submit Order for Payment</button>
-              <p class="text-xs text-neutral-600 mt-3">We’ll request payment via Stripe after your cart is ready.</p>
+              <p class="text-xs text-neutral-600 mt-3">We'll request payment via Stripe after your cart is ready.</p>
               <div id="checkoutHint" class="text-xs text-rose-600 mt-2 hidden">Add at least one item and your email to continue.</div>
               <div id="stripeContainer" class="mt-5 hidden">
                 <div id="paymentElement" class="bg-white border border-slate-200 rounded-2xl p-4"></div>
-                <button id="stripePayButton" class="mt-3 w-full rounded-full bg-amber-500 text-neutral-900 px-4 py-3">Pay with Stripe</button>
+                <button id="stripePayButton" type="button" class="mt-3 w-full rounded-full bg-teal-600 text-white px-4 py-3">Pay with Stripe</button>
               </div>
             </aside>
           </div>
@@ -346,21 +274,6 @@
 
     <script>
       document.getElementById("year").textContent = new Date().getFullYear();
-
-      function nowInIsrael() {
-        return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jerusalem" }));
-      }
-      function formatCurrency(value) {
-        return `₪${value.toFixed(2)}`.replace(".00", "");
-      }
-      function formatOrderDate(value) {
-        if (!value) return "";
-        const date = new Date(`${value}T12:00:00`);
-        return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-      }
-      function slugify(value) {
-        return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      }
 
       const cartEntries = new Map();
       const menuContainer = document.getElementById("menuContainer");
@@ -394,7 +307,9 @@
       const stripePayButton = document.getElementById("stripePayButton");
       const paymentElementDiv = document.getElementById("paymentElement");
       const defaultDeliveryText = cartDeliveryEl ? cartDeliveryEl.textContent : "Calculated at checkout";
-      const pendingOrderStorageKey = "palate_pending_dairy_order";
+      const pendingOrderStorageKey = "palate_pending_shavuos_order";
+      const shavuosCutoffAt = new Date("2026-05-18T00:00:00+03:00");
+      const shavuosCutoffMessage = "Shavuos ordering is closed. Orders closed Monday, May 18, 2026 at 12:00 AM Israel time.";
       const requiredDeliveryFields = [{ el: deliveryEmailInput, label: "Email" }];
       const deliveryInputs = [
         deliveryNameInput,
@@ -407,26 +322,10 @@
         occasionInput
       ];
       const deliveryPolicies = {
-        beit_shemesh: {
-          label: "Beit Shemesh / RBS",
-          hebrew: "בית שמש / רמת בית שמש",
-          text: "₪20 · Free over ₪500"
-        },
-        beit_shemesh_pickup: {
-          label: "Beit Shemesh Pickup",
-          hebrew: "איסוף בית שמש",
-          text: "Pickup · no delivery fee"
-        },
-        jerusalem: {
-          label: "Jerusalem",
-          hebrew: "ירושלים",
-          text: "₪100 · Free over ₪1000"
-        },
-        modiin: {
-          label: "Modiin",
-          hebrew: "מודיעין",
-          text: "₪100 · Free over ₪1000"
-        }
+        beit_shemesh: { label: "Beit Shemesh / RBS", hebrew: "בית שמש / רמת בית שמש", text: "₪20 · Free over ₪500" },
+        beit_shemesh_pickup: { label: "Beit Shemesh Pickup", hebrew: "איסוף בית שמש", text: "Pickup · no delivery fee" },
+        jerusalem: { label: "Jerusalem", hebrew: "ירושלים", text: "₪100 · Free over ₪1000" },
+        modiin: { label: "Modiin", hebrew: "מודיעין", text: "₪100 · Free over ₪1000" }
       };
       const deliveryLabels = {
         beit_shemesh: "Beit Shemesh",
@@ -446,10 +345,41 @@
       let paymentReady = false;
       let preparingPayment = false;
 
-      if (stripePayButton) {
-        stripePayButton.disabled = true;
-      }
+      if (stripePayButton) stripePayButton.disabled = true;
 
+      function nowInIsrael() {
+        return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jerusalem" }));
+      }
+      function isAfterShavuosCutoff() {
+        return Date.now() >= shavuosCutoffAt.getTime();
+      }
+      function applyShavuosCutoff() {
+        const cutoffText = document.getElementById("orderCutoffText");
+        if (cutoffText) {
+          cutoffText.textContent = "Orders close Monday, May 18, 2026 at 12:00 AM Israel time.";
+        }
+        if (isAfterShavuosCutoff()) {
+          setOrderingEnabled(false, shavuosCutoffMessage);
+        }
+      }
+      function formatCurrency(value) {
+        return `₪${(Number(value) || 0).toFixed(2)}`.replace(".00", "");
+      }
+      function formatOrderDate(value) {
+        if (!value) return "";
+        const date = new Date(`${value}T12:00:00`);
+        return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      }
+      function slugify(value) {
+        return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      }
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
       function setMenuLoading(active) {
         if (!menuLoadingOverlay) return;
         menuLoadingOverlay.classList.toggle("opacity-100", active);
@@ -479,7 +409,7 @@
         return valid;
       }
       function buildOrderLabel() {
-        const parts = ["Dairy Menu"];
+        const parts = ["Shavuos Menu"];
         const requestedDate = formatOrderDate(requestedDateInput?.value || "");
         const occasion = (occasionInput?.value || "").trim();
         if (requestedDate) parts.push(requestedDate);
@@ -503,12 +433,12 @@
                 image: item.image || ""
               }))
             : []
-        }));
+        })).filter((category) => category.items.length);
       }
       function renderMenu() {
         if (!menuContainer) return;
         if (!menuData.length) {
-          menuContainer.innerHTML = '<div class="rounded-3xl border border-neutral-200 bg-white p-8 text-sm text-neutral-500">Menu items are being prepared.</div>';
+          menuContainer.innerHTML = '<div class="rounded-3xl border border-neutral-200 bg-white p-8 text-sm text-neutral-500">Shavuos menu items are being prepared.</div>';
           setMenuLoading(false);
           return;
         }
@@ -517,7 +447,7 @@
         menuData.forEach((category) => {
           const section = document.createElement("section");
           section.className = "space-y-4";
-          section.innerHTML = `<div class="flex items-center justify-between"><h3 class="text-xl font-semibold">${category.category}</h3></div>`;
+          section.innerHTML = `<div class="flex items-center justify-between"><h3 class="text-xl font-semibold">${escapeHtml(category.category)}</h3></div>`;
           const grid = document.createElement("div");
           grid.className = "grid gap-6 sm:grid-cols-2 lg:grid-cols-3";
           category.items.forEach((item) => {
@@ -526,28 +456,28 @@
             const card = document.createElement("article");
             card.className = "menu-card";
             const media = item.image
-              ? `<div class="bg-neutral-100"><img src="${item.image}" alt="${item.title}" loading="lazy" /></div>`
-              : `<div class="menu-card-placeholder"><span class="text-xs uppercase tracking-[0.35em] text-amber-700">Palate Catering</span><span class="text-sm font-medium text-neutral-500">Dairy Collection</span></div>`;
+              ? `<div class="bg-neutral-100"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" /></div>`
+              : '<div class="menu-card-placeholder"><span class="text-xs uppercase tracking-[0.35em] text-teal-700">Palate Catering</span><span class="text-sm font-medium text-neutral-500">Shavuos Collection</span></div>';
             card.innerHTML = `
               ${media}
               <div class="menu-card-body">
                 <div>
-                  <h4 class="text-lg font-semibold">${item.title}</h4>
-                  <p class="text-sm text-neutral-600 mt-2">${item.description || ""}</p>
+                  <h4 class="text-lg font-semibold">${escapeHtml(item.title)}</h4>
+                  <p class="text-sm text-neutral-600 mt-2">${escapeHtml(item.description || "")}</p>
                 </div>
-                <div class="menu-card-footer footer-row">
+                <div class="menu-card-footer">
                   <div class="price-block">
                     ${formatCurrency(item.price)}
-                    <span class="sold-by">/ ${item.soldBy || "Each"}</span>
+                    <span class="sold-by">/ ${escapeHtml(item.soldBy || "Each")}</span>
                   </div>
                   <div class="qty-group">
-                    <span class="text-neutral-500 uppercase tracking-[0.3em] font-bold">${item.qtyLabel || "Order Qty"}</span>
-                    <input min="0" step="1" type="number" value="0" data-item-key="${normalizedKey}"
-                      class="tracking-wide text-center font-semibold text-sm text-neutral-900 bg-white/80 px-3 py-2 focus:outline-none" />
+                    <span class="text-neutral-500 uppercase font-bold">${escapeHtml(item.qtyLabel || "Order Qty")}</span>
+                    <input min="0" step="1" type="number" value="0" data-item-key="${normalizedKey}" class="tracking-wide text-center font-semibold text-sm text-neutral-900 bg-white/80 px-3 py-2 focus:outline-none" />
                   </div>
                 </div>
               </div>`;
             const input = card.querySelector("input");
+            input.disabled = !orderingEnabled;
             input.addEventListener("input", () => {
               const quantity = Math.max(0, Math.floor(Number(input.value) || 0));
               input.value = quantity;
@@ -559,9 +489,25 @@
           menuContainer.appendChild(section);
         });
       }
+      async function loadMenuFromApi() {
+        setMenuLoading(true);
+        try {
+          const response = await fetch("/api/products?menu=shavuos");
+          if (!response.ok) throw new Error("Unable to load menu");
+          const data = await response.json();
+          if (Array.isArray(data.categories)) {
+            menuData = normalizeMenuData(data.categories);
+          }
+        } catch (err) {
+          console.warn("Menu API error", err);
+        } finally {
+          renderMenu();
+          setMenuLoading(false);
+        }
+      }
       async function loadMenuFromFallback() {
         try {
-          const response = await fetch("/data/dairy-menu.json", { cache: "no-store" });
+          const response = await fetch("/data/shavuos-menu.json", { cache: "no-store" });
           if (!response.ok) return;
           const data = await response.json();
           if (Array.isArray(data) && !menuData.length) {
@@ -570,23 +516,6 @@
           }
         } catch (err) {
           console.warn("Fallback menu error", err);
-        }
-      }
-      async function loadMenuFromApi() {
-        try {
-          const response = await fetch("/api/products?menu=dairy");
-          if (!response.ok) {
-            throw new Error("Unable to load menu");
-          }
-          const data = await response.json();
-          if (Array.isArray(data.categories)) {
-            menuData = normalizeMenuData(data.categories);
-            renderMenu();
-          }
-        } catch (err) {
-          console.warn("Menu API error", err);
-        } finally {
-          setMenuLoading(false);
         }
       }
       function resetStripeSession() {
@@ -613,21 +542,21 @@
         cartItemsEl.innerHTML = "";
         const lines = Array.from(cartEntries.values());
         if (!lines.length) {
-          cartItemsEl.innerHTML = `<p class="text-xs uppercase tracking-[0.3em] text-slate-400">No items yet</p>`;
+          cartItemsEl.innerHTML = '<p class="text-xs uppercase tracking-[0.3em] text-slate-400">No items yet</p>';
         } else {
           lines.forEach((line) => {
             const row = document.createElement("div");
             row.className = "flex items-start justify-between gap-3";
             row.innerHTML = `
               <div>
-                <p class="font-semibold text-sm">${line.title}</p>
-                <p class="text-xs text-neutral-500">${line.soldBy || ""}</p>
+                <p class="font-semibold text-sm">${escapeHtml(line.title)}</p>
+                <p class="text-xs text-neutral-500">${escapeHtml(line.soldBy || "")}</p>
               </div>
               <div>
                 <p class="text-sm font-semibold">${formatCurrency(line.price * line.quantity)}</p>
                 <div class="flex items-center gap-2 mt-1">
                   <span class="text-xs uppercase tracking-[0.3em] text-neutral-500">x${line.quantity}</span>
-                  <button type="button" data-remove="${line.key}" class="text-xs text-rose-500 hover:underline">Remove</button>
+                  <button type="button" data-remove="${escapeHtml(line.key)}" class="text-xs text-rose-500 hover:underline">Remove</button>
                 </div>
               </div>`;
             cartItemsEl.appendChild(row);
@@ -661,9 +590,7 @@
         const ready = hasItems && hasDeliveryInfo() && orderingEnabled;
         checkoutButton.disabled = !ready || preparingPayment;
         if (!ready) {
-          checkoutHint.textContent = orderingEnabled
-            ? "Add at least one item and your email to continue."
-            : "Ordering is currently closed.";
+          checkoutHint.textContent = orderingEnabled ? "Add at least one item and your email to continue." : "Shavuos ordering is currently closed.";
           checkoutHint.classList.remove("hidden");
         } else if (!paymentReady) {
           checkoutHint.classList.add("hidden");
@@ -674,7 +601,7 @@
           stripeContainer?.classList.remove("hidden");
         }
       }
-      function setOrderingEnabled(enabled, message = "Ordering is currently closed.") {
+      function setOrderingEnabled(enabled, message = "Shavuos ordering is currently closed.") {
         orderingEnabled = Boolean(enabled);
         menuContainer?.querySelectorAll('input[type="number"]').forEach((input) => {
           input.disabled = !orderingEnabled;
@@ -701,12 +628,15 @@
           const response = await fetch("/api/products?settings=1&public=1");
           if (!response.ok) return;
           const data = await response.json();
-          const enabled = data?.settings?.dairy_enabled !== false;
+          const enabled = data?.settings?.shavuos_enabled !== false;
           if (!enabled) {
-            setOrderingEnabled(false, "Dairy ordering is currently closed.");
+            setOrderingEnabled(false, "Shavuos ordering is currently closed.");
+            return;
           }
+          applyShavuosCutoff();
         } catch (err) {
           console.warn("Site settings fetch failed", err);
+          applyShavuosCutoff();
         }
       }
       function updateDeliveryPolicy() {
@@ -723,7 +653,7 @@
           deliveryPolicyEl.innerHTML = `<strong>${policy.label} (${policy.hebrew})</strong>: ${policy.text}`;
           if (cartDeliveryEl) cartDeliveryEl.textContent = `${policy.label}: ${policy.text}`;
         } else {
-          deliveryPolicyEl.innerHTML = `<strong>Delivery price TBD</strong> — someone will contact you to verify delivery cost before processing the order. If the quote is not satisfactory, the order will be refunded.`;
+          deliveryPolicyEl.innerHTML = "<strong>Delivery price TBD</strong> — someone will contact you to verify delivery cost before processing the order. If the quote is not satisfactory, the order will be refunded.";
           if (cartDeliveryEl) cartDeliveryEl.textContent = "Delivery price TBD";
         }
         deliveryPolicyEl.classList.remove("hidden");
@@ -878,9 +808,7 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
           });
-          if (!response.ok) {
-            throw new Error("Order submission failed");
-          }
+          if (!response.ok) throw new Error("Order submission failed");
         } catch (err) {
           console.error("Order submission error", err);
         }
@@ -901,9 +829,7 @@
         if (stripePayButton) stripePayButton.disabled = true;
         const result = await stripeInstance.confirmPayment({
           elements,
-          confirmParams: {
-            return_url: `${window.location.origin}/dairy.html?stripe_return=1`
-          },
+          confirmParams: { return_url: `${window.location.origin}/shavuos.html?stripe_return=1` },
           redirect: "if_required"
         });
         if (result.error) {
@@ -966,6 +892,7 @@
         const isoToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
         if (requestedDateInput) requestedDateInput.min = isoToday;
         updateOrderLabelDisplay();
+        applyShavuosCutoff();
         setMenuLoading(true);
         await loadMenuFromFallback();
         await loadMenuFromApi();
