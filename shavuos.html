@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <script defer src="/scripts/stripe-client.js"></script>
+    <script src="/scripts/abandoned-cart.js"></script>
+
     <script>
       window.palateStripePublishableKey = "pk_live_51SsV1AHvQR9vTlcaRVOQfV9PT3fcd3AqGxJkTD0eowEeFM4810GYsKMz5UlxMv6c8Kqk2pNaQ8SEhBwUTszRFATy00Xlb9uhD3";
       window.palateOrderApiKey = "Hashem613!";
@@ -186,7 +188,7 @@
               <span class="inline-flex h-10 w-10 rounded-full bg-teal-100 text-teal-800 items-center justify-center font-semibold">✓</span>
               <div>
                 <p class="text-sm text-neutral-600">Availability</p>
-                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Monday, May 18, 2026 at 12:00 AM Israel time.</p>
+                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Sunday, May 10, 2026 at 11:59 PM Israel time.</p>
                 <p class="text-sm text-neutral-600 mt-1 hidden" id="orderStatusText"></p>
               </div>
             </div>
@@ -330,8 +332,9 @@
       const paymentElementDiv = document.getElementById("paymentElement");
       const defaultDeliveryText = cartDeliveryEl ? cartDeliveryEl.textContent : "Calculated at checkout";
       const pendingOrderStorageKey = "palate_pending_shavuos_order";
-      const shavuosCutoffAt = new Date("2026-05-18T00:00:00+03:00");
-      const shavuosCutoffMessage = "Shavuos ordering is closed. Orders closed Monday, May 18, 2026 at 12:00 AM Israel time.";
+      let shavuosOpenAt = null;
+      let shavuosCutoffAt = new Date("2026-05-10T23:59:00+03:00");
+      let shavuosCutoffMessage = "Shavuos ordering is closed. Orders closed Sunday, May 10, 2026 at 11:59 PM Israel time.";
       const requiredDeliveryFields = [{ el: deliveryEmailInput, label: "Email" }];
       const deliveryInputs = [
         deliveryNameInput,
@@ -366,6 +369,8 @@
       let lastSubtotal = 0;
       let paymentReady = false;
       let preparingPayment = false;
+      let abandonedCartTracker = null;
+      let cartSnapshotRestored = false;
 
       if (stripePayButton) stripePayButton.disabled = true;
 
@@ -375,13 +380,29 @@
       function isAfterShavuosCutoff() {
         return Date.now() >= shavuosCutoffAt.getTime();
       }
+      function isBeforeShavuosOpen() {
+        return shavuosOpenAt && Date.now() < shavuosOpenAt.getTime();
+      }
+      function formatCutoffDisplay(dt) {
+        if (!dt) return "";
+        return dt.toLocaleString("en-US", {
+          timeZone: "Asia/Jerusalem",
+          weekday: "long", month: "long", day: "numeric", year: "numeric",
+          hour: "numeric", minute: "2-digit", hour12: true
+        }) + " Israel time";
+      }
       function applyShavuosCutoff() {
         const cutoffText = document.getElementById("orderCutoffText");
-        if (cutoffText) {
-          cutoffText.textContent = "Orders close Monday, May 18, 2026 at 12:00 AM Israel time.";
+        if (isBeforeShavuosOpen()) {
+          if (cutoffText) cutoffText.textContent = "Orders open " + formatCutoffDisplay(shavuosOpenAt);
+          setOrderingEnabled(false, "Shavuos ordering is not yet open.");
+          return;
         }
+        if (cutoffText) cutoffText.textContent = "Orders close " + formatCutoffDisplay(shavuosCutoffAt);
         if (isAfterShavuosCutoff()) {
           setOrderingEnabled(false, shavuosCutoffMessage);
+        } else {
+          setOrderingEnabled(true);
         }
       }
       function formatCurrency(value) {
@@ -552,6 +573,8 @@
           section.appendChild(grid);
           menuContainer.appendChild(section);
         });
+        syncCartInputsFromEntries();
+        restoreSavedCartSnapshot();
       }
       async function loadMenuFromApi() {
         setMenuLoading(true);
@@ -601,6 +624,12 @@
         }
         renderCart();
       }
+      function syncCartInputsFromEntries() {
+        document.querySelectorAll("input[data-item-key]").forEach((input) => {
+          const line = cartEntries.get(input.dataset.itemKey);
+          input.value = line ? String(line.quantity || 0) : "0";
+        });
+      }
       function renderCart() {
         resetStripeSession();
         cartItemsEl.innerHTML = "";
@@ -645,6 +674,7 @@
         if (summaryTextField) summaryTextField.value = lines.map((item) => `${item.quantity}x ${item.title}${item.soldBy ? ` (${item.soldBy})` : ""}`).join(", ");
         if (itemsField) itemsField.value = JSON.stringify(lines);
         updateCheckoutAvailability();
+        scheduleAbandonedCartSave();
       }
       function hasDeliveryInfo() {
         return requiredDeliveryFields.every(({ el }) => (el?.value || "").trim());
@@ -692,10 +722,22 @@
           const response = await fetch("/api/products?settings=1&public=1");
           if (!response.ok) return;
           const data = await response.json();
-          const enabled = data?.settings?.shavuos_enabled !== false;
+          const settings = data?.settings || {};
+          const enabled = settings.shavuos_enabled !== false;
           if (!enabled) {
             setOrderingEnabled(false, "Shavuos ordering is currently closed.");
             return;
+          }
+          if (settings.shavuos_open_time) {
+            const d = new Date(settings.shavuos_open_time);
+            if (!isNaN(d)) shavuosOpenAt = d;
+          }
+          if (settings.shavuos_cutoff_time) {
+            const d = new Date(settings.shavuos_cutoff_time);
+            if (!isNaN(d)) {
+              shavuosCutoffAt = d;
+              shavuosCutoffMessage = "Shavuos ordering is closed. Orders closed " + formatCutoffDisplay(d) + ".";
+            }
           }
           applyShavuosCutoff();
         } catch (err) {
@@ -741,6 +783,59 @@
       function clearPendingOrder() {
         sessionStorage.removeItem(pendingOrderStorageKey);
       }
+      function getCartIdForOrderPayload() {
+        if (cartEntries.size > 0) {
+          return abandonedCartTracker?.getCartId?.() || "";
+        }
+        return abandonedCartTracker?.peekCartId?.() || "";
+      }
+      function scheduleAbandonedCartSave() {
+        abandonedCartTracker?.schedule?.();
+      }
+      function initAbandonedCartTracking() {
+        if (!window.PalateAbandonedCart?.createTracker) return;
+        abandonedCartTracker = window.PalateAbandonedCart.createTracker({
+          source: "shavuos",
+          orderKey: orderApiKey,
+          getPayload: buildOrderPayload
+        });
+        [allergiesInput, notesInput].forEach((field) => {
+          field?.addEventListener("input", scheduleAbandonedCartSave);
+        });
+      }
+      function setRestoredValue(field, value) {
+        if (field && value && !field.value) {
+          field.value = value;
+        }
+      }
+      function restoreSavedCartSnapshot() {
+        if (cartSnapshotRestored || !abandonedCartTracker) return;
+        const snapshot = abandonedCartTracker.getSnapshot?.();
+        if (!snapshot || typeof snapshot !== "object") return;
+        const items = Array.isArray(snapshot.items) ? snapshot.items : [];
+        const customer = snapshot.customer || {};
+        if (!items.length && !customer.email && !customer.phone) return;
+        cartSnapshotRestored = true;
+        setRestoredValue(deliveryNameInput, customer.name || "");
+        setRestoredValue(deliveryPhoneInput, customer.phone || "");
+        setRestoredValue(deliveryEmailInput, customer.email || "");
+        setRestoredValue(deliveryStreetInput, customer.deliveryStreet || "");
+        setRestoredValue(deliveryCityInput, customer.deliveryCity || "");
+        if (deliveryTypeInput && customer.deliveryType) deliveryTypeInput.value = customer.deliveryType;
+        setRestoredValue(allergiesInput, snapshot.allergies || "");
+        setRestoredValue(notesInput, snapshot.notes || snapshot.deliveryNotes || "");
+        items.forEach((line) => {
+          const key = line.key || "";
+          if (!key) return;
+          const input = Array.from(document.querySelectorAll("input[data-item-key]")).find((field) => field.dataset.itemKey === key);
+          if (!input) return;
+          input.value = String(Math.max(0, Math.floor(Number(line.quantity || line.qty || 1) || 0)));
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+        updateOrderLabelDisplay();
+        updateDeliveryPolicy();
+        updateCheckoutAvailability();
+      }
       function getCartLines() {
         return Array.from(cartEntries.values()).map((item) => {
           const quantity = item.quantity;
@@ -750,7 +845,9 @@
             soldBy: item.soldBy,
             price: item.price,
             quantity,
-            qty: quantity
+            qty: quantity,
+            key: item.key || "",
+            variantLabel: item.variantLabel || ""
           };
         });
       }
@@ -762,6 +859,8 @@
         const deliveryCity = (deliveryCityInput?.value || "").trim() || deliveryArea;
         const address = [deliveryStreet, deliveryCity].filter(Boolean).join(", ");
         return {
+          cartId: getCartIdForOrderPayload(),
+          source: "shavuos",
           customer: {
             name: (deliveryNameInput?.value || "").trim(),
             phone: (deliveryPhoneInput?.value || "").trim(),
@@ -822,6 +921,7 @@
         checkoutHint.classList.remove("hidden");
         const payload = buildOrderPayload();
         storePendingOrder(payload);
+        abandonedCartTracker?.trackCheckoutStarted?.(payload);
         if (!stripeInstance) {
           stripeInstance = window.palateStripeClient?.loadStripe(stripePublishableKey);
           if (!stripeInstance) {
@@ -873,8 +973,10 @@
             body: JSON.stringify(payload)
           });
           if (!response.ok) throw new Error("Order submission failed");
+          return true;
         } catch (err) {
           console.error("Order submission error", err);
+          return false;
         }
       }
       async function handleCheckoutClick() {
@@ -908,7 +1010,8 @@
             if (result.paymentIntent.id && !payload.paymentIntentId) {
               payload.paymentIntentId = result.paymentIntent.id;
             }
-            await submitOrder(payload);
+            const submitted = await submitOrder(payload);
+            if (submitted) abandonedCartTracker?.clear?.();
             clearPendingOrder();
           }
           window.location.href = "/thank-you.html";
@@ -925,7 +1028,8 @@
           if (paymentIntentId && !pending.paymentIntentId) {
             pending.paymentIntentId = paymentIntentId;
           }
-          await submitOrder(pending);
+          const submitted = await submitOrder(pending);
+          if (submitted) abandonedCartTracker?.clear?.();
           clearPendingOrder();
           window.location.href = "/thank-you.html";
         }
@@ -938,6 +1042,7 @@
           if (paymentReady) resetStripeSession();
           updateOrderLabelDisplay();
           updateCheckoutAvailability();
+          scheduleAbandonedCartSave();
         });
       });
       deliveryTypeInput?.addEventListener("change", () => {
@@ -945,6 +1050,7 @@
         updateDeliveryPolicy();
         updateOrderLabelDisplay();
         updateCheckoutAvailability();
+        scheduleAbandonedCartSave();
       });
       checkoutButton.addEventListener("click", handleCheckoutClick);
       stripePayButton?.addEventListener("click", handleStripePayment);
@@ -956,13 +1062,14 @@
         const isoToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
         if (requestedDateInput) requestedDateInput.min = isoToday;
         updateOrderLabelDisplay();
-        applyShavuosCutoff();
         setMenuLoading(true);
         await loadMenuFromFallback();
         await loadMenuFromApi();
         loadSiteAvailability();
         updateCheckoutAvailability();
         updateDeliveryPolicy();
+        initAbandonedCartTracking();
+        restoreSavedCartSnapshot();
         processPendingOrderFromReturn();
       });
     </script>

@@ -30,7 +30,11 @@ async function ensureSettingsTable() {
   `;
 }
 
-const PUBLIC_SETTING_KEYS = new Set(['shabbos_enabled', 'purim_enabled', 'dairy_enabled', 'shavuos_enabled']);
+const PUBLIC_SETTING_KEYS = new Set([
+  'shabbos_enabled', 'purim_enabled', 'dairy_enabled', 'shavuos_enabled',
+  'shavuos_open_time', 'shavuos_cutoff_time',
+  'shabbos_close_days_before', 'shabbos_close_time'
+]);
 
 function normalizeSettingValue(value) {
   if (typeof value === 'boolean') return value ? 'true' : 'false';
@@ -220,7 +224,11 @@ function formatPublicSettings(settings) {
     shabbos_enabled: settings.shabbos_enabled !== false,
     purim_enabled: settings.purim_enabled !== false,
     dairy_enabled: settings.dairy_enabled !== false,
-    shavuos_enabled: settings.shavuos_enabled !== false
+    shavuos_enabled: settings.shavuos_enabled !== false,
+    shavuos_open_time: settings.shavuos_open_time || '',
+    shavuos_cutoff_time: settings.shavuos_cutoff_time || '',
+    shabbos_close_days_before: settings.shabbos_close_days_before,
+    shabbos_close_time: settings.shabbos_close_time || ''
   };
 }
 

@@ -73,9 +73,9 @@
             <li><a href="#gallery" class="hover:opacity-70">Gallery</a></li>
             <li><a href="#services" class="hover:opacity-70">Services</a></li>
             <li><a href="#contact" class="hover:opacity-70">Contact</a></li>
-            <li><a href="/shabbos.html" class="hover:opacity-70">Shabbos</a></li>
-            <li><a href="/dairy.html" class="hover:opacity-70">Dairy</a></li>
-            <li><a href="/shavuos.html" class="hover:opacity-70">Shavuos</a></li>
+            <li id="nav-shabbos"><a href="/shabbos.html" class="hover:opacity-70">Shabbos</a></li>
+            <li id="nav-dairy"><a href="/dairy.html" class="hover:opacity-70">Dairy</a></li>
+            <li id="nav-shavuos"><a href="/shavuos.html" class="hover:opacity-70">Shavuos</a></li>
           </ul>
 
           <!-- Mobile Menu Button -->
@@ -96,9 +96,9 @@
             <a href="#gallery" class="block hover:opacity-70">Gallery</a>
             <a href="#services" class="block hover:opacity-70">Services</a>
             <a href="#contact" class="block hover:opacity-70">Contact</a>
-            <a href="/shabbos.html" class="block hover:opacity-70">Shabbos</a>
-            <a href="/dairy.html" class="block hover:opacity-70">Dairy</a>
-            <a href="/shavuos.html" class="block hover:opacity-70">Shavuos</a>
+            <a id="mobile-nav-shabbos" href="/shabbos.html" class="block hover:opacity-70">Shabbos</a>
+            <a id="mobile-nav-dairy" href="/dairy.html" class="block hover:opacity-70">Dairy</a>
+            <a id="mobile-nav-shavuos" href="/shavuos.html" class="block hover:opacity-70">Shavuos</a>
           </nav>
         </div>
       </div>
@@ -355,6 +355,26 @@
           document.getElementById('mobileNav').classList.add('hidden');
         })
       );
+
+      // Hide menu links for disabled menus
+      fetch('/api/products?settings=1&public=1')
+        .then(r => r.json())
+        .then(({ settings = {} }) => {
+          const flags = {
+            shabbos: settings.shabbos_enabled !== false,
+            dairy:   settings.dairy_enabled   !== false,
+            shavuos: settings.shavuos_enabled  !== false,
+          };
+          for (const [key, enabled] of Object.entries(flags)) {
+            if (!enabled) {
+              const desktop = document.getElementById(`nav-${key}`);
+              const mobile  = document.getElementById(`mobile-nav-${key}`);
+              if (desktop) desktop.style.display = 'none';
+              if (mobile)  mobile.style.display  = 'none';
+            }
+          }
+        })
+        .catch(() => {});
     </script>
   </body>
 </html>

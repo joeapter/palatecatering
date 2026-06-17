@@ -124,6 +124,7 @@
       </div>
       <nav class="flex-1 px-3 py-6 space-y-2" aria-label="Admin tabs">
         <button data-tab-btn="orders" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Orders</button>
+        <button data-tab-btn="carts" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Saved Carts</button>
         <button data-tab-btn="kitchen" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Kitchen Print</button>
         <button data-tab-btn="delivery" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Delivery Sheets</button>
         <button data-tab-btn="customers" class="w-full text-left px-4 py-3 rounded-2xl text-slate-700 hover:bg-indigo-50">Customers</button>
@@ -321,6 +322,52 @@
               </aside>
             </div>
           </section>
+          <section data-tab-content="carts" class="hidden space-y-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Saved carts</p>
+              <h2 class="text-xl font-semibold text-slate-900">Current and abandoned checkout carts</h2>
+            </div>
+            <div id="cartSummaryCards" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-4 items-end shadow-sm">
+              <div class="flex-1 min-w-[240px]">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Search</p>
+                <input id="cartSearchInput" type="search" placeholder="Name, phone, email, item, label" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/60 px-4 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" />
+              </div>
+              <label class="flex flex-col text-sm">
+                <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Saved set</span>
+                <select id="cartStatusFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
+                  <option value="actionable">Needs follow-up</option>
+                  <option value="all">All carts</option>
+                  <option value="ordered">Recovered / ordered</option>
+                </select>
+              </label>
+              <label class="flex flex-col text-sm">
+                <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Activity</span>
+                <select id="cartActivityFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
+                  <option value="all">All activity</option>
+                  <option value="current">Active now</option>
+                  <option value="abandoned">Abandoned</option>
+                  <option value="checkout">Reached payment</option>
+                </select>
+              </label>
+              <label class="flex flex-col text-sm">
+                <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Menu</span>
+                <select id="cartSourceFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
+                  <option value="all">All menus</option>
+                </select>
+              </label>
+              <label class="flex flex-col text-sm">
+                <span class="text-slate-500 text-xs uppercase tracking-[0.2em]">Contact</span>
+                <select id="cartContactFilter" class="mt-2 rounded-2xl border border-slate-200 bg-white/60 px-3 py-2 text-sm text-slate-900">
+                  <option value="all">All</option>
+                  <option value="with">With contact</option>
+                  <option value="missing">Missing contact</option>
+                </select>
+              </label>
+              <button id="refreshCartsBtn" type="button" class="rounded-full border border-amber-500/60 px-4 py-2 text-sm text-amber-600 hover:bg-amber-500/10">Refresh carts</button>
+            </div>
+            <div id="cartsList" class="space-y-3"></div>
+          </section>
           <section data-tab-content="kitchen" class="hidden space-y-4">
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
               <div class="flex flex-wrap items-center justify-between gap-3">
@@ -513,6 +560,42 @@
                 <span id="settingsSiteStatus" class="text-xs text-slate-500"></span>
               </div>
             </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-4 shadow-sm">
+              <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Ordering</p>
+                <h2 class="text-lg font-semibold text-slate-900">Order windows</h2>
+              </div>
+              <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Shavuos</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label class="flex flex-col gap-1">
+                    <span class="text-xs text-slate-500">Open from (Israel time)</span>
+                    <input id="settingsShavuosOpenTime" type="datetime-local" class="rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" />
+                  </label>
+                  <label class="flex flex-col gap-1">
+                    <span class="text-xs text-slate-500">Close at (Israel time)</span>
+                    <input id="settingsShavuosCutoffTime" type="datetime-local" class="rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" />
+                  </label>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Shabbos (weekly)</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label class="flex flex-col gap-1">
+                    <span class="text-xs text-slate-500">Days before Shabbos to close</span>
+                    <input id="settingsShabbosCloseDaysBefore" type="number" min="0" max="7" placeholder="2" class="rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" />
+                  </label>
+                  <label class="flex flex-col gap-1">
+                    <span class="text-xs text-slate-500">Close time (Israel time)</span>
+                    <input id="settingsShabbosCloseTime" type="time" class="rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none" />
+                  </label>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <button id="settingsSaveWindowsBtn" type="button" class="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-900">Save</button>
+                <span id="settingsWindowsStatus" class="text-xs text-slate-500"></span>
+              </div>
+            </div>
             <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
               <div>
                 <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Selection</p>
@@ -626,10 +709,14 @@
         activeTab: 'orders',
         orders: [],
         filteredOrders: [],
+        carts: [],
+        filteredCarts: [],
         filters: { search: '', status: 'all', label: 'all', delivery: 'all', sort: 'newest' },
+        cartFilters: { search: '', status: 'actionable', source: 'all', contact: 'all', activity: 'all' },
         pagination: { page: 1, perPage: 40 },
         selected: new Set(),
         lastRefresh: null,
+        cartsLoaded: false,
         detailOrderId: null,
         draft: null,
         draftSavedAt: null,
@@ -672,6 +759,14 @@
         batchKitchenBtn: document.getElementById('batchKitchenBtn'),
         batchDeliveryBtn: document.getElementById('batchDeliveryBtn'),
         ordersList: document.getElementById('ordersList'),
+        cartSummaryCards: document.getElementById('cartSummaryCards'),
+        cartSearchInput: document.getElementById('cartSearchInput'),
+        cartStatusFilter: document.getElementById('cartStatusFilter'),
+        cartActivityFilter: document.getElementById('cartActivityFilter'),
+        cartSourceFilter: document.getElementById('cartSourceFilter'),
+        cartContactFilter: document.getElementById('cartContactFilter'),
+        refreshCartsBtn: document.getElementById('refreshCartsBtn'),
+        cartsList: document.getElementById('cartsList'),
         paginationInfo: document.getElementById('paginationInfo'),
         prevPageBtn: document.getElementById('prevPageBtn'),
         nextPageBtn: document.getElementById('nextPageBtn'),
@@ -713,6 +808,12 @@
         settingsShavuosEnabled: document.getElementById('settingsShavuosEnabled'),
         settingsSaveSiteBtn: document.getElementById('settingsSaveSiteBtn'),
         settingsSiteStatus: document.getElementById('settingsSiteStatus'),
+        settingsShavuosOpenTime: document.getElementById('settingsShavuosOpenTime'),
+        settingsShavuosCutoffTime: document.getElementById('settingsShavuosCutoffTime'),
+        settingsShabbosCloseDaysBefore: document.getElementById('settingsShabbosCloseDaysBefore'),
+        settingsShabbosCloseTime: document.getElementById('settingsShabbosCloseTime'),
+        settingsSaveWindowsBtn: document.getElementById('settingsSaveWindowsBtn'),
+        settingsWindowsStatus: document.getElementById('settingsWindowsStatus'),
         clearSelectionBtn: document.getElementById('clearSelectionBtn'),
         sidebarPrintMode: document.getElementById('sidebarPrintMode'),
         orderDetailPanel: document.getElementById('orderDetailPanel'),
@@ -893,9 +994,17 @@
         localStorage.setItem(PRINT_MODE_STORAGE, mode);
       }
 
+      function handleRefreshClick() {
+        if (state.activeTab === 'carts') {
+          loadAbandonedCarts(true);
+          return;
+        }
+        loadOrders();
+      }
+
       function attachListeners() {
         tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveTab(btn.dataset.tabBtn)));
-        els.refreshBtn.addEventListener('click', () => loadOrders());
+        els.refreshBtn.addEventListener('click', handleRefreshClick);
         els.loginUnlockBtn.addEventListener('click', handleLoginUnlock);
         els.loginKeyInput.addEventListener('keydown', (event) => {
           if (event.key === 'Enter') {
@@ -931,6 +1040,32 @@
           applyFilters();
           render();
         });
+        els.cartSearchInput?.addEventListener('input', (event) => {
+          state.cartFilters.search = event.target.value;
+          applyCartFilters();
+          renderCartsDashboard();
+        });
+        els.cartStatusFilter?.addEventListener('change', (event) => {
+          state.cartFilters.status = event.target.value;
+          loadAbandonedCarts(true);
+        });
+        els.cartActivityFilter?.addEventListener('change', (event) => {
+          state.cartFilters.activity = event.target.value;
+          applyCartFilters();
+          renderCartsDashboard();
+        });
+        els.cartSourceFilter?.addEventListener('change', (event) => {
+          state.cartFilters.source = event.target.value;
+          applyCartFilters();
+          renderCartsDashboard();
+        });
+        els.cartContactFilter?.addEventListener('change', (event) => {
+          state.cartFilters.contact = event.target.value;
+          applyCartFilters();
+          renderCartsDashboard();
+        });
+        els.refreshCartsBtn?.addEventListener('click', () => loadAbandonedCarts(true));
+        els.cartsList?.addEventListener('click', handleCartListClick);
         els.selectAllCheckbox.addEventListener('change', handleSelectAllToggle);
         els.batchKitchenBtn.addEventListener('click', () => executeBatchPrint('kitchen'));
         els.batchDeliveryBtn.addEventListener('click', () => executeBatchPrint('delivery'));
@@ -952,6 +1087,7 @@
           showLoginOverlay('Key cleared. Enter a new admin key to continue.');
         });
         els.settingsSaveSiteBtn?.addEventListener('click', saveSiteSettings);
+        els.settingsSaveWindowsBtn?.addEventListener('click', saveWindowsSettings);
         els.defaultPrintModeSelect.addEventListener('change', (event) => setDefaultPrintMode(event.target.value));
         els.dismissError.addEventListener('click', clearError);
         els.ordersList.addEventListener('click', handleOrderCardClick);
@@ -1071,6 +1207,9 @@
         if (tab === 'products' && !state.productsLoaded) {
           loadProducts();
         }
+        if (tab === 'carts' && !state.cartsLoaded) {
+          loadAbandonedCarts();
+        }
         render();
       }
 
@@ -1104,6 +1243,46 @@
         } catch (error) {
           success = false;
           showError(error.message || 'Failed to load orders');
+        } finally {
+          updateLastUpdatedStamp();
+        }
+        return success;
+      }
+
+      async function loadAbandonedCarts(force = false) {
+        if (!state.adminKey) {
+          showLoginOverlay('Enter the admin key to load saved carts.');
+          return false;
+        }
+        if (state.cartsLoaded && !force) {
+          applyCartFilters();
+          renderCartsDashboard();
+          return true;
+        }
+        if (els.cartsList) {
+          els.cartsList.innerHTML = '<div class="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">Loading saved carts...</div>';
+        }
+        let success = true;
+        try {
+          const response = await apiFetch(`abandoned-carts?status=${encodeURIComponent(state.cartFilters.status)}`);
+          if (response.status === 401) {
+            setAdminKey('', { persist: true });
+            showLoginOverlay('Key rejected. Enter the correct admin key.');
+            return false;
+          }
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to fetch saved carts');
+          }
+          const data = await response.json();
+          state.carts = (data.carts || []).map(cart => ({ ...cart }));
+          state.cartsLoaded = true;
+          state.lastRefresh = new Date();
+          applyCartFilters();
+          renderCartsDashboard();
+        } catch (error) {
+          success = false;
+          showError(error.message || 'Failed to load saved carts');
         } finally {
           updateLastUpdatedStamp();
         }
@@ -1156,6 +1335,9 @@
         }
         if (state.activeTab === 'products') {
           renderProductsList();
+        }
+        if (state.activeTab === 'carts') {
+          renderCartsDashboard();
         }
         if (state.activeTab === 'kitchen' || state.activeTab === 'delivery') {
           renderSelectionPreview();
@@ -1340,6 +1522,403 @@
         els.deliverySelection.innerHTML = previewHtml;
       }
 
+      function getCartItems(cart) {
+        return Array.isArray(cart?.items) ? cart.items : [];
+      }
+
+      function hasCartContact(cart) {
+        return Boolean((cart?.customer_email || '').trim() || (cart?.customer_phone || '').trim());
+      }
+
+      function getCartInactiveMinutes(cart) {
+        const lastSeen = new Date(cart?.last_seen_at || cart?.updated_at || cart?.created_at || '');
+        if (Number.isNaN(lastSeen.getTime())) return Infinity;
+        return Math.max(0, Math.floor((Date.now() - lastSeen.getTime()) / 60000));
+      }
+
+      function isActionableCart(cart) {
+        return ['open', 'checkout_started', 'contacted', 'payment_link_sent'].includes((cart?.status || 'open').toLowerCase());
+      }
+
+      function isCurrentCart(cart) {
+        return isActionableCart(cart) && getCartInactiveMinutes(cart) < 30;
+      }
+
+      function isAbandonedCart(cart) {
+        return isActionableCart(cart) && getCartInactiveMinutes(cart) >= 30;
+      }
+
+      function getCartActivityText(cart) {
+        const status = (cart?.status || 'open').toLowerCase();
+        if (status === 'ordered') return 'Ordered';
+        if (status === 'dismissed') return 'Dismissed';
+        if (status === 'recovered') return 'Recovered';
+        if (status === 'payment_link_sent') return 'Payment link sent';
+        if (status === 'checkout_started') return 'Reached payment';
+        return isCurrentCart(cart) ? 'Active now' : 'Abandoned';
+      }
+
+      function getCartStatusClass(cart) {
+        const status = (cart?.status || 'open').toLowerCase();
+        if (status === 'checkout_started') return 'status-chip border-blue-200 bg-blue-50 text-blue-700';
+        if (status === 'payment_link_sent') return 'status-chip border-violet-200 bg-violet-50 text-violet-700';
+        if (status === 'contacted') return 'status-chip border-amber-200 bg-amber-50 text-amber-700';
+        if (status === 'ordered' || status === 'recovered') return 'status-chip border-emerald-200 bg-emerald-50 text-emerald-700';
+        if (status === 'dismissed') return 'status-chip border-slate-200 bg-slate-100 text-slate-500';
+        return isCurrentCart(cart)
+          ? 'status-chip border-teal-200 bg-teal-50 text-teal-700'
+          : 'status-chip border-rose-200 bg-rose-50 text-rose-700';
+      }
+
+      function formatRelativeTime(value) {
+        if (!value) return 'Unknown';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Unknown';
+        const diffMinutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
+        if (diffMinutes < 1) return 'just now';
+        if (diffMinutes < 60) return `${diffMinutes} min ago`;
+        const diffHours = Math.floor(diffMinutes / 60);
+        if (diffHours < 24) return `${diffHours} hr ago`;
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+        return formatDate(value);
+      }
+
+      function formatCartTotal(cart) {
+        const value = cart?.total;
+        const num = Number(value);
+        if (Number.isFinite(num) && num > 0) return formatProductPrice(num);
+        return value ? escapeHtml(value) : '—';
+      }
+
+      function getCartPaymentUrl(cart) {
+        return cart?.payment_link_url || cart?.pending_payment_url || '';
+      }
+
+      function buildCartPaymentMessage(cart) {
+        const url = getCartPaymentUrl(cart);
+        const name = cart?.customer_name ? ` ${cart.customer_name}` : '';
+        const label = cart?.shabbos_label || 'your Palate Catering order';
+        return `Hi${name}, here is your secure payment link for ${label}: ${url}`;
+      }
+
+      function buildCartPaymentMailto(cart) {
+        const email = cart?.customer_email || '';
+        if (!email || !getCartPaymentUrl(cart)) return '';
+        const subject = `Palate Catering payment link`;
+        return `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildCartPaymentMessage(cart))}`;
+      }
+
+      function buildCartPaymentWhatsApp(cart) {
+        const url = getCartPaymentUrl(cart);
+        const phone = String(cart?.customer_phone || '').replace(/\D/g, '');
+        if (!phone || !url) return '';
+        return `https://wa.me/${phone}?text=${encodeURIComponent(buildCartPaymentMessage(cart))}`;
+      }
+
+      function renderCartFilterOptions() {
+        if (!els.cartSourceFilter) return;
+        const sources = [...new Set(state.carts.map(cart => (cart.source || '').toString().trim()).filter(Boolean))].sort();
+        const current = state.cartFilters.source;
+        els.cartSourceFilter.innerHTML = '<option value="all">All menus</option>' + sources
+          .map(source => `<option value="${escapeHtml(source)}">${escapeHtml(capitalize(source))}</option>`)
+          .join('');
+        state.cartFilters.source = current === 'all' || sources.includes(current) ? current : 'all';
+        els.cartSourceFilter.value = state.cartFilters.source;
+      }
+
+      function applyCartFilters() {
+        const { search, status, source, contact, activity } = state.cartFilters;
+        let list = state.carts.slice();
+        if (status === 'actionable') {
+          list = list.filter(isActionableCart);
+        } else if (status === 'ordered') {
+          list = list.filter(cart => ['ordered', 'recovered'].includes((cart.status || '').toLowerCase()));
+        }
+        if (source !== 'all') {
+          list = list.filter(cart => (cart.source || '') === source);
+        }
+        if (contact === 'with') {
+          list = list.filter(hasCartContact);
+        } else if (contact === 'missing') {
+          list = list.filter(cart => !hasCartContact(cart));
+        }
+        if (activity === 'current') {
+          list = list.filter(isCurrentCart);
+        } else if (activity === 'abandoned') {
+          list = list.filter(isAbandonedCart);
+        } else if (activity === 'checkout') {
+          list = list.filter(cart => (cart.status || '').toLowerCase() === 'checkout_started');
+        }
+        if (search) {
+          const token = search.toLowerCase();
+          list = list.filter(cart => {
+            const itemsText = getCartItems(cart).map(item => `${getItemLabel(item)} ${getItemSoldByLabel(item)}`).join(' ');
+            return `${cart.customer_name || ''} ${cart.customer_email || ''} ${cart.customer_phone || ''} ${cart.customer_address || ''} ${cart.shabbos_label || ''} ${cart.source || ''} ${itemsText}`.toLowerCase().includes(token);
+          });
+        }
+        list.sort((a, b) => new Date(b.last_seen_at || b.updated_at || b.created_at) - new Date(a.last_seen_at || a.updated_at || a.created_at));
+        state.filteredCarts = list;
+      }
+
+      function renderCartSummary() {
+        if (!els.cartSummaryCards) return;
+        const actionable = state.carts.filter(isActionableCart);
+        const current = state.carts.filter(isCurrentCart);
+        const abandoned = state.carts.filter(isAbandonedCart);
+        const withContact = actionable.filter(hasCartContact);
+        els.cartSummaryCards.innerHTML = `
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Needs follow-up</p>
+            <p class="mt-2 text-2xl font-semibold">${actionable.length}</p>
+            <p class="text-xs text-slate-500">open saved carts</p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Active now</p>
+            <p class="mt-2 text-2xl font-semibold">${current.length}</p>
+            <p class="text-xs text-slate-500">updated in 30 minutes</p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Abandoned</p>
+            <p class="mt-2 text-2xl font-semibold">${abandoned.length}</p>
+            <p class="text-xs text-slate-500">inactive 30+ minutes</p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Reachable</p>
+            <p class="mt-2 text-2xl font-semibold">${withContact.length}</p>
+            <p class="text-xs text-slate-500">with phone or email</p>
+          </div>
+        `;
+      }
+
+      function renderCartsDashboard() {
+        if (!els.cartsList) return;
+        renderCartFilterOptions();
+        renderCartSummary();
+        if (!state.cartsLoaded) {
+          els.cartsList.innerHTML = '<div class="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">Loading saved carts...</div>';
+          return;
+        }
+        if (!state.filteredCarts.length) {
+          els.cartsList.innerHTML = '<div class="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">No saved carts match the current filters.</div>';
+          return;
+        }
+        els.cartsList.innerHTML = state.filteredCarts.map(cart => {
+          const items = getCartItems(cart);
+          const itemPreview = items.slice(0, 4).map(item => {
+            const detail = [getItemQuantityDisplay(item), getItemSoldByLabel(item)].filter(Boolean).join(' · ');
+            return `<div class="flex justify-between gap-3 text-sm text-slate-600"><span>${escapeHtml(getItemLabel(item) || 'Item')}</span><span class="text-right text-slate-500">${escapeHtml(detail)}</span></div>`;
+          }).join('');
+          const moreItems = items.length > 4 ? `<p class="text-xs text-slate-500">+${items.length - 4} more items</p>` : '';
+          const email = cart.customer_email || '';
+          const phone = cart.customer_phone || '';
+          const activityText = getCartActivityText(cart);
+          const lastSeen = formatRelativeTime(cart.last_seen_at || cart.updated_at || cart.created_at);
+          const status = (cart.status || '').toLowerCase();
+          const paymentUrl = getCartPaymentUrl(cart);
+          const mailtoLink = buildCartPaymentMailto(cart);
+          const whatsappLink = buildCartPaymentWhatsApp(cart);
+          const canMarkContacted = !['contacted', 'ordered', 'dismissed', 'recovered'].includes(status);
+          const canDismiss = !['ordered', 'dismissed', 'recovered'].includes(status);
+          const canGeneratePayment = items.length > 0 && !['ordered', 'dismissed', 'recovered'].includes(status);
+          return `
+            <article data-cart-id="${escapeHtml(cart.id)}" class="order-card rounded-2xl p-4 space-y-3">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p class="text-base font-semibold text-slate-900">${escapeHtml(cart.customer_name || 'Guest cart')}</p>
+                  <p class="text-sm text-slate-600">${[email, phone].filter(Boolean).map(escapeHtml).join(' · ') || 'No contact yet'}</p>
+                  <p class="text-xs text-slate-500">${escapeHtml(capitalize(cart.source || 'menu'))} · ${escapeHtml(cart.shabbos_label || 'No label')}</p>
+                </div>
+                <div class="text-right space-y-1">
+                  <span class="${getCartStatusClass(cart)}">${escapeHtml(activityText)}</span>
+                  <p class="text-xs text-slate-500">Last seen ${escapeHtml(lastSeen)}</p>
+                </div>
+              </div>
+              <div class="grid gap-3 md:grid-cols-[1fr_auto] md:items-start">
+                <div class="space-y-1">
+                  ${itemPreview || '<p class="text-xs text-slate-500">No item data</p>'}
+                  ${moreItems}
+                </div>
+                <div class="text-sm text-slate-600 md:text-right">
+                  <p>Total: <span class="font-semibold text-slate-900">${formatCartTotal(cart)}</span></p>
+                  <p>${Number(cart.item_count || 0)} item${Number(cart.item_count || 0) === 1 ? '' : 's'}</p>
+                </div>
+              </div>
+              ${cart.customer_address ? `<p class="text-xs text-slate-500">Address: ${escapeHtml(cart.customer_address)}</p>` : ''}
+              ${cart.notes || cart.allergies ? `<p class="text-xs text-amber-700">Notes: ${escapeHtml([cart.allergies, cart.notes].filter(Boolean).join(' · '))}</p>` : ''}
+              ${paymentUrl ? `
+                <div class="border-t border-slate-200 pt-3 flex flex-wrap items-center gap-2 text-xs">
+                  <span class="font-semibold uppercase tracking-[0.2em] text-violet-700">Payment link ready</span>
+                  <a href="${escapeAttribute(paymentUrl)}" target="_blank" rel="noopener" class="rounded-full border border-violet-200 px-3 py-1 font-semibold uppercase tracking-[0.2em] text-violet-700">Open Stripe link</a>
+                  <button data-cart-action="copy-link" data-cart-id="${escapeHtml(cart.id)}" class="rounded-full border border-slate-200 px-3 py-1 font-semibold uppercase tracking-[0.2em] text-slate-700" type="button">Copy link</button>
+                  ${mailtoLink ? `<a href="${escapeAttribute(mailtoLink)}" class="rounded-full border border-slate-200 px-3 py-1 font-semibold uppercase tracking-[0.2em] text-slate-700">Email link</a>` : ''}
+                  ${whatsappLink ? `<a href="${escapeAttribute(whatsappLink)}" target="_blank" rel="noopener" class="rounded-full border border-slate-200 px-3 py-1 font-semibold uppercase tracking-[0.2em] text-slate-700">WhatsApp</a>` : ''}
+                </div>
+              ` : ''}
+              <div class="flex flex-wrap gap-2">
+                ${email ? `<a href="mailto:${escapeHtml(email)}" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">Email</a>` : ''}
+                ${phone ? `<a href="tel:${escapeHtml(phone)}" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">Call</a>` : ''}
+                <button data-cart-action="copy" data-cart-id="${escapeHtml(cart.id)}" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700" type="button">Copy details</button>
+                ${canGeneratePayment ? `<button data-cart-action="payment-link" data-cart-id="${escapeHtml(cart.id)}" class="rounded-full border border-violet-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-violet-700" type="button">${email ? (paymentUrl ? 'Regenerate & email link' : 'Generate & email link') : (paymentUrl ? 'Regenerate payment link' : 'Generate payment link')}</button>` : ''}
+                ${canMarkContacted ? `<button data-cart-action="contacted" data-cart-id="${escapeHtml(cart.id)}" class="rounded-full border border-amber-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700" type="button">Mark contacted</button>` : ''}
+                ${canDismiss ? `<button data-cart-action="dismissed" data-cart-id="${escapeHtml(cart.id)}" class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-rose-600" type="button">Dismiss</button>` : ''}
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      function buildCartClipboardText(cart) {
+        const lines = [];
+        lines.push(`Saved cart ${cart.id}`);
+        lines.push(`Menu: ${capitalize(cart.source || 'menu')}`);
+        lines.push(`Status: ${getCartActivityText(cart)}`);
+        lines.push(`Last seen: ${formatRelativeTime(cart.last_seen_at || cart.updated_at || cart.created_at)}`);
+        if (cart.shabbos_label) lines.push(`Label: ${cart.shabbos_label}`);
+        lines.push('');
+        lines.push(`Name: ${cart.customer_name || 'Guest'}`);
+        if (cart.customer_email) lines.push(`Email: ${cart.customer_email}`);
+        if (cart.customer_phone) lines.push(`Phone: ${cart.customer_phone}`);
+        if (cart.customer_address) lines.push(`Address: ${cart.customer_address}`);
+        lines.push('');
+        lines.push('Items:');
+        const items = getCartItems(cart);
+        if (!items.length) {
+          lines.push('- No item data');
+        } else {
+          items.forEach(item => {
+            const detail = [getItemQuantityDisplay(item), getItemLabel(item), getItemSoldByLabel(item)].filter(Boolean).join(' · ');
+            lines.push(`- ${detail}`);
+          });
+        }
+        lines.push(`Total: ${cart.total || 'Not recorded'}`);
+        if (getCartPaymentUrl(cart)) lines.push(`Payment link: ${getCartPaymentUrl(cart)}`);
+        if (cart.allergies) lines.push(`Allergies: ${cart.allergies}`);
+        if (cart.notes) lines.push(`Notes: ${cart.notes}`);
+        if (cart.page_url) lines.push(`Page: ${cart.page_url}`);
+        return lines.join('\n');
+      }
+
+      async function handleCartListClick(event) {
+        const button = event.target.closest('button[data-cart-action]');
+        if (!button) return;
+        const cart = state.carts.find(item => item.id === button.dataset.cartId);
+        if (!cart) return;
+        const action = button.dataset.cartAction;
+        if (action === 'copy') {
+          const text = buildCartClipboardText(cart);
+          try {
+            await navigator.clipboard.writeText(text);
+            showToast('Cart details copied');
+          } catch (_err) {
+            window.prompt('Cart details', text);
+          }
+          return;
+        }
+        if (action === 'copy-link') {
+          const url = getCartPaymentUrl(cart);
+          if (!url) {
+            showToast('No payment link yet.', { type: 'info' });
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(url);
+            showToast('Payment link copied');
+          } catch (_err) {
+            window.prompt('Payment link', url);
+          }
+          return;
+        }
+        if (action === 'payment-link') {
+          await generateCartPaymentLink(cart.id, button, Boolean(cart.customer_email));
+          return;
+        }
+        if (action === 'contacted' || action === 'dismissed') {
+          await updateCartStatus(cart.id, action);
+        }
+      }
+
+      async function updateCartStatus(id, status) {
+        if (!state.adminKey) {
+          showToast('Enter the admin key to update saved carts.', { type: 'error' });
+          return;
+        }
+        try {
+          const response = await apiFetch('abandoned-carts', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to update saved cart');
+          }
+          const data = await response.json();
+          const updated = data.cart;
+          if (updated) {
+            state.carts = state.carts.map(cart => cart.id === updated.id ? updated : cart);
+            applyCartFilters();
+            renderCartsDashboard();
+          }
+          showToast(status === 'contacted' ? 'Cart marked contacted' : 'Cart dismissed');
+        } catch (error) {
+          showToast(error.message || 'Saved cart update failed', { type: 'error' });
+        }
+      }
+
+      async function generateCartPaymentLink(id, button, sendEmail = false) {
+        if (!state.adminKey) {
+          showToast('Enter the admin key to generate payment links.', { type: 'error' });
+          return;
+        }
+        const originalText = button?.textContent || '';
+        if (button) {
+          button.disabled = true;
+          button.textContent = 'Generating...';
+        }
+        try {
+          const response = await apiFetch('stripe/cart-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cartId: id, sendEmail })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to generate payment link');
+          }
+          const data = await response.json();
+          const updated = data.cart;
+          if (updated) {
+            state.carts = state.carts.map(cart => cart.id === updated.id ? updated : cart);
+          }
+          applyCartFilters();
+          renderCartsDashboard();
+          const emailSent = Boolean(data.email?.sent || data.emailSent);
+          const emailReason = data.email?.reason || data.emailError || '';
+          if (data.url && navigator?.clipboard?.writeText) {
+            try {
+              await navigator.clipboard.writeText(data.url);
+              showToast(emailSent ? 'Payment link emailed and copied' : 'Payment link generated and copied');
+              return;
+            } catch (_err) {
+              // The visible link remains available if clipboard access is blocked.
+            }
+          }
+          if (sendEmail && emailReason && !emailSent) {
+            showToast(`Payment link generated, but email was not sent: ${emailReason}`, { type: 'error' });
+          } else {
+            showToast(emailSent ? 'Payment link emailed' : 'Payment link generated');
+          }
+        } catch (error) {
+          showToast(error.message || 'Unable to generate payment link', { type: 'error' });
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = originalText || 'Generate payment link';
+          }
+        }
+      }
+
       function findProductById(id) {
         for (const category of state.products) {
           for (const item of category.items) {
@@ -1380,6 +1959,23 @@
         els.settingsSiteStatus.classList.toggle('text-rose-500', isError);
         els.settingsSiteStatus.classList.toggle('text-slate-500', !isError);
       }
+      function setWindowsSettingsStatus(message, isError = false) {
+        if (!els.settingsWindowsStatus) return;
+        els.settingsWindowsStatus.textContent = message;
+        els.settingsWindowsStatus.classList.toggle('text-rose-500', isError);
+        els.settingsWindowsStatus.classList.toggle('text-slate-500', !isError);
+      }
+      function isoToDatetimeLocal(isoString) {
+        if (!isoString) return '';
+        try {
+          const d = new Date(isoString);
+          return d.toLocaleString('sv-SE', { timeZone: 'Asia/Jerusalem' }).slice(0, 16).replace(' ', 'T');
+        } catch (_e) { return ''; }
+      }
+      function datetimeLocalToISO(value) {
+        if (!value) return '';
+        return value + ':00+03:00';
+      }
 
       async function loadSiteSettings() {
         if (!els.settingsShabbosEnabled || !els.settingsPurimEnabled || !els.settingsDairyEnabled || !els.settingsShavuosEnabled) return;
@@ -1408,6 +2004,10 @@
           els.settingsPurimEnabled.checked = purimEnabled;
           els.settingsDairyEnabled.checked = dairyEnabled;
           els.settingsShavuosEnabled.checked = shavuosEnabled;
+          if (els.settingsShavuosOpenTime) els.settingsShavuosOpenTime.value = isoToDatetimeLocal(settings.shavuos_open_time || '');
+          if (els.settingsShavuosCutoffTime) els.settingsShavuosCutoffTime.value = isoToDatetimeLocal(settings.shavuos_cutoff_time || '');
+          if (els.settingsShabbosCloseDaysBefore) els.settingsShabbosCloseDaysBefore.value = settings.shabbos_close_days_before != null ? settings.shabbos_close_days_before : '';
+          if (els.settingsShabbosCloseTime) els.settingsShabbosCloseTime.value = settings.shabbos_close_time || '';
           setSiteSettingsStatus('Settings loaded.');
         } catch (error) {
           setSiteSettingsStatus(error.message || 'Failed to load settings.', true);
@@ -1442,6 +2042,38 @@
           setSiteSettingsStatus('Saved.');
         } catch (error) {
           setSiteSettingsStatus(error.message || 'Save failed.', true);
+        }
+      }
+
+      async function saveWindowsSettings() {
+        if (!state.adminKey) {
+          showToast('Enter the admin key to save settings.', { type: 'error' });
+          return;
+        }
+        setWindowsSettingsStatus('Saving...');
+        try {
+          const settings = {
+            shavuos_open_time: els.settingsShavuosOpenTime?.value ? datetimeLocalToISO(els.settingsShavuosOpenTime.value) : '',
+            shavuos_cutoff_time: els.settingsShavuosCutoffTime?.value ? datetimeLocalToISO(els.settingsShavuosCutoffTime.value) : '',
+          };
+          if (els.settingsShabbosCloseDaysBefore?.value !== '') {
+            settings.shabbos_close_days_before = parseInt(els.settingsShabbosCloseDaysBefore.value, 10);
+          }
+          if (els.settingsShabbosCloseTime?.value) {
+            settings.shabbos_close_time = els.settingsShabbosCloseTime.value;
+          }
+          const response = await apiFetch('products?settings=1', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ settings, key: state.adminKey })
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || 'Unable to save settings');
+          }
+          setWindowsSettingsStatus('Saved.');
+        } catch (error) {
+          setWindowsSettingsStatus(error.message || 'Save failed.', true);
         }
       }
 

@@ -1,6 +1,7 @@
 const Stripe = require('stripe');
 const rawBody = require('raw-body');
 const { sql } = require('@vercel/postgres');
+const { ensureAbandonedCartsTable, normalizeCartId } = require('../../lib/abandoned-carts');
 
 const {
   STRIPE_SECRET_KEY = '',
@@ -40,6 +41,7 @@ module.exports = async (req, res) => {
   if (event.type === 'checkout.session.completed' || event.type === 'payment_intent.succeeded') {
     const metadata = event.data?.object?.metadata || {};
     const orderId = Number(metadata.order_id || 0);
+    const recoveredCartId = normalizeCartId(metadata.recovered_cart_id || metadata.cart_id || '');
     if (orderId) {
       try {
         const { rows } = await sql`
@@ -55,12 +57,30 @@ module.exports = async (req, res) => {
           });
           await sql`
             UPDATE orders
-            SET items = ${updatedItems}, pending_payment_link = NULL, pending_payment_url = NULL
+            SET items = ${JSON.stringify(updatedItems)}::jsonb,
+                pending_payment_link = NULL,
+                pending_payment_url = NULL,
+                status = CASE WHEN status = 'payment_link_sent' THEN 'new' ELSE status END
             WHERE id = ${orderId}
           `;
         }
       } catch (err) {
         console.error('Webhook order update failed', err);
+      }
+    }
+    if (recoveredCartId) {
+      try {
+        await ensureAbandonedCartsTable();
+        await sql`
+          UPDATE abandoned_carts
+          SET status = 'recovered',
+              order_id = ${orderId || null},
+              ordered_at = COALESCE(ordered_at, now()),
+              updated_at = now()
+          WHERE id = ${recoveredCartId}
+        `;
+      } catch (err) {
+        console.error('Webhook abandoned cart update failed', err);
       }
     }
   }

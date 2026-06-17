@@ -346,6 +346,8 @@
       <p id="loadingMessage" class="text-neutral-700 font-medium">Loading, please wait...</p>
     </div>
 
+    <script src="/scripts/abandoned-cart.js"></script>
+
     <!-- Scripts -->
     <script>
       document.getElementById("year").textContent = new Date().getFullYear();
@@ -368,10 +370,13 @@
       function labelShabbos(d, parshaName) {
         return parshaName ? `Shabbos Parshas ${parshaName} — ${formatDate(d)}` : `Shabbos — ${formatDate(d)}`;
       }
+      let shabbosCloseDaysBefore = 2;
+      let shabbosCloseHour = 0;
+      let shabbosCloseMinute = 0;
       function getCloseAndDropTimes(date) {
         const close = new Date(date);
-        close.setDate(close.getDate() - 2);
-        close.setHours(0, 0, 0, 0);
+        close.setDate(close.getDate() - shabbosCloseDaysBefore);
+        close.setHours(shabbosCloseHour, shabbosCloseMinute, 0, 0);
         const drop = new Date(date);
         drop.setHours(23, 59, 59, 999);
         return { close, drop };
@@ -447,9 +452,13 @@
           if (!o.closed && select.selectedIndex === -1) opt.selected = true;
           select.appendChild(opt);
         });
-        if (note) note.textContent = "Orders close Wednesday 23:59 Israel time for that week.";
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const closeDay = (6 - shabbosCloseDaysBefore + 7) % 7;
+        const closeTimeStr = `${String(shabbosCloseHour).padStart(2, "0")}:${String(shabbosCloseMinute).padStart(2, "0")}`;
+        const cutoffDesc = `Orders close ${dayNames[closeDay]} ${closeTimeStr} Israel time`;
+        if (note) note.textContent = `${cutoffDesc} for that week.`;
         const cutoffText = document.getElementById("orderCutoffText");
-        if (cutoffText) cutoffText.textContent = "Orders close Wednesday 23:59 Israel time for this Shabbos.";
+        if (cutoffText) cutoffText.textContent = `${cutoffDesc} for this Shabbos.`;
       }
 
       const cartEntries = new Map();
@@ -532,6 +541,8 @@
       let lastSubtotal = 0;
       let paymentReady = false;
       let preparingPayment = false;
+      let abandonedCartTracker = null;
+      let cartSnapshotRestored = false;
       const pendingOrderStorageKey = "palate_pending_order";
       const requiredDeliveryFields = [{ el: deliveryEmailInput, label: "Email" }];
 
@@ -635,6 +646,8 @@
         section.appendChild(grid);
         menuContainer.appendChild(section);
       });
+      syncCartInputsFromEntries();
+      restoreSavedCartSnapshot();
     }
 
       async function loadMenuFromApi() {
@@ -672,6 +685,13 @@
           cartEntries.set(key, { ...item, quantity });
         }
         renderCart();
+      }
+
+      function syncCartInputsFromEntries() {
+        document.querySelectorAll("input[data-item-key]").forEach((input) => {
+          const line = cartEntries.get(input.dataset.itemKey);
+          input.value = line ? String(line.quantity || 0) : "0";
+        });
       }
 
       function renderCart() {
@@ -716,6 +736,7 @@
         if (summaryTextField) summaryTextField.value = lines.map(item => `${item.quantity}x ${item.title}`).join(", ");
         if (itemsField) itemsField.value = JSON.stringify(lines);
         updateCheckoutAvailability();
+        scheduleAbandonedCartSave();
       }
 
       function hasDeliveryInfo() {
@@ -775,10 +796,30 @@
           const response = await fetch("/api/products?settings=1&public=1");
           if (!response.ok) return;
           const data = await response.json();
-          const enabled = data?.settings?.shabbos_enabled !== false;
+          const settings = data?.settings || {};
+          const enabled = settings.shabbos_enabled !== false;
           if (!enabled) {
             setOrderingEnabled(false, "Shabbos ordering is currently closed.");
           }
+          let settingsChanged = false;
+          if (settings.shabbos_close_days_before != null) {
+            const days = parseInt(settings.shabbos_close_days_before, 10);
+            if (!isNaN(days) && days !== shabbosCloseDaysBefore) {
+              shabbosCloseDaysBefore = days;
+              settingsChanged = true;
+            }
+          }
+          if (settings.shabbos_close_time) {
+            const parts = String(settings.shabbos_close_time).split(":");
+            const h = parseInt(parts[0], 10);
+            const m = parseInt(parts[1] || "0", 10);
+            if (!isNaN(h) && (h !== shabbosCloseHour || m !== shabbosCloseMinute)) {
+              shabbosCloseHour = h;
+              shabbosCloseMinute = m;
+              settingsChanged = true;
+            }
+          }
+          if (settingsChanged) populateShabbosOptions();
         } catch (err) {
           console.warn("Site settings fetch failed", err);
         }
@@ -839,6 +880,58 @@
       function clearPendingOrder() {
         sessionStorage.removeItem(pendingOrderStorageKey);
       }
+      function getCartIdForOrderPayload() {
+        if (cartEntries.size > 0) {
+          return abandonedCartTracker?.getCartId?.() || "";
+        }
+        return abandonedCartTracker?.peekCartId?.() || "";
+      }
+      function scheduleAbandonedCartSave() {
+        abandonedCartTracker?.schedule?.();
+      }
+      function initAbandonedCartTracking() {
+        if (!window.PalateAbandonedCart?.createTracker) return;
+        abandonedCartTracker = window.PalateAbandonedCart.createTracker({
+          source: "shabbos",
+          orderKey: orderApiKey,
+          getPayload: buildOrderPayload
+        });
+        [allergiesInput, notesInput].forEach((field) => {
+          field?.addEventListener("input", scheduleAbandonedCartSave);
+        });
+      }
+      function setRestoredValue(field, value) {
+        if (field && value && !field.value) {
+          field.value = value;
+        }
+      }
+      function restoreSavedCartSnapshot() {
+        if (cartSnapshotRestored || !abandonedCartTracker) return;
+        const snapshot = abandonedCartTracker.getSnapshot?.();
+        if (!snapshot || typeof snapshot !== "object") return;
+        const items = Array.isArray(snapshot.items) ? snapshot.items : [];
+        const customer = snapshot.customer || {};
+        if (!items.length && !customer.email && !customer.phone) return;
+        cartSnapshotRestored = true;
+        setRestoredValue(deliveryNameInput, customer.name || "");
+        setRestoredValue(deliveryPhoneInput, customer.phone || "");
+        setRestoredValue(deliveryEmailInput, customer.email || "");
+        setRestoredValue(deliveryStreetInput, customer.deliveryStreet || "");
+        setRestoredValue(deliveryCityInput, customer.deliveryCity || "");
+        if (deliveryTypeInput && customer.deliveryType) deliveryTypeInput.value = customer.deliveryType;
+        setRestoredValue(allergiesInput, snapshot.allergies || "");
+        setRestoredValue(notesInput, snapshot.notes || snapshot.deliveryNotes || "");
+        items.forEach((line) => {
+          const key = line.key || "";
+          if (!key) return;
+          const input = Array.from(document.querySelectorAll("input[data-item-key]")).find((field) => field.dataset.itemKey === key);
+          if (!input) return;
+          input.value = String(Math.max(0, Math.floor(Number(line.quantity || line.qty || 1) || 0)));
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+        updateDeliveryPolicy();
+        updateCheckoutAvailability();
+      }
 
       function getCartLines() {
         return Array.from(cartEntries.values()).map((item) => {
@@ -849,7 +942,8 @@
             soldBy: item.soldBy,
             price: item.price,
             quantity,
-            qty: quantity
+            qty: quantity,
+            key: item.key || ""
           };
         });
       }
@@ -871,6 +965,8 @@
           deliveryType
         };
         return {
+          cartId: getCartIdForOrderPayload(),
+          source: "shabbos",
           customer,
           items,
           total: lastSubtotal,
@@ -922,6 +1018,7 @@
         checkoutHint.classList.remove("hidden");
         const payload = buildOrderPayload();
         storePendingOrder(payload);
+        abandonedCartTracker?.trackCheckoutStarted?.(payload);
         if (!stripeInstance) {
           stripeInstance = window.palateStripeClient?.loadStripe(stripePublishableKey);
           if (!stripeInstance) {
@@ -973,8 +1070,10 @@
           if (!response.ok) {
             throw new Error("Order submission failed");
           }
+          return true;
         } catch (err) {
           console.error("Order submission error", err);
+          return false;
         }
       }
 
@@ -1000,7 +1099,8 @@
             if (result.paymentIntent.id && !payload.paymentIntentId) {
               payload.paymentIntentId = result.paymentIntent.id;
             }
-            await submitOrder(payload);
+            const submitted = await submitOrder(payload);
+            if (submitted) abandonedCartTracker?.clear?.();
             clearPendingOrder();
           }
           window.location.href = "/thank-you.html";
@@ -1018,7 +1118,8 @@
           if (paymentIntentId && !pending.paymentIntentId) {
             pending.paymentIntentId = paymentIntentId;
           }
-          await submitOrder(pending);
+          const submitted = await submitOrder(pending);
+          if (submitted) abandonedCartTracker?.clear?.();
           clearPendingOrder();
           window.location.href = "/thank-you.html";
         }
@@ -1032,6 +1133,7 @@
             resetStripeSession();
           }
           updateCheckoutAvailability();
+          scheduleAbandonedCartSave();
         });
       });
 
@@ -1044,6 +1146,7 @@
         }
         updateDeliveryPolicy();
         updateCheckoutAvailability();
+        scheduleAbandonedCartSave();
       });
 
       document.getElementById("menuBtn").addEventListener("click", () => {
@@ -1057,6 +1160,8 @@
         loadSiteAvailability();
         updateCheckoutAvailability();
         updateDeliveryPolicy();
+        initAbandonedCartTracking();
+        restoreSavedCartSnapshot();
         processPendingOrderFromReturn();
       });
     </script>

@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { enqueueKitchenPrintJob } = require('../lib/kitchen-print-queue');
 const { getSiteBaseUrl } = require('../lib/kitchen-auth');
+const { markCartOrdered } = require('../lib/abandoned-carts');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
@@ -576,7 +577,8 @@ module.exports = async (req, res) => {
     htmlBody = '',
     pdfDataUrl = '',
     authToken = '',
-    paymentIntentId = ''
+    paymentIntentId = '',
+    cartId = ''
   } = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
 
   const user = process.env.GMAIL_USER;
@@ -652,6 +654,13 @@ module.exports = async (req, res) => {
     `;
     orderId = insert?.rows?.[0]?.id || null;
     orderNumber = insert?.rows?.[0]?.order_number;
+    if (orderId && cartId) {
+      try {
+        await markCartOrdered(cartId, orderId);
+      } catch (cartErr) {
+        console.error('Abandoned cart completion update failed', cartErr);
+      }
+    }
   } catch (err) {
     console.error('Order save error', err);
   }
