@@ -1211,6 +1211,7 @@
           loadAbandonedCarts();
         }
         render();
+        scheduleAutoRefresh();
       }
 
       async function loadOrders() {
@@ -3706,10 +3707,17 @@
       }
 
       function updateLastUpdatedStamp() {
-        if (state.lastRefresh) {
-          els.lastUpdatedAt.textContent = `Last refreshed ${formatDate(state.lastRefresh)}`;
-        } else {
+        if (!state.lastRefresh) {
           els.lastUpdatedAt.textContent = '';
+          return;
+        }
+        const secs = Math.round((Date.now() - state.lastRefresh.getTime()) / 1000);
+        if (secs < 5) {
+          els.lastUpdatedAt.textContent = 'Live · just updated';
+        } else if (secs < 60) {
+          els.lastUpdatedAt.textContent = `Live · updated ${secs}s ago`;
+        } else {
+          els.lastUpdatedAt.textContent = `Last refreshed ${formatDate(state.lastRefresh)}`;
         }
       }
 
@@ -3832,7 +3840,38 @@
         return value.charAt(0).toUpperCase() + value.slice(1);
       }
 
-      init();
+      let autoRefreshTimer = null;
+      const AUTO_REFRESH_INTERVAL = 30000;
+
+      function scheduleAutoRefresh() {
+        clearTimeout(autoRefreshTimer);
+        if (!state.adminKey || document.hidden) return;
+        autoRefreshTimer = setTimeout(async () => {
+          if (document.hidden || !state.adminKey) return;
+          if (state.activeTab === 'carts') {
+            await loadAbandonedCarts(true);
+          } else if (state.activeTab === 'orders') {
+            await loadOrders();
+          }
+          scheduleAutoRefresh();
+        }, AUTO_REFRESH_INTERVAL);
+      }
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && state.adminKey) {
+          if (state.activeTab === 'carts') {
+            loadAbandonedCarts(true).then(() => scheduleAutoRefresh());
+          } else if (state.activeTab === 'orders') {
+            loadOrders().then(() => scheduleAutoRefresh());
+          }
+        } else {
+          clearTimeout(autoRefreshTimer);
+        }
+      });
+
+      setInterval(updateLastUpdatedStamp, 5000);
+
+      init().then(() => scheduleAutoRefresh());
     })();
   </script>
 </body>
