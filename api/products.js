@@ -221,9 +221,9 @@ async function seedShavuosMenu() {
 
 function formatPublicSettings(settings) {
   return {
-    shabbos_enabled: false,
+    shabbos_enabled: settings.shabbos_enabled !== false,
     purim_enabled: settings.purim_enabled !== false,
-    dairy_enabled: false,
+    dairy_enabled: settings.dairy_enabled !== false,
     shavuos_enabled: settings.shavuos_enabled !== false,
     shavuos_open_time: settings.shavuos_open_time || '',
     shavuos_cutoff_time: settings.shavuos_cutoff_time || '',
