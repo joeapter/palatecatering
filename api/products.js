@@ -32,6 +32,7 @@ async function ensureSettingsTable() {
 
 const PUBLIC_SETTING_KEYS = new Set([
   'shabbos_enabled', 'purim_enabled', 'dairy_enabled', 'shavuos_enabled',
+  'shabbos_disabled_until', 'dairy_disabled_until',
   'shavuos_open_time', 'shavuos_cutoff_time',
   'shabbos_close_days_before', 'shabbos_close_time'
 ]);
@@ -54,6 +55,21 @@ async function readSettings(keys) {
     settings[row.key] = row.value === 'false' ? false : row.value === 'true' ? true : row.value;
   });
   return settings;
+}
+
+function getPauseTimestamp(settings, key) {
+  const value = String(settings[key] || '').trim();
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function isMenuEnabled(settings, enabledKey, pausedUntilKey, now) {
+  const timestamp = getPauseTimestamp(settings, pausedUntilKey);
+  if (timestamp !== null) {
+    return timestamp <= now.getTime();
+  }
+  return settings[enabledKey] !== false;
 }
 
 const legacyMenu = require('../data/shabbos-menu.json');
@@ -220,11 +236,14 @@ async function seedShavuosMenu() {
 }
 
 function formatPublicSettings(settings) {
+  const now = new Date();
   return {
-    shabbos_enabled: settings.shabbos_enabled !== false,
+    shabbos_enabled: isMenuEnabled(settings, 'shabbos_enabled', 'shabbos_disabled_until', now),
     purim_enabled: settings.purim_enabled !== false,
-    dairy_enabled: settings.dairy_enabled !== false,
+    dairy_enabled: isMenuEnabled(settings, 'dairy_enabled', 'dairy_disabled_until', now),
     shavuos_enabled: settings.shavuos_enabled !== false,
+    shabbos_disabled_until: settings.shabbos_disabled_until || '',
+    dairy_disabled_until: settings.dairy_disabled_until || '',
     shavuos_open_time: settings.shavuos_open_time || '',
     shavuos_cutoff_time: settings.shavuos_cutoff_time || '',
     shabbos_close_days_before: settings.shabbos_close_days_before,
