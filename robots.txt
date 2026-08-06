@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /oldindex.html
+Disallow: /thank-you.html
+Disallow: /api/
+
+Sitemap: https://palatecateringisrael.com/sitemap.xml
