@@ -36,6 +36,8 @@ const PUBLIC_SETTING_KEYS = new Set([
   'shavuos_open_time', 'shavuos_cutoff_time',
   'shabbos_close_days_before', 'shabbos_close_time'
 ]);
+const DEFAULT_SHABBOS_CLOSE_DAYS_BEFORE = '3';
+const DEFAULT_SHABBOS_CLOSE_TIME = '23:59';
 
 function normalizeSettingValue(value) {
   if (typeof value === 'boolean') return value ? 'true' : 'false';
@@ -237,6 +239,16 @@ async function seedShavuosMenu() {
 
 function formatPublicSettings(settings) {
   const now = new Date();
+  const rawShabbosCloseDays = settings.shabbos_close_days_before;
+  const rawShabbosCloseTime = settings.shabbos_close_time || '';
+  const hasLegacyMidnightClose = String(rawShabbosCloseDays) === '2' && (!rawShabbosCloseTime || rawShabbosCloseTime === '00:00');
+  const shabbosCloseDaysBefore = hasLegacyMidnightClose
+    ? DEFAULT_SHABBOS_CLOSE_DAYS_BEFORE
+    : (rawShabbosCloseDays ?? DEFAULT_SHABBOS_CLOSE_DAYS_BEFORE);
+  const shabbosCloseTime = hasLegacyMidnightClose
+    ? DEFAULT_SHABBOS_CLOSE_TIME
+    : (rawShabbosCloseTime || DEFAULT_SHABBOS_CLOSE_TIME);
+
   return {
     shabbos_enabled: isMenuEnabled(settings, 'shabbos_enabled', 'shabbos_disabled_until', now),
     purim_enabled: settings.purim_enabled !== false,
@@ -246,8 +258,8 @@ function formatPublicSettings(settings) {
     dairy_disabled_until: settings.dairy_disabled_until || '',
     shavuos_open_time: settings.shavuos_open_time || '',
     shavuos_cutoff_time: settings.shavuos_cutoff_time || '',
-    shabbos_close_days_before: settings.shabbos_close_days_before,
-    shabbos_close_time: settings.shabbos_close_time || ''
+    shabbos_close_days_before: shabbosCloseDaysBefore,
+    shabbos_close_time: shabbosCloseTime
   };
 }
 

@@ -229,7 +229,7 @@
               <span class="inline-flex h-10 w-10 rounded-full bg-amber-100 text-amber-800 items-center justify-center font-semibold">⏳</span>
               <div>
                 <p class="text-sm text-neutral-600">Cutoff</p>
-                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Wednesday 23:59 Israel time for this Shabbos.</p>
+                <p class="font-semibold text-neutral-900" id="orderCutoffText">Orders close Wednesday night at 11:59 PM Israel time for this Shabbos.</p>
                 <p class="text-sm text-neutral-600 mt-1" id="orderStatusText"></p>
               </div>
             </div>
@@ -370,9 +370,9 @@
       function labelShabbos(d, parshaName) {
         return parshaName ? `Shabbos Parshas ${parshaName} — ${formatDate(d)}` : `Shabbos — ${formatDate(d)}`;
       }
-      let shabbosCloseDaysBefore = 2;
-      let shabbosCloseHour = 0;
-      let shabbosCloseMinute = 0;
+      let shabbosCloseDaysBefore = 3;
+      let shabbosCloseHour = 23;
+      let shabbosCloseMinute = 59;
       function getCloseAndDropTimes(date) {
         const close = new Date(date);
         close.setDate(close.getDate() - shabbosCloseDaysBefore);
@@ -425,6 +425,13 @@
         const iso = dateObj.toISOString().slice(0, 10);
         return parshaCache[iso] || "";
       }
+      function formatCutoffDayAndTime(dayName, hour, minute) {
+        const period = hour >= 12 ? "PM" : "AM";
+        const hour12 = hour % 12 || 12;
+        const minuteText = String(minute).padStart(2, "0");
+        const dayText = hour >= 18 ? `${dayName} night` : dayName;
+        return `${dayText} at ${hour12}:${minuteText} ${period}`;
+      }
       function populateShabbosOptions() {
         const select = document.getElementById("shabbosSelect");
         const note = document.getElementById("shabbosNote");
@@ -454,8 +461,7 @@
         });
         const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const closeDay = (6 - shabbosCloseDaysBefore + 7) % 7;
-        const closeTimeStr = `${String(shabbosCloseHour).padStart(2, "0")}:${String(shabbosCloseMinute).padStart(2, "0")}`;
-        const cutoffDesc = `Orders close ${dayNames[closeDay]} ${closeTimeStr} Israel time`;
+        const cutoffDesc = `Orders close ${formatCutoffDayAndTime(dayNames[closeDay], shabbosCloseHour, shabbosCloseMinute)} Israel time`;
         if (note) note.textContent = `${cutoffDesc} for that week.`;
         const cutoffText = document.getElementById("orderCutoffText");
         if (cutoffText) cutoffText.textContent = `${cutoffDesc} for this Shabbos.`;
