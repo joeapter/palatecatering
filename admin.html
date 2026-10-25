@@ -648,15 +648,6 @@
           </div>
           <input id="orderDetailPageSearch" type="search" placeholder="Search catalog" class="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none" />
           <div id="orderDetailPageSearchResults" class="grid gap-3 max-h-64 overflow-y-auto"></div>
-          <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-2">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Custom item (not in catalog)</p>
-            <input id="orderDetailPageCustomName" type="text" value="Office Party" placeholder="Item name" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
-            <div class="flex gap-2">
-              <input id="orderDetailPageCustomPrice" type="number" min="0" step="0.01" placeholder="Price (₪)" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
-              <input id="orderDetailPageCustomQty" type="number" min="1" step="1" value="1" class="w-20 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
-            </div>
-            <button id="orderDetailPageCustomAdd" type="button" class="rounded-full border border-amber-400 bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">Add custom item</button>
-          </div>
         </div>
         <div class="rounded-2xl border border-dashed border-slate-200 p-4 space-y-3">
           <div class="flex items-center justify-between">
@@ -856,10 +847,6 @@
         orderDetailPageSearch: document.getElementById('orderDetailPageSearch'),
         orderDetailPageSearchResults: document.getElementById('orderDetailPageSearchResults'),
         orderDetailPageGenerateLink: document.getElementById('orderDetailPageGenerateLink'),
-        orderDetailPageCustomName: document.getElementById('orderDetailPageCustomName'),
-        orderDetailPageCustomPrice: document.getElementById('orderDetailPageCustomPrice'),
-        orderDetailPageCustomQty: document.getElementById('orderDetailPageCustomQty'),
-        orderDetailPageCustomAdd: document.getElementById('orderDetailPageCustomAdd'),
         orderDetailPagePendingTotal: document.getElementById('orderDetailPagePendingTotal'),
         orderDetailPageLink: document.getElementById('orderDetailPageLink'),
         orderDetailPageCopyLink: document.getElementById('orderDetailPageCopyLink'),
@@ -1194,22 +1181,6 @@
             qtyInput.value = String(qty);
           }
           addItemToOrderDraft(catalogItem, qty);
-        });
-        els.orderDetailPageCustomAdd?.addEventListener('click', () => {
-          const title = (els.orderDetailPageCustomName?.value || '').trim();
-          const price = Number(els.orderDetailPageCustomPrice?.value || 0);
-          const qty = Math.max(1, Math.floor(Number(els.orderDetailPageCustomQty?.value) || 1));
-          if (!title) {
-            showToast('Enter a name for the custom item.', { type: 'error' });
-            return;
-          }
-          if (!Number.isFinite(price) || price <= 0) {
-            showToast('Enter a price for the custom item.', { type: 'error' });
-            return;
-          }
-          addItemToOrderDraft({ title, price: Math.round(price * 100) / 100, soldBy: '' }, qty);
-          els.orderDetailPageCustomPrice.value = '';
-          els.orderDetailPageCustomQty.value = '1';
         });
         els.orderDetailPageGenerateLink?.addEventListener('click', handleGeneratePaymentLink);
         els.orderDetailPageCopyLink?.addEventListener('click', handleCopyPaymentLink);
