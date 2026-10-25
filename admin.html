@@ -664,6 +664,18 @@
             <button id="orderDetailPageGenerateLink" class="rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white">Generate link</button>
           </div>
           <p id="orderDetailPagePendingTotal" class="text-lg font-semibold text-slate-900">₪0</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <label for="orderDetailPageChargeCurrency" class="text-xs uppercase tracking-[0.2em] text-slate-500">Charge in</label>
+            <select id="orderDetailPageChargeCurrency" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900">
+              <option value="ils">₪ Shekels (Israeli cards)</option>
+              <option value="usd">$ US dollars (American cards)</option>
+            </select>
+            <div id="orderDetailPageUsdRateWrap" class="hidden flex items-center gap-2">
+              <label for="orderDetailPageUsdRate" class="text-xs text-slate-500">₪ per $1</label>
+              <input id="orderDetailPageUsdRate" type="number" min="2" max="6" step="0.0001" placeholder="3.07" class="w-24 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
+            </div>
+          </div>
+          <p id="orderDetailPageUsdPreview" class="hidden text-sm text-slate-600"></p>
           <a id="orderDetailPageLink" href="#" target="_blank" class="text-sm font-semibold text-amber-600 inline-flex items-center gap-1 hidden">
             <span>Open payment link</span>
           </a>
@@ -671,7 +683,7 @@
           <div id="orderDetailPageDiscountWrap" class="hidden rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-2">
             <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Manual-order discount</p>
             <input id="orderDetailPageDiscountDesc" type="text" placeholder="Discount description" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
-            <input id="orderDetailPageDiscountAmount" type="number" min="0" step="0.01" placeholder="Discount amount ($)" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
+            <input id="orderDetailPageDiscountAmount" type="number" min="0" step="0.01" placeholder="Discount amount (₪)" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900" />
             <p class="text-[11px] text-slate-500">Applies only to manual payment request orders.</p>
           </div>
           <p class="text-xs text-slate-500">Send this link to collect payment for the added items.</p>
@@ -708,6 +720,7 @@
     (() => {
       const KEY_STORAGE = 'palate_admin_key';
       const PRINT_MODE_STORAGE = 'palate_default_print_mode';
+      const USD_RATE_STORAGE = 'palate_ils_per_usd';
       const printModes = {
         receipt: { label: 'Customer Receipt', description: 'Includes prices & totals' },
         kitchen: { label: 'Kitchen Prep Sheet', description: 'No prices, allergies up front' },
@@ -861,6 +874,10 @@
         orderDetailPageCustomQty: document.getElementById('orderDetailPageCustomQty'),
         orderDetailPageCustomAdd: document.getElementById('orderDetailPageCustomAdd'),
         orderDetailPagePendingTotal: document.getElementById('orderDetailPagePendingTotal'),
+        orderDetailPageChargeCurrency: document.getElementById('orderDetailPageChargeCurrency'),
+        orderDetailPageUsdRateWrap: document.getElementById('orderDetailPageUsdRateWrap'),
+        orderDetailPageUsdRate: document.getElementById('orderDetailPageUsdRate'),
+        orderDetailPageUsdPreview: document.getElementById('orderDetailPageUsdPreview'),
         orderDetailPageLink: document.getElementById('orderDetailPageLink'),
         orderDetailPageCopyLink: document.getElementById('orderDetailPageCopyLink'),
         orderDetailPageDiscountWrap: document.getElementById('orderDetailPageDiscountWrap'),
@@ -1216,6 +1233,15 @@
         els.orderDetailPageItems?.addEventListener('click', handleOrderDetailPageItemAction);
         els.orderDetailPageDiscountDesc?.addEventListener('input', handleManualDiscountInput);
         els.orderDetailPageDiscountAmount?.addEventListener('input', handleManualDiscountInput);
+        if (els.orderDetailPageUsdRate) {
+          els.orderDetailPageUsdRate.value = localStorage.getItem(USD_RATE_STORAGE) || '';
+        }
+        els.orderDetailPageChargeCurrency?.addEventListener('change', updateOrderDetailPagePending);
+        els.orderDetailPageUsdRate?.addEventListener('input', () => {
+          const rate = getIlsPerUsd();
+          if (rate) localStorage.setItem(USD_RATE_STORAGE, String(rate));
+          updateOrderDetailPagePending();
+        });
       }
 
       function setActiveTab(tab) {
@@ -2928,6 +2954,27 @@
         }, 0);
       }
 
+      function getChargeCurrency() {
+        return els.orderDetailPageChargeCurrency?.value === 'usd' ? 'usd' : 'ils';
+      }
+
+      function getIlsPerUsd() {
+        const rate = Number(els.orderDetailPageUsdRate?.value || 0);
+        return Number.isFinite(rate) && rate >= 2 && rate <= 6 ? rate : 0;
+      }
+
+      function updateUsdPreview(total) {
+        const usd = getChargeCurrency() === 'usd';
+        els.orderDetailPageUsdRateWrap?.classList.toggle('hidden', !usd);
+        if (!els.orderDetailPageUsdPreview) return;
+        els.orderDetailPageUsdPreview.classList.toggle('hidden', !usd);
+        if (!usd) return;
+        const rate = getIlsPerUsd();
+        els.orderDetailPageUsdPreview.textContent = rate
+          ? `Customer will be charged about $${(total / rate).toFixed(2)} (${formatProductPrice(total)} at ₪${rate} per $1). Ask them to choose USD if the payment page offers shekels.`
+          : 'Enter today\'s rate (₪ per $1) to charge in dollars.';
+      }
+
       function updateOrderDetailPagePending() {
         if (!els.orderDetailPagePendingTotal) return;
         const subtotal = computePendingTotal();
@@ -2935,6 +2982,7 @@
         const discountAmount = Math.min(subtotal, manualDiscount.amount);
         const total = Math.max(0, subtotal - discountAmount);
         els.orderDetailPagePendingTotal.textContent = formatProductPrice(total);
+        updateUsdPreview(total);
         if (els.orderDetailPagePendingBadge) {
           if (total > 0) {
             els.orderDetailPagePendingBadge.textContent = 'Pending items';
@@ -3058,6 +3106,12 @@
           showToast('Enter the admin key to generate payment links.', { type: 'error' });
           return;
         }
+        const currency = getChargeCurrency();
+        const ilsPerUsd = getIlsPerUsd();
+        if (currency === 'usd' && !ilsPerUsd) {
+          showToast('Enter today\'s rate (₪ per $1) to charge in dollars.', { type: 'error' });
+          return;
+        }
         const pendingItems = getPendingItems().map(item => {
           const { isNew, ...rest } = item;
           return {
@@ -3073,7 +3127,9 @@
               orderId: order.id,
               items: pendingItems,
               discountDescription: manualOrder ? manualDiscount.description : '',
-              discountAmount: manualOrder ? discountAmount : 0
+              discountAmount: manualOrder ? discountAmount : 0,
+              currency,
+              ilsPerUsd: currency === 'usd' ? ilsPerUsd : undefined
             })
           });
           if (!response.ok) {
@@ -3093,7 +3149,10 @@
             state.detailOrderPageOrder = { ...order };
             updateOrderDetailPagePending();
           }
-          showToast(`Pending payment link ready for ${formatProductPrice(total)}`, { type: 'info' });
+          const linkAmount = data.currency === 'usd' && Number.isFinite(data.amount)
+            ? `$${data.amount.toFixed(2)} (${formatProductPrice(total)})`
+            : formatProductPrice(total);
+          showToast(`Pending payment link ready for ${linkAmount}`, { type: 'info' });
         } catch (error) {
           showToast(error.message || 'Unable to create payment link', { type: 'error' });
         }

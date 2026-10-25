@@ -37,11 +37,21 @@ module.exports = async (req, res) => {
   const parsedDiscount = Number(discountAmount || 0);
   const normalizedDiscountAmount = Number.isFinite(parsedDiscount) && parsedDiscount > 0 ? parsedDiscount : 0;
 
+  // Prices are entered in shekels. Charging US cards in USD avoids Stripe's 2% ILS->USD
+  // conversion fee, since the account pays out in USD.
+  const currency = body.currency === 'usd' ? 'usd' : 'ils';
+  const ilsPerUsd = Number(body.ilsPerUsd || 0);
+  if (currency === 'usd' && !(Number.isFinite(ilsPerUsd) && ilsPerUsd >= 2 && ilsPerUsd <= 6)) {
+    res.status(400).send('Enter a valid exchange rate (shekels per $1) to charge in USD');
+    return;
+  }
+  const toCents = ils => Math.round((currency === 'usd' ? ils / ilsPerUsd : ils) * 100);
+
   const lineItems = items.map(item => {
-    const unitAmount = Math.round((Number(item.price) || 0) * 100);
+    const unitAmount = toCents(Number(item.price) || 0);
     return {
       price_data: {
-        currency: 'ils',
+        currency,
         unit_amount: unitAmount,
         product_data: {
           name: item.title,
@@ -82,13 +92,14 @@ module.exports = async (req, res) => {
     }
 
     let discounts;
+    let discountCents = 0;
     if (manualOrder && normalizedDiscountAmount > 0) {
       const subtotalCents = lineItems.reduce((sum, line) => sum + (line.price_data.unit_amount * line.quantity), 0);
-      const discountCents = Math.min(subtotalCents, Math.round(normalizedDiscountAmount * 100));
+      discountCents = Math.min(subtotalCents, toCents(normalizedDiscountAmount));
       if (discountCents > 0) {
         const coupon = await stripe.coupons.create({
           amount_off: discountCents,
-          currency: 'ils',
+          currency,
           duration: 'once',
           name: normalizedDiscountDescription
         });
@@ -101,7 +112,9 @@ module.exports = async (req, res) => {
       metadata: {
         order_id: String(orderId),
         discount_description: normalizedDiscountDescription,
-        discount_amount: normalizedDiscountAmount ? String(normalizedDiscountAmount) : ''
+        discount_amount: normalizedDiscountAmount ? String(normalizedDiscountAmount) : '',
+        charge_currency: currency,
+        ils_per_usd: currency === 'usd' ? String(ilsPerUsd) : ''
       },
       discounts,
       after_completion: {
@@ -116,7 +129,8 @@ module.exports = async (req, res) => {
       WHERE id = ${orderId}
     `;
 
-    res.status(200).json({ url: link.url, id: link.id });
+    const totalCents = lineItems.reduce((sum, line) => sum + (line.price_data.unit_amount * line.quantity), 0) - discountCents;
+    res.status(200).json({ url: link.url, id: link.id, currency, amount: totalCents / 100 });
   } catch (error) {
     console.error('Stripe additional link error', error);
     res.status(500).send('Unable to create payment link');
