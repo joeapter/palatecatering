@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "routes": [
-    { "src": "/api/kitchen/(enqueue|next|report|job-pdf)", "dest": "/api/order-status.js?__kitchen_action=$1" },
-    { "src": "/api/(.*)", "dest": "/api/$1.js" },
-    { "src": "/(.*)", "dest": "/$1" }
+  "framework": "nextjs",
+  "rewrites": [
+    { "source": "/api/kitchen/:action(enqueue|next|report|job-pdf)", "destination": "/api/order-status?__kitchen_action=:action" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/cart-reminders",
+      "schedule": "0 7 * * *"
+    }
   ]
 }

@@ -1,0 +1,179 @@
+Product ID,Category,Item,Description,Menu Tags,Product Active,Needs Price Review,Variant ID,Price Option,Sold By,Price (ILS),Option Active,SKU,Price Source
+15,Appetizers,Meat Cigars,,shabbos | purim,true,false,37,9x13 Pan,9x13 Pan,300.00,true,,normalized variant
+160,Appetizers,Mini Quiches (Assorted),24 pieces,dairy,true,false,19,Per Platter,Per Platter,200.00,true,,normalized variant
+152,Appetizers,Pastelim,,shabbos | purim,true,false,46,9x13 Pan,9x13 Pan,225.00,true,,normalized variant
+163,Bakery,Mini Muffin Platter,25 mini muffins,dairy,true,false,31,Per Platter,Per Platter,115.00,true,,normalized variant
+164,Breakfast,Shakshuka,Individual serving,dairy,true,false,54,Each,Each,12.00,true,,normalized variant
+166,Breakfast Stations,Omelet Bar,Per person,dairy,true,false,114,Per Person,Per Person,20.00,true,,normalized variant
+165,Breakfast Stations,Pancake Bar,Per person,dairy,true,false,44,Per Person,Per Person,20.00,true,,normalized variant
+32,Chicken,Apricot Chicken,Tender chicken glazed in a sweet-savory apricot sauce that melts into a caramelized glaze.,shabbos,true,false,53,9x13 Pan (6 Pieces),9x13 Pan (6 Pieces),240.00,true,,normalized variant
+251,Chicken,Apricot Harissa Pargiot,"Boneless chicken thighs in a sweet, smoky apricot-harissa glaze",rosh-hashanah,true,false,152,1.5 Kg,1.5 Kg,395.00,true,,normalized variant
+31,Chicken,Chicken Lomein,"Rustic meets East — sautéed noodles, crisp vegetables, and tender chicken in a light soy-garlic sauce.",,true,false,22,9x13 Pan,9x13 Pan,220.00,true,,normalized variant
+247,Chicken,Chicken Marbella,"Roasted chicken with olives, capers, dates & a sweet-savory herb sauce",rosh-hashanah,true,false,148,1.5 Kg,1.5 Kg,260.00,true,,normalized variant
+37,Chicken,Chicken Shish-Kabobs,Chicken Shish-Kabobs,shabbos,true,false,52,9x13 Pan,9x13 Pan,220.00,true,,normalized variant
+159,Chicken,Chicken Teriyaki Stir-Fry,Tender chicken sautéed with fresh vegetables in a rich teriyaki glaze.,purim,true,false,92,9x13 Pan,9x13 Pan,220.00,true,,normalized variant
+35,Chicken,Grilled Chicken White,"Simply seasoned and flame-grilled for clean, wholesome flavor — perfect with any side.",shabbos,true,false,123,1.5 Kg,1.5 Kg,190.00,true,,normalized variant
+36,Chicken,Grilled Pargiyot,"Juicy dark-meat chicken grilled over open flame — smoky, tender, and infused with herbs.",shabbos,true,false,98,1.5 Kg,1.5 Kg,385.00,true,,normalized variant
+252,Chicken,Honey Garlic Chicken Poppers,Crispy chicken bites tossed in a sticky honey-garlic glaze,rosh-hashanah,true,false,153,1.5 Kg,1.5 Kg,240.00,true,,normalized variant
+158,Chicken,Hot Honey Wings,"Deep Fried and glazed with our signature hot honey sauce - sweet, sticky, and gently spicy.",purim,true,false,55,9x13 Pan,9x13 Pan,180.00,true,,normalized variant
+33,Chicken,Olive Chicken,"Braised with green olives, lemon, and herbs — bright Mediterranean flavors wrapped in rustic comfort.",shabbos,true,false,20,9x13 Pan (6 Pieces),9x13 Pan (6 Pieces),240.00,true,,normalized variant
+250,Chicken,"Onion, Herb & Date Spatchcock Chicken","Whole roasted chicken with caramelized onions, dates & fresh herbs",rosh-hashanah,true,false,151,Whole Chicken,Whole Chicken,175.00,true,,normalized variant
+249,Chicken,Pomegranate Sumac Chicken,"Roasted chicken glazed with pomegranate, sumac & silan",rosh-hashanah,true,false,150,1.5 Kg,1.5 Kg,260.00,true,,normalized variant
+30,Chicken,Poppers,"Juicy chicken morsels tossed in a sweet and tangy glaze — playful, flavorful, and impossible to resist.",shabbos | purim,true,false,71,1.5 Kg,1.5 Kg,220.00,true,,normalized variant
+29,Chicken,Shnitzlonim,"Crispy, golden bites of chicken schnitzel — lightly seasoned, tender inside, and perfect for dipping or nibbling.",shabbos | purim,true,false,91,1.5 Kg,1.5 Kg,190.00,true,,normalized variant
+248,Chicken,Smoky Buffalo Poppers,Crispy chicken bites in a smoky buffalo glaze,rosh-hashanah,true,false,149,1.5 Kg,1.5 Kg,240.00,true,,normalized variant
+38,Chicken,Spatchcock Chicken,"Whole butterflied chicken roasted crisp and golden — seasoned simply, served beautifully rustic.",shabbos,true,false,62,Whole Chicken,Whole Chicken,150.00,true,,normalized variant
+34,Chicken,Zaatar Herbed Chicken,"Marinated in za’atar, garlic, and olive oil — roasted to bring out bold, earthy Middle Eastern notes.",shabbos,true,false,23,9x13 Pan (6 Pieces),9x13 Pan (6 Pieces),240.00,true,,normalized variant
+167,Combination Platters,Combination Platter,Tuna + Egg + Cream Cheese (1L each),dairy,true,false,28,Per Platter,Per Platter,400.00,true,,normalized variant
+168,Desserts,Round Cheesecake,Round cheesecake,dairy,true,false,10,Per Cake,Per Cake,290.00,true,,normalized variant
+175,Dips,Artichoke Dip,500ml,dairy,true,false,67,Per 500ml,Per 500ml,50.00,true,,normalized variant
+173,Dips,Dill Dip,500ml,dairy,true,false,124,Per 500ml,Per 500ml,50.00,true,,normalized variant
+174,Dips,Honey Jalapeño Butter,500ml,dairy,true,false,99,Per 500ml,Per 500ml,50.00,true,,normalized variant
+169,Dips,Hummus Dip,500ml,dairy,true,false,119,Per 500ml,Per 500ml,50.00,true,,normalized variant
+171,Dips,Olive Dip,500ml,dairy,true,false,94,Per 500ml,Per 500ml,50.00,true,,normalized variant
+172,Dips,Onion Dip,500ml,dairy,true,false,56,Per 500ml,Per 500ml,50.00,true,,normalized variant
+170,Dips,Pesto Dip,500ml,dairy,true,false,59,Per 500ml,Per 500ml,50.00,true,,normalized variant
+176,Dips,Sun-Dried Tomato Dip,500ml,dairy,true,false,118,Per 500ml,Per 500ml,50.00,true,,normalized variant
+205,Fish,Butter Herb White Sole,,shavuos,true,false,76,9x13 Pan,9x13 Pan,330.00,true,,normalized variant
+239,Fish,Citrus Silan Salmon,,rosh-hashanah,true,false,140,Side of Salmon,Side of Salmon,330.00,true,,normalized variant
+22,Fish,Gefilte Fish,"A classic with heart — handmade and gently poached, served with a hint of sweetness and traditional carrot garnish.",shabbos,true,false,109,Loaf,Loaf,120.00,true,,normalized variant
+240,Fish,Hickory Maple Salmon,,rosh-hashanah,true,false,141,Side of Salmon,Side of Salmon,330.00,true,,normalized variant
+21,Fish,Hickory Spiced Salmon Skewers,"Smoky, char-grilled skewers of salmon seasoned with hickory and spice — bold, rustic, and ready for the table.",shabbos,true,false,45,Side,Side,330.00,true,,normalized variant
+20,Fish,Lemon Dill Salmon,"Light and elegant — fresh lemon, aromatic dill, and a touch of olive oil bring out the clean flavor of perfectly baked salmon.",shabbos,true,false,7,Side,Side,330.00,true,,normalized variant
+16,Fish,Maple Mustard Pecan Crust Salmon,"Tender salmon fillet baked beneath a golden crust of toasted pecans, brushed with a maple–mustard glaze that's equal parts sweet, nutty, and sophisticated.",shabbos,true,false,96,Side,Side,330.00,true,,normalized variant
+241,Fish,Mediterranean Roasted Salmon,,rosh-hashanah,true,false,142,Side of Salmon,Side of Salmon,330.00,true,,normalized variant
+206,Fish,Miso Glazed Salmon,,shavuos,true,false,107,Side,Side,330.00,true,,normalized variant
+18,Fish,Moroccon Salmon,"A vibrant North African favorite — simmered in a rich tomato-pepper sauce with garlic, paprika, and a touch of spice that warms the soul.",shabbos,true,false,26,Side,Side,330.00,true,,normalized variant
+207,Fish,Pesto Parmesan Crusted Salmon,,shavuos,true,false,89,Side,Side,330.00,true,,normalized variant
+19,Fish,Pesto Salmon,"Pan-seared salmon coated in rustic basil pesto with roasted pine nuts and olive oil — bright, herby, and impossibly fresh.",shabbos,true,false,49,Side,Side,330.00,true,,normalized variant
+238,Fish,Pomegranate Teriyaki Salmon,,rosh-hashanah,true,false,139,Side of Salmon,Side of Salmon,330.00,true,,normalized variant
+177,Fish,Salmon Fillet,"Approx. 2 kilo, serves 18–20 people",dairy,true,false,34,Side,Side,330.00,true,,normalized variant
+178,Fish,Smoked Salmon Platter,Serves 10 people,dairy,true,false,16,Per Platter,Per Platter,220.00,true,,normalized variant
+17,Fish,Teriyaki Salmon,"Succulent salmon marinated in our house teriyaki blend, kissed with soy, ginger, and sesame, then caramelized to perfection for a glossy, savory finish.",shabbos,true,false,17,Side,Side,330.00,true,,normalized variant
+179,Hot Foods,Potatoes Au Gratin,9x13 pan,dairy | shavuos,true,false,66,9x13 Pan,9x13 Pan,170.00,true,,normalized variant
+200,Hot Foods,Spanakopita,,shavuos,true,false,101,9x13 Pan,9x13 Pan,220.00,true,,normalized variant
+259,Kugels & Savories,Butternut Squash Kugel,Roasted butternut squash with warm spices & maple,rosh-hashanah,true,false,160,Half Pan,Half Pan,75.00,true,,normalized variant
+259,Kugels & Savories,Butternut Squash Kugel,Roasted butternut squash with warm spices & maple,rosh-hashanah,true,false,169,Full Pan,Full Pan,125.00,true,,normalized variant
+260,Kugels & Savories,Carrot Muffins,Individual carrot kugel muffins with cinnamon & a touch of honey,rosh-hashanah,true,false,161,12 Pcs,12 Pcs,75.00,true,,normalized variant
+260,Kugels & Savories,Carrot Muffins,Individual carrot kugel muffins with cinnamon & a touch of honey,rosh-hashanah,true,false,173,24 Pcs,24 Pcs,125.00,true,,normalized variant
+261,Kugels & Savories,Fried Mushroom Potato Kugel,Classic potato kugel with savory fried mushrooms & caramelized onions,rosh-hashanah,true,false,162,Half Pan,Half Pan,80.00,true,,normalized variant
+261,Kugels & Savories,Fried Mushroom Potato Kugel,Classic potato kugel with savory fried mushrooms & caramelized onions,rosh-hashanah,true,false,163,Full Pan,Full Pan,135.00,true,,normalized variant
+39,Meat,Balsamic Glazed Brisket,Slow-braised brisket in a rich balsamic reduction — deeply caramelized with a touch of sweetness and tang.,shabbos,true,false,15,1.5 Kg,1.5 Kg,385.00,true,,normalized variant
+43,Meat,Beer Brisket,"Braised low and slow in dark beer and onions — hearty, malty, and deeply flavorful.",shabbos,true,false,113,1.5 Kg,1.5 Kg,385.00,true,,normalized variant
+45,Meat,Bourbon Braised Brisket,"A luxurious twist — infused with bourbon, brown sugar, and caramelized onions for deep, smoky richness.",shabbos | purim,true,false,110,1.5 Kg,1.5 Kg,385.00,true,,normalized variant
+44,Meat,Corned Beef,"Classic brined cut, slow-cooked until fork-tender — perfectly seasoned and satisfyingly salty.",shabbos | purim,true,false,104,1.5 Kg,1.5 Kg,385.00,true,,normalized variant
+46,Meat,Deli Roll,"Layers of spiced deli meats rolled in golden pastry — savory, flaky, and utterly nostalgic.",shabbos,true,false,36,1 Roll,1 Roll,150.00,true,,normalized variant
+46,Meat,Deli Roll,"Layers of spiced deli meats rolled in golden pastry — savory, flaky, and utterly nostalgic.",shabbos,true,false,177,2 Rolls,2 Rolls,250.00,true,,normalized variant
+153,Meat,Drunken Beer Brisket,"Braised low and slow in beer and onions — hearty, malty, and deeply flavorful.",shabbos | purim,true,false,38,1.5 Kg,1.5 Kg,385.00,true,,normalized variant
+48,Meat,Franks and Blanks,"Mini hot dogs wrapped in puff pastry — a playful, crowd-pleasing favorite with a rustic twist.",shabbos | purim,true,false,68,9x13 Pan,9x13 Pan,225.00,true,,normalized variant
+244,Meat,French Onion Brisket,Slow-braised brisket with deeply caramelized onions & rich onion gravy,rosh-hashanah,true,false,145,Half Pan,Half Pan,310.00,true,,normalized variant
+244,Meat,French Onion Brisket,Slow-braised brisket with deeply caramelized onions & rich onion gravy,rosh-hashanah,true,false,171,Full Pan,Full Pan,410.00,true,,normalized variant
+245,Meat,Honey Mustard Corned Beef,"Tender corned beef glazed with honey, mustard & warm spices",rosh-hashanah,true,false,146,Half Pan,Half Pan,310.00,true,,normalized variant
+245,Meat,Honey Mustard Corned Beef,"Tender corned beef glazed with honey, mustard & warm spices",rosh-hashanah,true,false,166,Full Pan,Full Pan,410.00,true,,normalized variant
+40,Meat,Kebobs,,shabbos,true,false,40,9x13 Pan,9x13 Pan,300.00,true,,normalized variant
+243,Meat,Korean BBQ Short Ribs,Tender short ribs glazed with a sweet & savory Korean-style BBQ sauce,rosh-hashanah,true,false,144,Half Pan,Half Pan,325.00,true,,normalized variant
+243,Meat,Korean BBQ Short Ribs,Tender short ribs glazed with a sweet & savory Korean-style BBQ sauce,rosh-hashanah,true,false,176,Full Pan,Full Pan,425.00,true,,normalized variant
+157,Meat,Lachmagine (Meat Pizza),"Hand-shaped flatbread pizza topped with seasoned beef, herbs, and roasted tomato flavors.",purim,true,false,121,10-12 Inch Pie,10-12 Inch Pie,45.00,true,,normalized variant
+47,Meat,Meat Cholent,"Slow-simmered overnight Cholent with tender meat, barley, beans, and potatoes.",,true,false,35,Large Crock Pot,Large Crock Pot,550.00,true,,normalized variant
+155,Meat,Moroccan Meat Bourekas,"Flaky, crisp pastry filled with warmly spiced Moroccan-style ground beef. Fragrant with cumin, paprika, and herbs",purim,true,false,75,9x13 Pan,9x13 Pan,300.00,true,,normalized variant
+42,Meat,Pulled Beef Brisket,"Tender strands of beef slow-cooked until they fall apart, soaked in rich pan juices and rustic spice.",shabbos,true,false,86,1.5 Kg,1.5 Kg,385.00,true,,normalized variant
+154,Meat,Pulled Beef Hamantaschen,"A savory twist on a Purim classic. Buttery, golden pastry folded around slow-braised pulled beef.",purim,true,false,122,9x13 Pan,9x13 Pan,300.00,true,,normalized variant
+242,Meat,Silan Spiced Assado,"Slow-braised beef rubbed with North African spices, glazed with silan & finished with a rich savory jus",rosh-hashanah,true,false,143,Half Pan,Half Pan,325.00,true,,normalized variant
+242,Meat,Silan Spiced Assado,"Slow-braised beef rubbed with North African spices, glazed with silan & finished with a rich savory jus",rosh-hashanah,true,false,165,Full Pan,Full Pan,425.00,true,,normalized variant
+246,Meat,Sweet & Sour Pomegranate Meatballs,Tender beef meatballs in a sweet & tangy pomegranate-silan sauce,rosh-hashanah,true,false,147,Half Pan,Half Pan,190.00,true,,normalized variant
+246,Meat,Sweet & Sour Pomegranate Meatballs,Tender beef meatballs in a sweet & tangy pomegranate-silan sauce,rosh-hashanah,true,false,175,Full Pan,Full Pan,250.00,true,,normalized variant
+41,Meat,Sweet and Saucy Brisket,Melt-in-your-mouth brisket smothered in our signature sweet-savory sauce — a true family favorite.,shabbos,true,false,93,1.5 Kg,1.5 Kg,385.00,true,,normalized variant
+156,Meat,Sweet and Sour Meatballs,"Tender, handcrafted beef meatballs simmered in a glossy sweet-and-tangy sauce.",purim,true,false,79,9x13 Pan,9x13 Pan,350.00,true,,normalized variant
+181,Pasta,Baked Ziti,"Pasta with tomato sauce, 9x13 pan",dairy,true,false,48,9x13 Pan,9x13 Pan,170.00,true,,normalized variant
+198,Pasta,Eggplant Parmesan,,shavuos,true,false,30,9x13 Pan,9x13 Pan,220.00,true,,normalized variant
+199,Pasta,Eggplant Ricotta Rollatini,,shavuos,true,false,111,9x13 Pan,9x13 Pan,195.00,true,,normalized variant
+182,Pasta,Fettuccine Alfredo,9x13 pan,dairy,true,false,41,9x13 Pan,9x13 Pan,180.00,true,,normalized variant
+180,Pasta,Lasagna,"9x13 pan, cut into 20 pieces",dairy | shavuos,true,false,73,9x13 Pan,9x13 Pan,195.00,true,,normalized variant
+183,Pasta,Penne alla Vodka,Per pan,dairy,true,false,128,Per Pan,Per Pan,220.00,true,,normalized variant
+197,Pasta,Spinach Lasagna,,shavuos,true,false,77,9x13 Pan,9x13 Pan,220.00,true,,normalized variant
+185,Platters,Basic Veggie Platter,Vegetable platter,dairy,true,false,74,Per Platter,Per Platter,195.00,true,,normalized variant
+184,Platters,Cheese Platter,Includes 3 cheeses,dairy,true,false,58,Per Platter,Per Platter,500.00,true,,normalized variant
+187,Platters,Fruit Platter,Medium size,dairy,true,false,78,Per Platter,Per Platter,285.00,true,,normalized variant
+196,Platters,Hard Cheese Platter (Small),Includes 3 cheeses,dairy,true,false,11,Per Platter,Per Platter,150.00,true,,normalized variant
+186,Platters,Veggie & Dip Platter,Includes 3 dips (250ml each),dairy,true,false,33,Per Platter,Per Platter,250.00,true,,normalized variant
+202,Quiches,Onion Leek Quiche,,shavuos,true,false,63,Round Pan,Round Pan,140.00,true,,normalized variant
+201,Quiches,Vegetable Quiche,,shavuos,true,false,116,Round Pan,Round Pan,140.00,true,,normalized variant
+263,Rosh Hashanah Specials,Simanim Platter,"Pomegranate, roasted squash, confit leek and date, beet salad, carrot tzimes, apples and honey",rosh-hashanah,true,false,179,Each,Each,220.00,true,,normalized variant
+67,Salads,Broccoli Salad,Fresh florets with toasted seeds and creamy dressing.,shabbos,true,false,81,3 L Container,3 L Container,220.00,true,,normalized variant
+63,Salads,Cabbage Salad,"Crisp green cabbage tossed with lemon, olive oil, and herbs — simple, bright, and refreshing.",shabbos,true,false,126,3 L Container,3 L Container,180.00,true,,normalized variant
+188,Salads,Caesar Salad,2 liters,dairy,true,false,125,3 L Container,3 L Container,180.00,true,,normalized variant
+64,Salads,Cesar Salad,"Romaine hearts with creamy dressing, garlic croutons.",shabbos,true,false,29,3 L Container,3 L Container,180.00,true,,normalized variant
+66,Salads,Curried Couscous Salad,"Golden couscous with curry spices, roasted vegetables, and herbs.",shabbos,true,false,18,3 L Container,3 L Container,180.00,true,,normalized variant
+204,Salads,Greek Quinoa Salad,,shavuos,true,false,70,3 Litre,3 Litre,220.00,true,,normalized variant
+189,Salads,Greek Salad,2 liters,dairy,true,false,42,3 L Container,3 L Container,200.00,true,,normalized variant
+191,Salads,Israeli Salad,3 liters,dairy,true,false,13,Per 3 Liter,Per 3 Liter,160.00,true,,normalized variant
+203,Salads,Nicoise Salad with Smoked Tuna,,shavuos,true,false,84,3 Litre,3 Litre,220.00,true,,normalized variant
+190,Salads,Pasta Salad,3 liters,dairy,true,false,95,3 L Container,3 L Container,180.00,true,,normalized variant
+68,Salads,Sushi Salad Topped with Salmon Cubes,,shabbos,true,false,61,3 L Container,3 L Container,300.00,true,,normalized variant
+65,Salads,Sweet Pecan Salad,"Mixed greens with roasted pecans, cranberries, and citrus vinaigrette.",shabbos,true,false,50,3 L Container,3 L Container,200.00,true,,normalized variant
+231,Salatim,Apple Fennel Crunch,,rosh-hashanah,true,false,132,500g,500g,50.00,true,,normalized variant
+4,Salatim,Beet Salad,Roasted beets with citrus and mint — earthy sweetness in every bite.,shabbos,true,false,100,250 ml,250 ml,25.00,true,,normalized variant
+234,Salatim,Charred Cabbage Slaw,,rosh-hashanah,true,false,135,500g,500g,50.00,true,,normalized variant
+1,Salatim,Chummus,"Smooth, velvety chickpea purée.",shabbos,true,false,106,250 ml,250 ml,25.00,true,,normalized variant
+3,Salatim,Coleslaw,Shredded cabbage and carrots in a light creamy dressing.,shabbos,true,false,115,250 ml,250 ml,25.00,true,,normalized variant
+229,Salatim,Confit of Garlic,,rosh-hashanah,true,false,130,500g,500g,50.00,true,,normalized variant
+13,Salatim,Dill Apple Cabbage Salad,Crisp cabbage and apple with fresh dill.,shabbos,true,false,43,250 ml,250 ml,25.00,true,,normalized variant
+14,Salatim,Dill Dip,Creamy herb dip with fresh dill and lemon.,shabbos,true,false,120,250 ml,250 ml,25.00,true,,normalized variant
+10,Salatim,Eggplant with Tehina,"Charred eggplant mashed with tahini, lemon, and garlic.",shabbos,true,false,25,250 ml,250 ml,25.00,true,,normalized variant
+6,Salatim,Garlic Confit,Slow-roasted garlic cloves and Leeks in oil.,shabbos,true,false,90,250 ml,250 ml,25.00,true,,normalized variant
+12,Salatim,Marinated Mushrooms,Button mushrooms in herbed vinaigrette.,shabbos,true,false,24,250 ml,250 ml,25.00,true,,normalized variant
+11,Salatim,Olive Dip,Chopped olives with herbs in a creamy base.,shabbos,true,false,14,250 ml,250 ml,25.00,true,,normalized variant
+9,Salatim,Onion Dip,Caramelized onions folded into creamy base.,shabbos,true,false,127,250 ml,250 ml,25.00,true,,normalized variant
+5,Salatim,Purple Cabbage Salad,Vibrant shredded cabbage with tangy dressing and seeds — a visual and flavorful pop.,shabbos,true,false,47,250 ml,250 ml,25.00,true,,normalized variant
+232,Salatim,Roasted Beet & Citrus Salad,,rosh-hashanah,true,false,133,500g,500g,50.00,true,,normalized variant
+233,Salatim,Roasted Carrot & Tahini,,rosh-hashanah,true,false,134,500g,500g,50.00,true,,normalized variant
+230,Salatim,Roasted Eggplant & Pomegranate,,rosh-hashanah,true,false,131,500g,500g,50.00,true,,normalized variant
+8,Salatim,Roasted Peppers,Roasted red and yellow peppers with oil and sea salt.,shabbos,true,false,65,250 ml,250 ml,25.00,true,,normalized variant
+7,Salatim,Taboule,"Finely chopped parsley, tomato, and bulgur.",shabbos,true,false,129,250 ml,250 ml,25.00,true,,normalized variant
+2,Salatim,Techina,Silky sesame techina blended with garlic and lemon.,shabbos,true,false,32,250 ml,250 ml,25.00,true,,normalized variant
+192,Sandwich Platters,Sandwich Platter,10 sandwiches cut in half,dairy,true,false,88,Per Platter,Per Platter,320.00,true,,normalized variant
+217,Sauces,Fettuccine Sauce,,shavuos,true,false,1,1 Litre,1 Litre,95.00,true,,normalized variant
+217,Sauces,Fettuccine Sauce,,shavuos,true,false,2,500 ml,500 ml,55.00,true,,normalized variant
+218,Sauces,Mushroom Cream Sauce,,shavuos,true,false,5,1 Litre,1 Litre,95.00,true,,normalized variant
+218,Sauces,Mushroom Cream Sauce,,shavuos,true,false,6,500 ml,500 ml,55.00,true,,normalized variant
+216,Sauces,Penne Alla Vodka Sauce,,shavuos,true,false,3,1 Litre,1 Litre,100.00,true,,normalized variant
+216,Sauces,Penne Alla Vodka Sauce,,shavuos,true,false,4,500 ml,500 ml,60.00,true,,normalized variant
+59,Sides,Apple Kugel,"Sweetly baked apples folded into a delicate noodle base — fragrant, cozy, and perfect for Shabbos dessert or side.",shabbos,true,false,87,9x13 Pan,9x13 Pan,120.00,true,,normalized variant
+58,Sides,Broccoli Kugel,"Fresh broccoli baked with herbs and a creamy blend — warm, comforting, and full of homestyle flavor.",shabbos,true,false,105,9x13 Pan,9x13 Pan,180.00,true,,normalized variant
+258,Sides,Caramelized Onion Green Beans,"Green beans tossed with deeply caramelized onions, garlic & toasted almonds",rosh-hashanah,true,false,159,Half Pan,Half Pan,80.00,true,,normalized variant
+258,Sides,Caramelized Onion Green Beans,"Green beans tossed with deeply caramelized onions, garlic & toasted almonds",rosh-hashanah,true,false,167,Full Pan,Full Pan,130.00,true,,normalized variant
+52,Sides,Classic White Rice,"Fluffy, perfectly steamed white rice — the timeless companion to any main course.",shabbos,true,false,51,9x13 Pan,9x13 Pan,80.00,true,,normalized variant
+51,Sides,Crunchy Green Beans With Caramelized Onions,"Sweet golden onions and crisp green beans meet in this homestyle dish — earthy, rustic, and deeply satisfying.",shabbos,true,false,83,9x13 Pan,9x13 Pan,90.00,true,,normalized variant
+255,Sides,Curry Roasted Cauliflower,"Roasted cauliflower with warm curry spices, garlic & fresh herbs",rosh-hashanah,true,false,156,Half Pan,Half Pan,95.00,true,,normalized variant
+255,Sides,Curry Roasted Cauliflower,"Roasted cauliflower with warm curry spices, garlic & fresh herbs",rosh-hashanah,true,false,174,Full Pan,Full Pan,160.00,true,,normalized variant
+49,Sides,Garlic Soy Green Beans,"Crisp green beans tossed in garlic, soy, and sesame — a simple yet vibrant side bursting with savory flavor.",shabbos,true,false,108,9x13 Pan,9x13 Pan,80.00,true,,normalized variant
+256,Sides,Herb Potato Gratin,Thinly sliced potatoes baked with garlic & fresh herbs,rosh-hashanah,true,false,157,Half Pan,Half Pan,80.00,true,,normalized variant
+256,Sides,Herb Potato Gratin,Thinly sliced potatoes baked with garlic & fresh herbs,rosh-hashanah,true,false,170,Full Pan,Full Pan,130.00,true,,normalized variant
+61,Sides,Honey Harissa Carrots,"Oven-roasted carrots glazed in honey and a touch of harissa — a balance of sweetness, warmth, and subtle spice.",shabbos,true,false,117,9x13 Pan,9x13 Pan,120.00,true,,normalized variant
+54,Sides,Jewel Toned Orzo,"Delicate orzo pasta tossed with colorful roasted vegetables — a vibrant, Mediterranean-inspired side that dazzles the table.",shabbos,true,false,97,9x13 Pan,9x13 Pan,140.00,true,,normalized variant
+253,Sides,Jeweled Couscous,"Pearl couscous with roasted vegetables, toasted almonds, herbs & dried cranberries",rosh-hashanah,true,false,154,Half Pan,Half Pan,80.00,true,,normalized variant
+253,Sides,Jeweled Couscous,"Pearl couscous with roasted vegetables, toasted almonds, herbs & dried cranberries",rosh-hashanah,true,false,172,Full Pan,Full Pan,130.00,true,,normalized variant
+254,Sides,Maple Herb Roasted Root Vegetables,Seasonal root vegetables roasted with maple & fresh herbs,rosh-hashanah,true,false,155,Half Pan,Half Pan,80.00,true,,normalized variant
+254,Sides,Maple Herb Roasted Root Vegetables,Seasonal root vegetables roasted with maple & fresh herbs,rosh-hashanah,true,false,168,Full Pan,Full Pan,130.00,true,,normalized variant
+50,Sides,Pastrami Green Beans,"A rustic favorite — tender green beans sautéed with smoky pastrami and onions for a bold, savory twist.",shabbos,true,false,82,9x13 Pan,9x13 Pan,130.00,true,,normalized variant
+57,Sides,Potato Kugel,"Golden, crispy edges and soft, savory center — the beloved Shabbos classic, baked just right.",shabbos,true,false,21,9x13 Pan,9x13 Pan,100.00,true,,normalized variant
+60,Sides,Quinoa Roasted Vegetables,"Protein-rich quinoa tossed with roasted peppers, carrots, and herbs — a wholesome, rustic dish that’s both hearty and light.",shabbos,true,false,112,9x13 Pan,9x13 Pan,140.00,true,,normalized variant
+53,Sides,Rice Pilaf,"Fragrant rice cooked with sautéed onions and a touch of spice — light, buttery, and full of old-world charm.",shabbos,true,false,102,9x13 Pan,9x13 Pan,140.00,true,,normalized variant
+55,Sides,Roasted Potatoes,"Rustic wedges roasted golden with herbs, olive oil, and sea salt — crisp outside, creamy inside.",shabbos,true,false,60,9x13 Pan,9x13 Pan,100.00,true,,normalized variant
+257,Sides,Roasted Squash,"Roasted seasonal squash with sage, crispy shallots & a touch of maple",rosh-hashanah,true,false,158,Half Pan,Half Pan,80.00,true,,normalized variant
+257,Sides,Roasted Squash,"Roasted seasonal squash with sage, crispy shallots & a touch of maple",rosh-hashanah,true,false,164,Full Pan,Full Pan,130.00,true,,normalized variant
+56,Sides,Roasted Vegetable Medley,A hearty blend of seasonal vegetables roasted to bring out their natural sweetness and color — wholesome and rustic.,shabbos,true,false,39,9x13 Pan,9x13 Pan,140.00,true,,normalized variant
+62,Sides,Sesame Noodles,"Tender noodles tossed in a rich sesame-peanut dressing with hints of soy, garlic, and ginger — comforting, nutty, and irresistibly flavorful.",shabbos,true,false,72,9x13 Pan,9x13 Pan,100.00,true,,normalized variant
+24,Soups,Butternut Squash Soup,"Velvety and naturally sweet, with roasted squash, cinnamon, and a drizzle of olive oil — a cozy bowl of autumn warmth.",shabbos,true,false,57,Litre,Litre,45.00,true,,normalized variant
+237,Soups,Butternut Squash Soup,,rosh-hashanah,true,false,138,1 Litre,1 Litre,50.00,true,,normalized variant
+23,Soups,Chicken Soup,"The essence of Shabbos comfort — slow-simmered broth rich with tender chicken, carrots, and dill.",shabbos,true,false,103,Litre,Litre,50.00,true,,normalized variant
+235,Soups,Classic Chicken Soup,,rosh-hashanah,true,false,136,1 Litre,1 Litre,55.00,true,,normalized variant
+219,Soups,French onion soup,,dairy,true,false,85,3 Litre,3 Litre,150.00,true,,normalized variant
+236,Soups,Meat Soup,,rosh-hashanah,true,false,137,1 Litre,1 Litre,70.00,true,,normalized variant
+28,Soups,Mushroom Barley Soup,"An old-world classic — nutty barley, tender mushrooms, and herbs in a rich, earthy broth.",shabbos,true,false,69,Litre,Litre,45.00,true,,normalized variant
+27,Soups,Potato Leek Soup,"Creamy and comforting, with caramelized leeks and silky potatoes blended into pure coziness.",shabbos,true,false,12,Litre,Litre,45.00,true,,normalized variant
+193,Soups,Soup,"Mushroom Barley, Sweet Potato, Vegetable, or Onion soup — seasonal, minimum 4 liters",dairy,true,false,27,Per Liter,Per Liter,45.00,true,,normalized variant
+25,Soups,Split Pea Soup,"Hearty and homespun, simmered low and slow with onions, garlic, and a whisper of smoked flavor.",shabbos,true,false,8,Litre,Litre,45.00,true,,normalized variant
+26,Soups,Vegetable Lentil Soup,"A rustic medley of lentils, garden vegetables, and herbs — nourishing, earthy, and full of heart.",shabbos,true,false,9,Litre,Litre,45.00,true,,normalized variant
+195,Spreads & Salads,Cream Cheese,"Plain, Vegetable, Olive, Garlic-Dill",dairy,true,false,64,Per 500g,Per 500g,60.00,true,,normalized variant
+194,Spreads & Salads,Tuna Salad / Egg Salad,500g,dairy,true,false,80,Per 500g,Per 500g,70.00,true,,normalized variant

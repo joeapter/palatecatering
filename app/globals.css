@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #18251f;
+  --color-cream: #f7f2e8;
+  --color-sage: #6f8065;
+  --color-moss: #34483c;
+  --color-honey: #c88e43;
+  --color-clay: #a85f44;
+  /* Taken from the printed Rosh Hashanah menu so the site reads as a
+     continuation of it rather than a different brand. */
+  --color-pomegranate: #7c1d2b;
+  --color-parchment: #fdf8ef;
+  --color-rule: #e2d6c2;
+  --font-display: var(--font-cormorant);
+  --font-sans: var(--font-manrope);
+}
+
+:root { color-scheme: light; }
+html {
+  scroll-behavior: smooth;
+  /* Stops iOS inflating body text when a phone is turned to landscape. */
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-manrope), sans-serif;
+  /* Grey flash on every tap reads as a web page, not an app. */
+  -webkit-tap-highlight-color: transparent;
+}
+/* Set by the nav and cart sheets while open, so the page behind cannot scroll
+   under the overlay — the single most common "this feels broken" bug on a
+   phone. Position is fixed rather than `overflow:hidden` because iOS Safari
+   ignores the latter on body. */
+body[data-scroll-locked] {
+  position: fixed;
+  inset-inline: 0;
+  overflow-y: scroll;
+}
+
+/* Fluid display sizes.
+   This site was laid out desktop-first, so a page title carried `text-6xl` as
+   its *mobile* base — 60px on a 375px screen, which pushed the first dish
+   below three lines of heading. These scale with the viewport instead, so one
+   class is right on a phone and on a desktop without a breakpoint ladder. */
+.t-hero { font-size: clamp(2.75rem, 10.5vw, 6.2rem); line-height: .95; letter-spacing: -.01em; }
+.t-h1 { font-size: clamp(2.5rem, 8.5vw, 5.5rem); line-height: 1; }
+.t-h2 { font-size: clamp(1.95rem, 5.6vw, 3.75rem); line-height: 1.06; }
+.t-h3 { font-size: clamp(1.6rem, 4.4vw, 3rem); line-height: 1.12; }
+.t-hero, .t-h1, .t-h2, .t-h3 { text-wrap: balance; }
+
+/* Horizontal rails (category strips) should swipe like a native carousel:
+   no visible scrollbar, snap to each tile, and no rubber-banding through to
+   the page behind. */
+.rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { scroll-snap-align: start; }
+
+/* iOS zooms the whole page in when a form control smaller than 16px receives
+   focus, and it does not zoom back out — so tapping the size dropdown on a
+   dish left the reader stranded at 1.3x with the layout overflowing. Utility
+   classes like `text-sm` beat a bare element selector, so this has to be
+   `!important` to reach them. Checkboxes and radios are exempt: they are sized
+   by their own box, not their font. */
+@media (max-width: 640px) {
+  select,
+  textarea,
+  input:not([type="checkbox"]):not([type="radio"]) {
+    font-size: 16px !important;
+  }
+}
+
+/* Keeps content clear of the iPhone home indicator and any notch. */
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+.pt-safe { padding-top: max(env(safe-area-inset-top), 0px); }
+::selection { background: #d9c39c; color: #18251f; }
+.paper-grain {
+  background-image: radial-gradient(rgba(24,37,31,.06) .7px, transparent .7px);
+  background-size: 5px 5px;
+}
+.display { font-family: var(--font-cormorant), serif; }
+.focus-ring:focus-visible { outline: 2px solid var(--color-honey); outline-offset: 4px; }

@@ -1,0 +1,3 @@
+import { redirect } from "next/navigation"; import { isAdmin } from "@/lib/admin-auth"; import { CookPlanner } from "@/components/cook-planner";
+export const dynamic="force-dynamic";
+export default async function AdminCookList(){if(!(await isAdmin()))redirect("/admin/login");return <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12"><p className="text-xs font-bold tracking-widest text-clay uppercase">Production planning</p><h1 className="display mt-2 text-5xl font-semibold">Cook planner</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">Import line items, then work through Unassigned until every item has a cook day.</p><div className="mt-8"><CookPlanner/></div></main>}

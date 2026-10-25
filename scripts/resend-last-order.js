@@ -79,6 +79,7 @@ function generatePdfBuffer(render) {
 
 function resolveLogoPath() {
   const candidates = [
+    path.join(process.cwd(), 'public', 'assets', 'logo.png'),
     path.join(process.cwd(), 'assets', 'logo.png'),
     path.resolve(__dirname, '../assets/logo.png')
   ];
@@ -87,6 +88,8 @@ function resolveLogoPath() {
 
 function resolveUnicodeFontPath() {
   const candidates = [
+    path.join(process.cwd(), 'public', 'assets', 'fonts', 'NotoSans-Regular.ttf'),
+    path.join(process.cwd(), 'public', 'assets', 'fonts', 'DejaVuSans.ttf'),
     path.join(process.cwd(), 'assets', 'fonts', 'NotoSans-Regular.ttf'),
     path.join(process.cwd(), 'assets', 'fonts', 'DejaVuSans.ttf'),
     path.resolve(__dirname, '../assets/fonts/NotoSans-Regular.ttf'),

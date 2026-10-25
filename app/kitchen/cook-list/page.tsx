@@ -1,0 +1,3 @@
+import { isKitchen } from "@/lib/kitchen-session"; import { isAdmin } from "@/lib/admin-auth"; import { KitchenLogin } from "@/components/kitchen/kitchen-login"; import { KitchenHeader } from "@/components/kitchen/kitchen-header"; import { CookPlanner } from "@/components/cook-planner";
+export const dynamic="force-dynamic";
+export default async function KitchenCookList(){const[kitchen,admin]=await Promise.all([isKitchen(),isAdmin()]);if(!kitchen&&!admin)return <main className="mx-auto max-w-md px-4 py-12"><KitchenLogin/></main>;return <><KitchenHeader isAdminSession={admin&&!kitchen}/><main className="mx-auto max-w-3xl px-4 py-6"><CookPlanner/></main></>}

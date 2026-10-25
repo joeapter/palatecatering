@@ -1,0 +1,602 @@
+[
+  {
+    "category": "Salatim",
+    "items": [
+      {
+        "title": "Confit of Garlic",
+        "description": "",
+        "price": 50.0,
+        "soldBy": "500g",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "500g",
+            "price": 50.0,
+            "soldBy": "500g"
+          }
+        ]
+      },
+      {
+        "title": "Roasted Eggplant & Pomegranate",
+        "description": "",
+        "price": 50.0,
+        "soldBy": "500g",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "500g",
+            "price": 50.0,
+            "soldBy": "500g"
+          }
+        ]
+      },
+      {
+        "title": "Apple Fennel Crunch",
+        "description": "",
+        "price": 50.0,
+        "soldBy": "500g",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "500g",
+            "price": 50.0,
+            "soldBy": "500g"
+          }
+        ]
+      },
+      {
+        "title": "Roasted Beet & Citrus Salad",
+        "description": "",
+        "price": 50.0,
+        "soldBy": "500g",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "500g",
+            "price": 50.0,
+            "soldBy": "500g"
+          }
+        ]
+      },
+      {
+        "title": "Roasted Carrot & Tahini",
+        "description": "",
+        "price": 50.0,
+        "soldBy": "500g",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "500g",
+            "price": 50.0,
+            "soldBy": "500g"
+          }
+        ]
+      },
+      {
+        "title": "Charred Cabbage Slaw",
+        "description": "",
+        "price": 50.0,
+        "soldBy": "500g",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "500g",
+            "price": 50.0,
+            "soldBy": "500g"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Soups",
+    "items": [
+      {
+        "title": "Classic Chicken Soup",
+        "description": "",
+        "price": 55.0,
+        "soldBy": "1 Litre",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "1 Litre",
+            "price": 55.0,
+            "soldBy": "1 Litre"
+          }
+        ]
+      },
+      {
+        "title": "Meat Soup",
+        "description": "",
+        "price": 70.0,
+        "soldBy": "1 Litre",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "1 Litre",
+            "price": 70.0,
+            "soldBy": "1 Litre"
+          }
+        ]
+      },
+      {
+        "title": "Butternut Squash Soup",
+        "description": "",
+        "price": 50.0,
+        "soldBy": "1 Litre",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "1 Litre",
+            "price": 50.0,
+            "soldBy": "1 Litre"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Fish",
+    "items": [
+      {
+        "title": "Pomegranate Teriyaki Salmon",
+        "description": "",
+        "price": 330.0,
+        "soldBy": "Side of Salmon",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Side of Salmon",
+            "price": 330.0,
+            "soldBy": "Side of Salmon"
+          }
+        ]
+      },
+      {
+        "title": "Citrus Silan Salmon",
+        "description": "",
+        "price": 330.0,
+        "soldBy": "Side of Salmon",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Side of Salmon",
+            "price": 330.0,
+            "soldBy": "Side of Salmon"
+          }
+        ]
+      },
+      {
+        "title": "Hickory Maple Salmon",
+        "description": "",
+        "price": 330.0,
+        "soldBy": "Side of Salmon",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Side of Salmon",
+            "price": 330.0,
+            "soldBy": "Side of Salmon"
+          }
+        ]
+      },
+      {
+        "title": "Mediterranean Roasted Salmon",
+        "description": "",
+        "price": 330.0,
+        "soldBy": "Side of Salmon",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Side of Salmon",
+            "price": 330.0,
+            "soldBy": "Side of Salmon"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Meat",
+    "items": [
+      {
+        "title": "Silan Spiced Assado",
+        "description": "Slow-braised beef rubbed with North African spices, glazed with silan & finished with a rich savory jus",
+        "price": 325.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 325.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 425.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Korean BBQ Short Ribs",
+        "description": "Tender short ribs glazed with a sweet & savory Korean-style BBQ sauce",
+        "price": 325.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 325.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 425.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "French Onion Brisket",
+        "description": "Slow-braised brisket with deeply caramelized onions & rich onion gravy",
+        "price": 310.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 310.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 410.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Honey Mustard Corned Beef",
+        "description": "Tender corned beef glazed with honey, mustard & warm spices",
+        "price": 310.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 310.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 410.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Sweet & Sour Pomegranate Meatballs",
+        "description": "Tender beef meatballs in a sweet & tangy pomegranate-silan sauce",
+        "price": 190.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 190.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 250.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Chicken",
+    "items": [
+      {
+        "title": "Chicken Marbella",
+        "description": "Roasted chicken with olives, capers, dates & a sweet-savory herb sauce",
+        "price": 260.0,
+        "soldBy": "1.5 Kg",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "1.5 Kg",
+            "price": 260.0,
+            "soldBy": "1.5 Kg"
+          }
+        ]
+      },
+      {
+        "title": "Smoky Buffalo Poppers",
+        "description": "Crispy chicken bites in a smoky buffalo glaze",
+        "price": 240.0,
+        "soldBy": "1.5 Kg",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "1.5 Kg",
+            "price": 240.0,
+            "soldBy": "1.5 Kg"
+          }
+        ]
+      },
+      {
+        "title": "Pomegranate Sumac Chicken",
+        "description": "Roasted chicken glazed with pomegranate, sumac & silan",
+        "price": 260.0,
+        "soldBy": "1.5 Kg",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "1.5 Kg",
+            "price": 260.0,
+            "soldBy": "1.5 Kg"
+          }
+        ]
+      },
+      {
+        "title": "Onion, Herb & Date Spatchcock Chicken",
+        "description": "Whole roasted chicken with caramelized onions, dates & fresh herbs",
+        "price": 175.0,
+        "soldBy": "Whole Chicken",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Whole Chicken",
+            "price": 175.0,
+            "soldBy": "Whole Chicken"
+          }
+        ]
+      },
+      {
+        "title": "Apricot Harissa Pargiot",
+        "description": "Boneless chicken thighs in a sweet, smoky apricot-harissa glaze",
+        "price": 395.0,
+        "soldBy": "1.5 Kg",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "1.5 Kg",
+            "price": 395.0,
+            "soldBy": "1.5 Kg"
+          }
+        ]
+      },
+      {
+        "title": "Honey Garlic Chicken Poppers",
+        "description": "Crispy chicken bites tossed in a sticky honey-garlic glaze",
+        "price": 350.0,
+        "soldBy": "1.5 Kg",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "1.5 Kg",
+            "price": 350.0,
+            "soldBy": "1.5 Kg"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Sides",
+    "items": [
+      {
+        "title": "Jeweled Couscous",
+        "description": "Pearl couscous with roasted vegetables, toasted almonds, herbs & dried cranberries",
+        "price": 80.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 80.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 130.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Maple Herb Roasted Root Vegetables",
+        "description": "Seasonal root vegetables roasted with maple & fresh herbs",
+        "price": 80.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 80.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 130.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Curry Roasted Cauliflower",
+        "description": "Roasted cauliflower with warm curry spices, garlic & fresh herbs",
+        "price": 95.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 95.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 160.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Herb Potato Gratin",
+        "description": "Thinly sliced potatoes baked with garlic & fresh herbs",
+        "price": 80.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 80.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 130.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Roasted Squash",
+        "description": "Roasted seasonal squash with sage, crispy shallots & a touch of maple",
+        "price": 80.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 80.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 130.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Caramelized Onion Green Beans",
+        "description": "Green beans tossed with deeply caramelized onions, garlic & toasted almonds",
+        "price": 80.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 80.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 130.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Kugels & Savories",
+    "items": [
+      {
+        "title": "Butternut Squash Kugel",
+        "description": "Roasted butternut squash with warm spices & maple",
+        "price": 75.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 75.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 125.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      },
+      {
+        "title": "Carrot Muffins",
+        "description": "Individual carrot kugel muffins with cinnamon & a touch of honey",
+        "price": 75.0,
+        "soldBy": "12 Pcs",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "12 Pcs",
+            "price": 75.0,
+            "soldBy": "12 Pcs"
+          },
+          {
+            "label": "24 Pcs",
+            "price": 125.0,
+            "soldBy": "24 Pcs"
+          }
+        ]
+      },
+      {
+        "title": "Fried Mushroom Potato Kugel",
+        "description": "Classic potato kugel with savory fried mushrooms & caramelized onions",
+        "price": 80.0,
+        "soldBy": "Half Pan",
+        "qtyLabel": "Order Qty",
+        "image": "",
+        "variants": [
+          {
+            "label": "Half Pan",
+            "price": 80.0,
+            "soldBy": "Half Pan"
+          },
+          {
+            "label": "Full Pan",
+            "price": 135.0,
+            "soldBy": "Full Pan"
+          }
+        ]
+      }
+    ]
+  }
+]

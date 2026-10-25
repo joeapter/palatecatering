@@ -18,6 +18,10 @@ async function ensureProductsTable() {
   `;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS menu_tags text[]`;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS variants jsonb DEFAULT '[]'::jsonb`;
+  // Set on any product whose price was generated rather than confirmed by staff
+  // (new seasonal items, sizes derived by multiplying a base price). Admin
+  // filters on this to review pricing before the item goes on sale.
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS needs_price_review boolean DEFAULT false`;
 }
 
 async function ensureSettingsTable() {
@@ -34,8 +38,10 @@ const PUBLIC_SETTING_KEYS = new Set([
   'shabbos_enabled', 'purim_enabled', 'dairy_enabled', 'shavuos_enabled',
   'shabbos_disabled_until', 'dairy_disabled_until',
   'shavuos_open_time', 'shavuos_cutoff_time',
-  'shabbos_close_days_before', 'shabbos_close_time'
+  'shabbos_close_days_before', 'shabbos_close_time',
+  'rosh_hashanah_enabled', 'rosh_hashanah_open_time', 'rosh_hashanah_cutoff_time'
 ]);
+const ROSH_HASHANAH_SEED_KEY = 'rosh_hashanah_seeded_at';
 const DEFAULT_SHABBOS_CLOSE_DAYS_BEFORE = '3';
 const DEFAULT_SHABBOS_CLOSE_TIME = '23:59';
 
@@ -77,6 +83,7 @@ function isMenuEnabled(settings, enabledKey, pausedUntilKey, now) {
 const legacyMenu = require('../data/shabbos-menu.json');
 const dairyMenu = require('../data/dairy-menu.json');
 const shavuosMenu = require('../data/shavuos-menu.json');
+const roshHashanahMenu = require('../data/rosh-hashanah-menu.json');
 const legacyShavuosSauceVariantTitles = [
   'Penne Alla Vodka Sauce - 1 Litre',
   'Penne Alla Vodka Sauce - 500 ml',
@@ -161,7 +168,11 @@ async function seedDairyMenu() {
           sold_by = CASE WHEN COALESCE(sold_by, '') = '' THEN ${item.soldBy || ''} ELSE sold_by END,
           qty_label = CASE WHEN COALESCE(qty_label, '') = '' THEN ${item.qtyLabel || 'Order Qty'} ELSE qty_label END,
           menu_tags = CASE
-            WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['dairy']::text[]
+            -- NULL/empty means "Shabbos" by the legacy convention (the Shabbos
+            -- query matches shabbos-tagged OR NULL). Writing only 'dairy' here
+            -- would silently drop the product off the Shabbos menu — that is
+            -- exactly what took the live menu down on 2026-08-17.
+            WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['shabbos', 'dairy']::text[]
             WHEN NOT ('dairy' = ANY(menu_tags)) THEN array_append(menu_tags, 'dairy')
             ELSE menu_tags
           END
@@ -209,7 +220,9 @@ async function seedShavuosMenu() {
             ELSE variants
           END,
           menu_tags = CASE
-            WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['shavuos']::text[]
+            -- See the note in seedDairyMenu: NULL means Shabbos, so it must be
+            -- made explicit rather than overwritten.
+            WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['shabbos', 'shavuos']::text[]
             WHEN NOT ('shavuos' = ANY(menu_tags)) THEN array_append(menu_tags, 'shavuos')
             ELSE menu_tags
           END
@@ -237,6 +250,87 @@ async function seedShavuosMenu() {
   await removeLegacyShavuosSauceVariantRows();
 }
 
+// RETIRED — do not call this, and do not reinstate it.
+//
+// The Rosh Hashanah menu is now owned by migrations/0013, which creates its own
+// products (slug prefix `rh26-`) with proper half/full pan variants.
+//
+// This seeder tagged existing Shabbos products as Rosh Hashanah, and because a
+// NULL menu_tags means "Shabbos" by the legacy convention, writing a tag onto
+// those rows silently removed ~60 products from the Shabbos menu and 404'd every
+// /shabbos/<category> page. Kept here only so that history is legible.
+// eslint-disable-next-line no-unused-vars
+async function seedRoshHashanahMenu() {
+  if (!Array.isArray(roshHashanahMenu)) return;
+
+  const marker = await sql`
+    SELECT value FROM site_settings WHERE key = ${ROSH_HASHANAH_SEED_KEY};
+  `;
+  if (marker.rows.length > 0 && marker.rows[0].value) return;
+
+  for (const category of roshHashanahMenu) {
+    const categoryName = category?.category || 'Uncategorized';
+    const items = Array.isArray(category?.items) ? category.items : [];
+    for (const item of items) {
+      const title = item?.title || '';
+      if (!title) continue;
+      const variants = normalizeProductVariants(item?.variants);
+      const needsReview = item?.needsPriceReview === true;
+
+      // Existing products keep their staff-set price, description and photo —
+      // this only appends the tag so they appear on the Rosh Hashanah menu.
+      const updated = await sql`
+        UPDATE products
+        SET
+          description = CASE WHEN COALESCE(description, '') = '' THEN ${item.description || ''} ELSE description END,
+          price = CASE WHEN COALESCE(price, 0) = 0 THEN ${Number(item.price) || 0} ELSE price END,
+          sold_by = CASE WHEN COALESCE(sold_by, '') = '' THEN ${item.soldBy || ''} ELSE sold_by END,
+          qty_label = CASE WHEN COALESCE(qty_label, '') = '' THEN ${item.qtyLabel || 'Order Qty'} ELSE qty_label END,
+          image_url = CASE WHEN COALESCE(image_url, '') = '' THEN ${item.image || ''} ELSE image_url END,
+          variants = CASE
+            WHEN variants IS NULL OR variants = '[]'::jsonb THEN ${JSON.stringify(variants)}::jsonb
+            ELSE variants
+          END,
+          menu_tags = CASE
+            -- A NULL/empty menu_tags means Shabbos by the legacy convention:
+            -- the Shabbos query matches products tagged shabbos OR tagged NULL.
+            -- Writing only rosh-hashanah here would silently drop the product
+            -- off the Shabbos menu, so Shabbos must be made explicit.
+            WHEN menu_tags IS NULL OR cardinality(menu_tags) = 0 THEN ARRAY['shabbos', 'rosh-hashanah']::text[]
+            WHEN NOT ('rosh-hashanah' = ANY(menu_tags)) THEN array_append(menu_tags, 'rosh-hashanah')
+            ELSE menu_tags
+          END
+        WHERE category = ${categoryName}
+          AND title = ${title};
+      `;
+      if ((updated.rowCount || 0) > 0) continue;
+
+      await sql`
+        INSERT INTO products (category, title, description, price, sold_by, qty_label, image_url, variants, menu_tags, needs_price_review, active)
+        VALUES (
+          ${categoryName},
+          ${title},
+          ${item.description || ''},
+          ${Number(item.price) || 0},
+          ${item.soldBy || ''},
+          ${item.qtyLabel || 'Order Qty'},
+          ${item.image || ''},
+          ${JSON.stringify(variants)}::jsonb,
+          ARRAY['rosh-hashanah']::text[],
+          ${needsReview},
+          ${!needsReview}
+        );
+      `;
+    }
+  }
+
+  await sql`
+    INSERT INTO site_settings (key, value, updated_at)
+    VALUES (${ROSH_HASHANAH_SEED_KEY}, ${new Date().toISOString()}, now())
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now();
+  `;
+}
+
 function formatPublicSettings(settings) {
   const now = new Date();
   const rawShabbosCloseDays = settings.shabbos_close_days_before;
@@ -258,6 +352,9 @@ function formatPublicSettings(settings) {
     dairy_disabled_until: settings.dairy_disabled_until || '',
     shavuos_open_time: settings.shavuos_open_time || '',
     shavuos_cutoff_time: settings.shavuos_cutoff_time || '',
+    rosh_hashanah_enabled: settings.rosh_hashanah_enabled !== false,
+    rosh_hashanah_open_time: settings.rosh_hashanah_open_time || '',
+    rosh_hashanah_cutoff_time: settings.rosh_hashanah_cutoff_time || '',
     shabbos_close_days_before: shabbosCloseDaysBefore,
     shabbos_close_time: shabbosCloseTime
   };
@@ -302,6 +399,8 @@ module.exports = async (req, res) => {
       await seedLegacyMenu();
       await seedDairyMenu();
       await seedShavuosMenu();
+      // Rosh Hashanah is no longer seeded from JSON — migrations/0013 owns that
+      // menu. See the note on seedRoshHashanahMenu below.
       let menu = '';
       if (url) {
         menu = (url.searchParams.get('menu') || '').trim().toLowerCase();
@@ -310,7 +409,7 @@ module.exports = async (req, res) => {
       if (menu) {
         if (menu === 'shabbos') {
           const result = await sql`
-            SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags
+            SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags, needs_price_review
             FROM products
             WHERE active AND (menu_tags @> ARRAY['shabbos']::text[] OR menu_tags IS NULL)
             ORDER BY id;
@@ -318,16 +417,24 @@ module.exports = async (req, res) => {
           rows = result.rows;
         } else {
           const result = await sql`
-            SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags
+            SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags, needs_price_review
             FROM products
             WHERE active AND menu_tags @> ARRAY[${menu}]::text[]
             ORDER BY id;
           `;
           rows = result.rows;
         }
+      } else if (requireAdminKey(req)) {
+        // Include inactive seasonal drafts in the authenticated admin catalog.
+        const result = await sql`
+          SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags, needs_price_review
+          FROM products
+          ORDER BY id;
+        `;
+        rows = result.rows;
       } else {
         const result = await sql`
-          SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags
+          SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, active, menu_tags, needs_price_review
           FROM products
           WHERE active
           ORDER BY id;
@@ -352,6 +459,7 @@ module.exports = async (req, res) => {
           image: row.image_url || '',
           variants: normalizeProductVariants(row.variants),
           menuTags: row.menu_tags || [],
+          needsPriceReview: row.needs_price_review === true,
           active: row.active
         });
       });
@@ -421,7 +529,7 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'PUT') {
-    const { id, category, title, description, price, soldBy, qtyLabel, imageUrl, variants, menuTags, active } = body;
+    const { id, category, title, description, price, soldBy, qtyLabel, imageUrl, variants, menuTags, active, needsPriceReview } = body;
     if (!id) {
       res.status(400).send('Product id required');
       return;
@@ -438,6 +546,14 @@ module.exports = async (req, res) => {
     if (menuTags !== undefined) updates.push(sql`UPDATE products SET menu_tags = ${Array.isArray(menuTags) ? menuTags : []} WHERE id = ${id}`);
     if (active !== undefined) updates.push(sql`UPDATE products SET active = ${Boolean(active)} WHERE id = ${id}`);
 
+    // Confirming a price is the review. An explicit flag still wins, so admin
+    // can re-flag an item without changing what it costs.
+    if (needsPriceReview !== undefined) {
+      updates.push(sql`UPDATE products SET needs_price_review = ${Boolean(needsPriceReview)} WHERE id = ${id}`);
+    } else if (price !== undefined) {
+      updates.push(sql`UPDATE products SET needs_price_review = false WHERE id = ${id}`);
+    }
+
     if (!updates.length) {
       res.status(400).send('No product fields to update');
       return;
@@ -448,7 +564,7 @@ module.exports = async (req, res) => {
         await query;
       }
       const result = await sql`
-        SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, menu_tags, active
+        SELECT id, category, title, description, price, sold_by, qty_label, image_url, variants, menu_tags, active, needs_price_review
         FROM products
         WHERE id = ${id};
       `;

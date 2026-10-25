@@ -1,7 +1,10 @@
 const nodemailer = require('nodemailer');
 const { sql } = require('@vercel/postgres');
 const jwt = require('jsonwebtoken');
-const PDFDocument = require('pdfkit');
+// Loaded through the Next.js bundler now, which can hand back an ESM namespace
+// object with the constructor on `.default`. Plain Node returns it directly.
+const pdfkit = require('pdfkit');
+const PDFDocument = pdfkit.default || pdfkit;
 const Stripe = require('stripe');
 const fs = require('fs');
 const path = require('path');
@@ -247,6 +250,7 @@ function generatePdfBuffer(render) {
 
 function resolveLogoPath() {
   const candidates = [
+    path.join(process.cwd(), 'public', 'assets', 'logo.png'),
     path.join(process.cwd(), 'assets', 'logo.png'),
     path.resolve(__dirname, '../assets/logo.png'),
     path.resolve(__dirname, '..', 'assets', 'logo.png')
@@ -256,6 +260,8 @@ function resolveLogoPath() {
 
 function resolveUnicodeFontPath() {
   const candidates = [
+    path.join(process.cwd(), 'public', 'assets', 'fonts', 'NotoSans-Regular.ttf'),
+    path.join(process.cwd(), 'public', 'assets', 'fonts', 'DejaVuSans.ttf'),
     path.join(process.cwd(), 'assets', 'fonts', 'NotoSans-Regular.ttf'),
     path.join(process.cwd(), 'assets', 'fonts', 'DejaVuSans.ttf'),
     path.resolve(__dirname, '../assets/fonts/NotoSans-Regular.ttf'),
@@ -578,7 +584,9 @@ module.exports = async (req, res) => {
     pdfDataUrl = '',
     authToken = '',
     paymentIntentId = '',
-    cartId = ''
+    cartId = '',
+    orderWindowId = null,
+    userId = null
   } = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
 
   const user = process.env.GMAIL_USER;
@@ -636,7 +644,12 @@ module.exports = async (req, res) => {
     const insert = await sql`
       INSERT INTO orders (
         customer_name, customer_email, customer_phone, customer_address,
-        shabbos_label, allergies, total, items, email_body, html_body, status
+        shabbos_label, allergies, total, items, email_body, html_body, status,
+        -- Both were previously left NULL on every order. Without the window
+        -- the admin cannot tell which Shabbos an order belongs to, so its
+        -- per-window counts and revenue read zero; without the account, a
+        -- customer's history only matched on the email they happened to type.
+        order_window_id, user_id
       ) VALUES (
         ${normalizedCustomer?.name || ''},
         ${normalizedCustomer?.email || userEmailFromToken || ''},
@@ -648,7 +661,9 @@ module.exports = async (req, res) => {
         ${JSON.stringify(items || [])},
         ${emailBody || ''},
         ${htmlBody || ''},
-        'new'
+        'new',
+        ${Number(orderWindowId) || null},
+        ${Number(userId) || null}
       )
       RETURNING id, order_number
     `;

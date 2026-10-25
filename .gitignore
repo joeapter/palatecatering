@@ -1,4 +1,15 @@
-.vercel
+# dependencies
 node_modules/
+
+# Next.js build output
+.next/
+out/
+next-env.d.ts.bak
+*.tsbuildinfo
+
+# Vercel / local env (never commit secrets)
+.vercel
+.env*
+!.env.example
+
 .DS_Store
-.env*.local
