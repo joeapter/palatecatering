@@ -457,6 +457,12 @@ async function syncCookItems(orderId: number, priced: PricedItem[], orderNote: s
  * Carries `order_id` in metadata, which is what the webhook already reads to
  * mark the order paid — the same contract the old admin used, so a link created
  * here settles exactly like one created there.
+ *
+ * A link can also be billed in US dollars, for customers paying with an
+ * American card. The order's shekel total is not converted — staff type the
+ * dollar amount they quoted, and may name the line ("Office Party") so the
+ * customer recognises what they are paying for. The Stripe account is Canadian
+ * and pays out in USD, so a dollar charge lands without a currency conversion.
  */
 async function paymentLink(body: Record<string, unknown>) {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -466,30 +472,43 @@ async function paymentLink(body: Record<string, unknown>) {
   if (!orderId) return NextResponse.json({ error: "Unknown order." }, { status: 400 });
 
   const { rows } = await sql`
-    SELECT id, order_number, total, items, customer_email, shabbos_label
+    SELECT id, order_number, total, items, customer_email, shabbos_label, pending_payment_link
     FROM orders WHERE id = ${orderId} AND COALESCE(is_deleted,false) = false LIMIT 1;
   `;
   const order = rows[0];
   if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
 
-  const amount = Math.round(Number(String(order.total).replace(/[^0-9.]/g, "")) * 100);
-  if (!amount) return NextResponse.json({ error: "That order has no amount to charge." }, { status: 400 });
+  const currency = body.currency === "usd" ? "usd" : "ils";
+  let amount: number;
+  if (currency === "usd") {
+    amount = Math.round(Number(String(body.amount ?? "").replace(/[^0-9.]/g, "")) * 100);
+    // Stripe's floor for a dollar charge is 50 cents; the ceiling only catches
+    // a slipped finger.
+    if (!amount || amount < 50) return NextResponse.json({ error: "Enter the amount in dollars (at least $0.50)." }, { status: 400 });
+    if (amount > 10_000_000) return NextResponse.json({ error: "That amount is too large for one link." }, { status: 400 });
+  } else {
+    amount = Math.round(Number(String(order.total).replace(/[^0-9.]/g, "")) * 100);
+    if (!amount) return NextResponse.json({ error: "That order has no amount to charge." }, { status: 400 });
+  }
+
+  const defaultName = `Palate order #${order.order_number}${order.shabbos_label ? ` · ${order.shabbos_label}` : ""}`;
+  const name = clean(body.itemName, 120) || defaultName;
 
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const link = await stripe.paymentLinks.create({
       line_items: [{
         price_data: {
-          currency: "ils",
+          currency,
           unit_amount: amount,
           // One line for the order rather than itemising: the customer has
           // already agreed the total, and an itemised link invites disputes
           // about a price they were quoted differently.
-          product_data: { name: `Palate order #${order.order_number}${order.shabbos_label ? ` · ${order.shabbos_label}` : ""}` },
+          product_data: { name },
         },
         quantity: 1,
       }],
-      metadata: { order_id: String(order.id) },
+      metadata: { order_id: String(order.id), billed_currency: currency, billed_amount: (amount / 100).toFixed(2) },
       after_completion: {
         type: "redirect",
         redirect: { url: "https://www.palatecateringisrael.com/thank-you" },
@@ -502,7 +521,12 @@ async function paymentLink(body: Record<string, unknown>) {
           status = CASE WHEN status = 'awaiting_payment' THEN 'payment_link_sent' ELSE status END
       WHERE id = ${order.id};
     `;
-    return NextResponse.json({ ok: true, url: link.url });
+    // Only one link per order can be live, so a customer sent a shekel link and
+    // then a dollar one cannot pay both.
+    if (order.pending_payment_link && order.pending_payment_link !== link.id) {
+      await cancelPaymentLink(String(order.pending_payment_link));
+    }
+    return NextResponse.json({ ok: true, url: link.url, currency, amount: amount / 100, name });
   } catch (error) {
     console.error("Payment link failed", error);
     return NextResponse.json({ error: "That payment link could not be created." }, { status: 500 });

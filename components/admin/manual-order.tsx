@@ -91,6 +91,12 @@ export function ManualOrder({ windows, existing }: { windows: OrderWindow[]; exi
   const [error, setError] = useState("");
   const [done, setDone] = useState<{ id: number; orderNumber: number; total: number; paymentLinkCancelled?: boolean; cookItemsUpdated?: number } | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
+  // Payment links default to shekels; dollars are for American cards, with the
+  // amount typed in because the order's shekel total is not converted.
+  const [linkCurrency, setLinkCurrency] = useState<"ils" | "usd">("ils");
+  const [linkName, setLinkName] = useState("");
+  const [linkAmount, setLinkAmount] = useState("");
+  const [linkLabel, setLinkLabel] = useState("");
   const installed = useInstalledApp();
 
   // The storefront endpoint only ever served Shabbos, which is why a Rosh
@@ -237,11 +243,16 @@ export function ManualOrder({ windows, existing }: { windows: OrderWindow[]; exi
     try {
       const response = await fetch("/api/admin/manual-order", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: "paymentLink", orderId: done.id }),
+        body: JSON.stringify({
+          action: "paymentLink", orderId: done.id, currency: linkCurrency,
+          itemName: linkName.trim() || undefined,
+          amount: linkCurrency === "usd" ? linkAmount : undefined,
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "That link could not be created.");
       setLinkUrl(data.url);
+      setLinkLabel(`${data.currency === "usd" ? "$" : "₪"}${Number(data.amount).toFixed(2)}${data.currency === "usd" ? " USD" : ""} · ${data.name}`);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "That link could not be created.");
     } finally {
@@ -280,15 +291,59 @@ export function ManualOrder({ windows, existing }: { windows: OrderWindow[]; exi
             {paymentMethod === "unpaid" ? "Print invoice" : "Print receipt"}
           </PrintLink>
           {paymentMethod === "unpaid" && (
-            <button onClick={createLink} disabled={busy} className="focus-ring rounded-full border-2 border-ink px-4 py-3.5 text-sm font-bold disabled:opacity-50">
-              {busy ? "Creating…" : "Create a payment link"}
+            <button onClick={createLink} disabled={busy || (linkCurrency === "usd" && !(Number(linkAmount) > 0))} className="focus-ring rounded-full border-2 border-ink px-4 py-3.5 text-sm font-bold disabled:opacity-50">
+              {busy ? "Creating…" : linkCurrency === "usd" ? "Create a USD payment link" : "Create a payment link"}
             </button>
           )}
         </div>
 
+        {paymentMethod === "unpaid" && (
+          <div className="mt-4 rounded-xl border border-ink/10 p-3">
+            <p className="text-xs font-bold tracking-wider text-clay uppercase">Payment link options</p>
+            <div className="mt-2 flex gap-2">
+              {(["ils", "usd"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setLinkCurrency(value)}
+                  className={`focus-ring rounded-full px-4 py-2 text-xs font-bold ${linkCurrency === value ? "bg-ink text-white" : "border border-ink/20"}`}
+                >
+                  {value === "ils" ? `₪ Shekels (₪${done.total.toFixed(2)})` : "$ US dollars"}
+                </button>
+              ))}
+            </div>
+            <label className="mt-3 block text-xs font-semibold">
+              Item name on the bill
+              <input
+                value={linkName}
+                onChange={(event) => setLinkName(event.target.value)}
+                placeholder={`Palate order #${done.orderNumber}`}
+                maxLength={120}
+                className="focus-ring mt-1 w-full rounded-xl border border-ink/15 px-3 py-2.5 text-sm"
+              />
+            </label>
+            {linkCurrency === "usd" && (
+              <label className="mt-3 block text-xs font-semibold">
+                Amount in US dollars
+                <input
+                  value={linkAmount}
+                  onChange={(event) => setLinkAmount(event.target.value)}
+                  inputMode="decimal"
+                  placeholder="e.g. 1250"
+                  className="focus-ring mt-1 w-full rounded-xl border border-ink/15 px-3 py-2.5 text-sm"
+                />
+                <span className="mt-1 block text-[11px] font-normal text-ink/55">
+                  Charged exactly as typed — the shekel total is not converted.
+                </span>
+              </label>
+            )}
+          </div>
+        )}
+
         {linkUrl && (
           <div className="mt-4 rounded-xl bg-cream p-3">
             <p className="text-xs font-bold tracking-wider text-clay uppercase">Payment link</p>
+            {linkLabel && <p className="mt-1 text-xs font-semibold">{linkLabel}</p>}
             <p className="mt-1 text-xs break-all">{linkUrl}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={() => navigator.clipboard?.writeText(linkUrl)} className="focus-ring rounded-full border border-ink/20 px-4 py-2.5 text-xs font-bold">Copy</button>
@@ -302,7 +357,7 @@ export function ManualOrder({ windows, existing }: { windows: OrderWindow[]; exi
                 </a>
               )}
             </div>
-            <p className="mt-2 text-[11px] text-ink/55">When they pay, the order is marked paid automatically.</p>
+            <p className="mt-2 text-[11px] text-ink/55">When they pay, the order is marked paid automatically. Creating another link turns this one off.</p>
           </div>
         )}
 
@@ -316,7 +371,7 @@ export function ManualOrder({ windows, existing }: { windows: OrderWindow[]; exi
           {existing ? (
             <a href="/admin/orders" className="focus-ring text-xs font-bold underline">Back to orders</a>
           ) : (
-            <button onClick={() => { setDone(null); setRows([]); setLinkUrl(""); setCustomer({ name: "", phone: "", email: "", address: "" }); }} className="focus-ring text-xs font-bold underline">
+            <button onClick={() => { setDone(null); setRows([]); setLinkUrl(""); setLinkLabel(""); setLinkName(""); setLinkAmount(""); setLinkCurrency("ils"); setCustomer({ name: "", phone: "", email: "", address: "" }); }} className="focus-ring text-xs font-bold underline">
               Take another order
             </button>
           )}
