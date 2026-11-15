@@ -11,6 +11,7 @@ export type MenuTag = { tag: string; label: string };
 
 export const MENUS: MenuTag[] = [
   { tag: "shabbos", label: "Shabbos" },
+  { tag: "chanukah", label: "Chanukah" },
   { tag: "sukkos", label: "Sukkos" },
   { tag: "rosh-hashanah", label: "Rosh Hashanah" },
   { tag: "dairy", label: "Dairy" },

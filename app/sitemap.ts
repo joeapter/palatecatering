@@ -22,8 +22,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/shabbos`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/packages`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/holidays`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/holidays/sukkos`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/holidays/chanukah`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     // Out of season, kept in the map so the URL keeps its standing for next year.
+    { url: `${BASE}/holidays/sukkos`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BASE}/holidays/rosh-hashanah`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BASE}/dairy`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/catering`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },

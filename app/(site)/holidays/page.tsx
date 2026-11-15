@@ -18,14 +18,14 @@ export const metadata: Metadata = {
  */
 const HOLIDAYS = [
   {
-    slug: "sukkos",
-    name: "Sukkos",
-    when: "September–October",
-    blurb: "Salatim, soup, salmon, brisket and kugels for the succah — yom tov and chol hamoed.",
+    slug: "chanukah",
+    name: "Chanukah",
+    when: "December",
+    blurb: "Potato and sweet potato latkes, the Ultimate Latke Platter, empanadas and egg rolls for the eight nights.",
     live: true,
   },
   { slug: "rosh-hashanah", name: "Rosh Hashanah", when: "September", blurb: "Simanim, round challah, fish, soup and brisket. Ordering opens again next Elul.", live: false },
-  { slug: "chanukah", name: "Chanukah", when: "December", blurb: "Parties, latkes and platters for the eight nights.", live: false },
+  { slug: "sukkos", name: "Sukkos", when: "September–October", blurb: "Salatim, soup, salmon, brisket and kugels for the succah — yom tov and chol hamoed.", live: false },
   { slug: "purim", name: "Purim", when: "March", blurb: "Seudah spreads and mishloach manos platters.", live: false },
   { slug: "pesach", name: "Pesach", when: "April", blurb: "Kosher for Pesach cooking, seder to last days.", live: false },
   { slug: "shavuos", name: "Shavuos", when: "May–June", blurb: "The dairy menu — lasagna, quiches, cheesecake.", live: false },
