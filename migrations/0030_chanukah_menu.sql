@@ -66,6 +66,7 @@ UPDATE order_windows SET active = false WHERE slug = 'sukkos-2026';
 UPDATE hero_slides
 SET eyebrow = 'Chanukah',
     headline = 'Eight nights, the latkes already fried.',
+    body = 'The Chanukah takeout menu is open — classic and sweet potato latkes, the Ultimate Latke Platter, beef empanadas and egg rolls.',
     cta_label = 'See the Chanukah menu',
     cta_href = '/holidays/chanukah'
 WHERE cta_href = '/holidays/sukkos';
