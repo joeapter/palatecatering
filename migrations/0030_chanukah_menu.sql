@@ -1,4 +1,4 @@
--- The Chanukah 2026 takeout menu.
+-- The Chanukah 2026 takeout menu opens, and Sukkos closes for the year.
 --
 -- Every item, size and price below is transcribed from the menu as sent by the
 -- owner. Products are tagged `chanukah` and slugged `chan26-`, the way the
@@ -56,6 +56,10 @@ JOIN products p ON p.title = m.title AND p.menu_tags @> ARRAY['chanukah']::text[
 WHERE NOT EXISTS (
   SELECT 1 FROM product_variants v WHERE v.product_id = p.id AND v.label = m.sold_by
 );
+
+-- Sukkos is over. Its window closes so nothing can be ordered against it; the
+-- dishes themselves are left alone, ready for next year, as Rosh Hashanah's were.
+UPDATE order_windows SET active = false WHERE slug = 'sukkos-2026';
 
 -- The home page still leads with Sukkos, which is long over. Point it at the
 -- menu that is actually open.

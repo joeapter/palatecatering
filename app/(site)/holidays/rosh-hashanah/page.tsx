@@ -53,14 +53,14 @@ export default function RoshHashanahPage() {
       <section className="px-6 pb-24 lg:px-10">
         <div className="mx-auto max-w-2xl text-center">
           <p className="leading-8 text-ink/70">
-            Rosh Hashanah ordering has closed for this year. The kitchen is on Sukkos now —
-            the same salatim, soups, salmon, brisket and kugels, cooked for the succah.
+            Rosh Hashanah ordering has closed for this year. The kitchen is on Chanukah now —
+            latkes, the Ultimate Latke Platter, empanadas and egg rolls for the eight nights.
           </p>
           <Link
-            href="/holidays/sukkos"
+            href="/holidays/chanukah"
             className="focus-ring mt-8 inline-block rounded-full bg-ink px-7 py-4 text-sm font-bold text-white"
           >
-            See the Sukkos menu
+            See the Chanukah menu
           </Link>
           <p className="mt-8 text-sm leading-7 text-ink/55">
             Cooking for a simcha, or want next year&rsquo;s menu held for you? Call{" "}
