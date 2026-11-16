@@ -31,6 +31,31 @@ function Pomegranate() {
 }
 
 /**
+ * A badge beside the dish name, sized to be read at a glance rather than as fine
+ * print. "Dairy" gets the kosher kitchen's blue and a milk drop, so a dairy dish
+ * on an otherwise meat menu cannot be missed; anything else is a neutral pill.
+ */
+function MenuBadge({ label }: { label: string }) {
+  const dairy = label.trim().toLowerCase() === "dairy";
+  return (
+    <span
+      className={
+        dairy
+          ? "inline-flex items-center gap-1.5 rounded-full bg-[#1f5fa8] px-3 py-1 text-xs font-bold tracking-[.12em] text-white uppercase"
+          : "inline-flex items-center rounded-full border border-ink/25 bg-white px-3 py-1 text-xs font-bold tracking-[.12em] text-ink uppercase"
+      }
+    >
+      {dairy && (
+        <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 fill-current">
+          <path d="M12 2.5c-.3 0-.6.2-.8.4C9.6 5.1 5.5 10.6 5.5 14.5a6.5 6.5 0 0 0 13 0c0-3.9-4.1-9.4-5.7-11.6-.2-.2-.5-.4-.8-.4z" />
+        </svg>
+      )}
+      {label}
+    </span>
+  );
+}
+
+/**
  * Price, then an explicit quantity box and Add button. Adding on a click of the
  * price was too easy to trigger by accident, and gave no way to order two of
  * something without clicking twice.
@@ -184,9 +209,12 @@ export function HolidayMenu({ categories }: { categories: StorefrontCategory[] }
                     <div className="flex min-w-56 flex-1 gap-3">
                       <Pomegranate />
                       <div>
-                        <h3 className="text-sm font-bold tracking-[.06em] text-ink uppercase sm:text-base">
-                          {product.title}
-                        </h3>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                          <h3 className="text-sm font-bold tracking-[.06em] text-ink uppercase sm:text-base">
+                            {product.title}
+                          </h3>
+                          {product.badge && <MenuBadge label={product.badge} />}
+                        </div>
                         {product.description && (
                           <p className="mt-1 max-w-md text-sm leading-6 text-ink/60">
                             {product.description}
