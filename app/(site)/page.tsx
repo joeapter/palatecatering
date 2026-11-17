@@ -6,6 +6,7 @@ import { getHeroSlides, getWeeklyRecommendations } from "@/lib/storefront/mercha
 import { HeroSlider } from "@/components/hero-slider";
 import { ProductCard } from "@/components/product-card";
 import { Testimonials } from "@/components/testimonials";
+import { ChanukahPromo, chanukahPromoIsLive } from "@/components/chanukah-promo";
 
 export const revalidate = 300;
 
@@ -14,6 +15,7 @@ export default async function Home() {
   const featured = catalog.filter((category) => ["salatim", "fish", "chicken", "meat", "sides", "salads"].includes(category.slug)).slice(0, 6);
   return (
     <main>
+      {chanukahPromoIsLive() && <ChanukahPromo />}
       <HeroSlider slides={slides} />
       {/*
       <section className="grid min-h-[720px] bg-ink text-white lg:grid-cols-[.9fr_1.1fr]">
